@@ -116,7 +116,26 @@ export default function UnityDreamPortal() {
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/logo.png';
                 }}
-              />
+              />{/* লোগো ও ব্র্যান্ড পরিচয় */}
+<div className="flex items-center gap-3">
+  <img 
+    src="/logo.jpg" 
+    alt="Unity Dream Properties Logo" 
+    className="h-12 w-auto object-contain rounded"
+    onError={(e) => {
+      // যদি logo.jpg না পায়, তবে logo.png লোড করার চেষ্টা করবে
+      (e.target as HTMLImageElement).src = '/logo.png';
+    }}
+  />
+  <div>
+    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
+      UNITY DREAM PROPERTIES
+    </h1>
+    <p className="text-xs font-semibold text-emerald-700">
+      পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার ও ERP সিস্টেম
+    </p>
+  </div>
+</div>
               <div>
                 <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
                   UNITY DREAM PROPERTIES
