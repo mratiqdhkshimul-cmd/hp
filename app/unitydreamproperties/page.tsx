@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-// প্রজেক্ট তালিকা (ঢাকা ওয়েস্টার্ন ভ্যালি প্রথমে সেট করা)
+// প্রজেক্ট তালিকা (ঢাকা ওয়েস্টার্ন ভ্যালি প্রথমে)
 const initialProjects = [
   {
     id: 1,
@@ -78,140 +78,152 @@ const initialProjects = [
   }
 ];
 
+// কোম্পানির প্রাতিষ্ঠানিক হায়ারার্কি প্রটোকল ও কমিশন হার
+const companyHierarchy = [
+  { role: 'Agent', bn: 'এজেন্ট', rate: 0.03, override: 0 },
+  { role: 'Business Partner', bn: 'বিজনেস পার্টনার', rate: 0.05, override: 0.01 },
+  { role: 'AGM', bn: 'সহকারী মহাব্যবস্থাপক (AGM)', rate: 0.06, override: 0.015 },
+  { role: 'DGM', bn: 'উপ-মহাব্যবস্থাপক (DGM)', rate: 0.07, override: 0.02 },
+  { role: 'GM', bn: 'মহাব্যবস্থাপক (GM)', rate: 0.08, override: 0.025 },
+  { role: 'Deputy Director', bn: 'ডেপুটি ডিরেক্টর', rate: 0.09, override: 0.03 },
+  { role: 'Director', bn: 'ডিরেক্টর', rate: 0.10, override: 0.035 },
+  { role: 'Managing Director', bn: 'ম্যানেজিং ডিরেক্টর', rate: 0.11, override: 0.04 },
+  { role: 'Chairman', bn: 'চেয়ারম্যান', rate: 0.12, override: 0.05 },
+];
+
 export default function UnityDreamPortal() {
+  // মেনু ও মোডাল স্টেট
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
+  const [registerType, setRegisterType] = useState<'individual' | 'company'>('individual');
+  
+  // ইউজার ও অথেন্টিকেশন স্টেট (ডিফল্ট সুপার এডমিন সক্রিয়)
+  const [currentUser, setCurrentUser] = useState({
+    name: 'আতিকুর রহমান',
+    email: 'atiq@unitydream.com',
+    role: 'Super Admin',
+    isLoggedIn: true
+  });
+
+  // ERP ও হায়ারার্কিক্যাল লেজার স্টেট
   const [showLedger, setShowLedger] = useState(false);
-  const [salesAmount, setSalesAmount] = useState<number>(5000000);
-  const [selectedTier, setSelectedTier] = useState<string>('direct');
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [soldKatha, setSoldKatha] = useState<number>(5);
+  const [pricePerKatha, setPricePerKatha] = useState<number>(1450000);
+  const [selectedRole, setSelectedRole] = useState<string>('Business Partner');
 
-  // হায়ারার্কিক্যাল ইনকাম ও কমিশন হিসাব
-  const calculateCommission = (amount: number, tier: string) => {
-    switch (tier) {
-      case 'direct':
-        return amount * 0.05;
-      case 'team_leader':
-        return amount * 0.02;
-      case 'manager':
-        return amount * 0.01;
-      default:
-        return 0;
-    }
-  };
-
-  const commission = calculateCommission(salesAmount, selectedTier);
-
-  const handleSignOut = () => {
-    setIsLoggedIn(false);
-    alert('সফলভাবে সাইন আউট করা হয়েছে।');
-  };
-
-  const handleSignIn = () => {
-    setIsLoggedIn(true);
-  };
+  // হায়ারার্কিক্যাল ইনকাম ও লেজার ক্যালকুলেশন
+  const totalSalesAmount = soldKatha * pricePerKatha;
+  const currentHierarchy = companyHierarchy.find(h => h.role === selectedRole) || companyHierarchy[1];
+  const directCommission = totalSalesAmount * currentHierarchy.rate;
+  const teamOverrideCommission = totalSalesAmount * currentHierarchy.override;
+  const totalEarning = directCommission + teamOverrideCommission;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between relative">
+    <div className="min-h-screen bg-white text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ===================== ১. অরিজিনাল নেভিগেশন বার ===================== */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+      {/* ===================== ১. হেডার ও অরিজিনাল নেভিগেশন বার ===================== */}
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* একক ব্র্যান্ড লোগো ও টাইটেল */}
+            {/* লোগো ও ব্র্যান্ড নাম (এক লাইনে ও ডুপ্লিকেশন মুক্ত) */}
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.jpg" 
-                alt="Unity Dream Properties Logo" 
+                alt="Unity Dream Properties" 
                 className="h-12 w-auto object-contain rounded"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/logo.png';
                 }}
               />
-              <div>
-                <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900 leading-tight">
+              <div className="flex flex-col justify-center">
+                <span className="text-xl md:text-2xl font-black tracking-tight text-slate-900 whitespace-nowrap">
                   UNITY DREAM PROPERTIES
-                </h1>
-                <p className="text-xs font-semibold text-emerald-700">
-                  পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার ও ERP সিস্টেম
-                </p>
+                </span>
+                <span className="text-xs font-semibold text-emerald-700 tracking-wide">
+                  <span className="hidden sm:inline">BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:</span>
+                  <span className="sm:hidden">বিটিএম পার্টনার অফ PPL</span>
+                </span>
               </div>
             </div>
 
-            {/* আগের মূল নেভিগেশন লিঙ্কসমূহ */}
-            <nav className="hidden xl:flex items-center space-x-5 text-sm font-semibold text-slate-700">
+            {/* অরিজিনাল মেনু আইটেমসমূহ */}
+            <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
-              <a href="#for-sale" className="hover:text-emerald-600 transition-colors">For Sale</a>
-              <a href="#for-rent" className="hover:text-emerald-600 transition-colors">For Rent</a>
+              <a href="#for-sale" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Sale</a>
+              <a href="#for-rent" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Rent</a>
               <a href="#roommates" className="hover:text-emerald-600 transition-colors">Roommates</a>
               <a href="#developers" className="hover:text-emerald-600 transition-colors">Developers</a>
               <a href="#jobs" className="hover:text-emerald-600 transition-colors">Jobs</a>
               <a href="#blog" className="hover:text-emerald-600 transition-colors">Blog</a>
-              <a href="#erp" className="hover:text-emerald-600 transition-colors">ERP Module</a>
             </nav>
 
-            {/* ইউজার স্টেটাস, সাইন আউট ও বাটনস */}
-            <div className="flex items-center gap-3">
-              <a 
-                href="tel:+8801681196700" 
-                className="hidden md:flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200"
-              >
-                <span>📞</span> +880 1681-196700
-              </a>
-
-              {isLoggedIn ? (
-                <div className="flex items-center gap-3 border-l pl-3 border-gray-200">
-                  <div className="flex flex-col text-right">
-                    <span className="text-xs font-bold text-slate-900">আতিকুর রহমান</span>
-                    <span className="text-[10px] text-emerald-700 font-medium">Developer & Super Admin</span>
-                  </div>
-                  <button 
-                    onClick={handleSignOut}
-                    className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-2.5 py-1.5 rounded transition-colors"
-                    title="Sign Out from Super Admin"
-                  >
-                    সাইন আউট
-                  </button>
-                </div>
-              ) : (
+            {/* My Account ড্রপডাউন ও ইউজার কন্ট্রোল */}
+            <div className="relative flex items-center gap-3">
+              
+              <div className="relative">
                 <button 
-                  onClick={handleSignIn}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 px-3.5 py-2 rounded-md border border-slate-300 text-xs font-bold transition-colors"
                 >
-                  লগইন
+                  <span>My account</span>
+                  <span className="text-[10px]">▼</span>
                 </button>
-              )}
 
-              <button className="bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-md shadow transition-colors">
-                POST AD FREE
-              </button>
+                {/* My Account ড্রপডাউন মেনু */}
+                {accountMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 text-xs">
+                    {currentUser.isLoggedIn ? (
+                      <>
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="font-bold text-slate-900">{currentUser.name}</p>
+                          <p className="text-[11px] text-emerald-600 font-semibold">{currentUser.role}</p>
+                          <p className="text-[10px] text-gray-400">{currentUser.email}</p>
+                        </div>
+                        <button 
+                          onClick={() => { setShowLedger(true); setAccountMenuOpen(false); }}
+                          className="w-full text-left px-4 py-2 hover:bg-emerald-50 text-slate-700 font-medium"
+                        >
+                          📊 ERP লেজার ও হিসাব
+                        </button>
+                        <button 
+                          onClick={() => { 
+                            setCurrentUser({ ...currentUser, isLoggedIn: false }); 
+                            setAccountMenuOpen(false); 
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100"
+                        >
+                          🚪 Sign Out (সাইন আউট)
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => { setAuthModal('login'); setAccountMenuOpen(false); }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-800 flex items-center gap-2 font-semibold"
+                        >
+                          <span>👤</span> Login
+                        </button>
+                        <button 
+                          onClick={() => { setAuthModal('register'); setAccountMenuOpen(false); }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-800 flex items-center gap-2 font-semibold"
+                        >
+                          <span>📝</span> Create Account
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
             </div>
 
           </div>
         </div>
       </header>
 
-      {/* ===================== ২. ম্যানেজমেন্ট ও ডিরেক্টর সেকশন ===================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 w-full">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center font-bold text-sm">
-              MD
-            </div>
-            <div>
-              <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Managing Director</div>
-              <h3 className="text-base font-bold text-slate-900">Engr. Md Mustafizur Rahman Rashid</h3>
-            </div>
-          </div>
-          <div className="text-xs text-slate-600">
-            <span className="bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200 font-medium inline-block">
-              Pushpodhara Properties Ltd. & Sister Concerns
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== ৩. সেন্ট্রাল ক্লাউড ERP ব্যানার ও লেজার ===================== */}
-      <section id="erp" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+      {/* ===================== ২. সেন্ট্রাল ক্লাউড ERP ও হায়ারার্কি লেজার ===================== */}
+      <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
@@ -234,61 +246,88 @@ export default function UnityDreamPortal() {
               >
                 <span>{showLedger ? 'লেজার বন্ধ করুন' : 'হায়ারার্কিক্যাল ইনকাম ও লেজার দেখুন'}</span>
               </button>
-              <span className="bg-amber-400 text-slate-950 text-xs font-bold px-3 py-2 rounded-lg">
-                Master ERP Live
-              </span>
             </div>
           </div>
 
-          {/* হায়ারার্কিক্যাল কমিশন ও একাউন্টিং মডিউল */}
+          {/* হায়ারার্কিক্যাল একাউন্টিং ও ইনকাম লেজার সিমুলেটর */}
           {showLedger && (
-            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/60 p-5 rounded-xl">
-              <h3 className="text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
-                📊 পার্টনার হায়ারার্কিক্যাল কমিশন ও একাউন্টিং লেজার সিমুলেটর
-              </h3>
+            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/70 p-5 rounded-xl">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                <h3 className="text-sm md:text-base font-bold text-amber-400">
+                  📊 প্রাতিষ্ঠানিক হায়ারার্কি ভিত্তিক কাঠা সেলস ও ইনকাম লেজার
+                </h3>
+                <span className="text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded">
+                  ERP Live Sync Active
+                </span>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                {/* কাঠা সংখ্যা */}
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">মোট বিক্রয় মূল্য (টাকা)</label>
+                  <label className="text-xs text-slate-400 block mb-1">বিক্রিত মোট জমির পরিমাণ</label>
+                  <div className="flex items-center">
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={soldKatha}
+                      onChange={(e) => setSoldKatha(Math.max(1, Number(e.target.value)))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 font-bold"
+                    />
+                    <span className="ml-2 text-xs text-slate-400 whitespace-nowrap">কাঠা</span>
+                  </div>
+                </div>
+
+                {/* কাঠা প্রতি রেট */}
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">প্রতি কাঠার প্যাকেজ রেট (টাকা)</label>
                   <input 
                     type="number" 
-                    value={salesAmount}
-                    onChange={(e) => setSalesAmount(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    value={pricePerKatha}
+                    onChange={(e) => setPricePerKatha(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 font-bold"
                   />
                 </div>
+
+                {/* হায়ারার্কি পদবী নির্ধারণ */}
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">পার্টনার স্তর / পদবী</label>
+                  <label className="text-xs text-slate-400 block mb-1">কোম্পানি প্রটোকল পদবী</label>
                   <select 
-                    value={selectedTier}
-                    onChange={(e) => setSelectedTier(e.target.value)}
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="direct">সরাসরি পার্টনার (Direct Sales - 5%)</option>
-                    <option value="team_leader">টিম লিডার (Team Override - 2%)</option>
-                    <option value="manager">ম্যানেজারিয়াল স্তর (Management Bonus - 1%)</option>
+                    {companyHierarchy.map((h) => (
+                      <option key={h.role} value={h.role}>
+                        {h.bn} ({h.rate * 100}%)
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div className="bg-slate-900/90 border border-emerald-500/30 rounded-lg p-3 flex flex-col justify-center">
-                  <span className="text-[11px] text-emerald-400 font-semibold uppercase">মোট প্রাপ্য ইনকাম / কমিশন</span>
-                  <span className="text-xl font-extrabold text-white">
-                    {commission.toLocaleString('bn-BD')} ৳
+
+                {/* মোট ইনকাম ডিসপ্লে */}
+                <div className="bg-slate-900/90 border border-emerald-500/40 rounded-lg p-3 flex flex-col justify-center">
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                    মোট প্রাপ্য কমিশন ও ওভাররাইড
+                  </span>
+                  <span className="text-xl font-extrabold text-amber-400 mt-0.5">
+                    {Math.round(totalEarning).toLocaleString('bn-BD')} ৳
                   </span>
                 </div>
               </div>
 
-              <div className="text-xs text-slate-400 flex flex-wrap gap-4 pt-2 border-t border-slate-800">
-                <span>• রিয়েল-টাইম ক্লাউড সিংকিং সক্রিয়</span>
-                <span>• পুষ্পধারা সেন্ট্রাল ডাটাবেজ দ্বারা সংরক্ষিত</span>
-                <span>• অটোমেটেড ভ্যাট ও ট্যাক্স অ্যাডজাস্টমেন্ট সাপোর্ট</span>
+              {/* হিসাবের বিস্তারিত ব্রেকডাউন */}
+              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-800 text-xs text-slate-300 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>• মোট সেলস ভ্যালু: <strong>{totalSalesAmount.toLocaleString('bn-BD')} ৳</strong></div>
+                <div>• পদবীর বেসিক কমিশন: <strong>{directCommission.toLocaleString('bn-BD')} ৳ ({currentHierarchy.rate * 100}%)</strong></div>
+                <div>• টিম ওভাররাইড বোনাস: <strong>{teamOverrideCommission.toLocaleString('bn-BD')} ৳ ({currentHierarchy.override * 100}%)</strong></div>
               </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* ===================== ৪. প্রজেক্টস শোকেস সেকশন ===================== */}
-      <main id="projects" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      {/* ===================== ৩. প্রজেক্টস শোকেস সেকশন ===================== */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-2">
@@ -359,43 +398,25 @@ export default function UnityDreamPortal() {
 
       </main>
 
-      {/* ===================== ৫. ফুটার ও অফিস পরিচিতি ===================== */}
-      <footer id="contact" className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
+      {/* ===================== ৪. ফুটার সেকশন ===================== */}
+      <footer className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-8 border-b border-slate-800 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800 text-sm">
             <div>
-              <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES LTD.[cite: 1]</h4>
+              <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                পুষ্পধারা প্রপার্টিজ লিমিটেডের অফিশিয়াল স্ট্র্যাটেজিক মার্কেটিং ও সেলস পার্টনার। সেন্ট্রাল ক্লাউড ডাটাবেজ সমন্বিত রিয়েল এস্টেট সলিউশন।
-              </p>
-              <div className="mt-3">
-                <span className="text-xs text-slate-400 block">হটলাইন / মোবাইল:</span>
-                <a href="tel:+8801681196700" className="text-amber-400 font-bold text-sm hover:underline">
-                  +880 1681-196700
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <h5 className="text-white font-semibold text-sm mb-2">লিডারশিপ</h5>
-              <p className="text-xs text-slate-200 font-bold">Engr. Md Mustafizur Rahman Rashid</p>
-              <p className="text-xs text-emerald-400 font-medium">Managing Director</p>
-              <p className="text-[11px] text-slate-400 mt-1 leading-normal">
-                Pushpodhara Properties Ltd.
+                BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:। সেন্ট্রাল ক্লাউড ডাটাবেজ সমন্বিত রিয়েল এস্টেট ইআরপি সিস্টেম।
               </p>
             </div>
 
             <div>
               <h5 className="text-white font-semibold text-sm mb-2 flex items-center gap-1.5">
-                <span>📍</span> কর্পোরেট অফিস
+                <span>📍</span> কর্পোরেট হেড অফিস
               </h5>
               <p className="text-xs text-slate-300 leading-relaxed">
                 ৫/৬ আউটার সার্কুলার রোড, হোসাফ টাওয়ার (৪র্থ তলা),<br />
                 মালিবাগ মোড়, মালিবাগ, ঢাকা-১২১৭, বাংলাদেশ।
-              </p>
-              <p className="text-[11px] text-emerald-400 mt-1.5 font-mono">
-                5/6 Outer Circular Road, Hosaf Tower (4th floor), Malibag moor, Malibag, Dhaka-1217
               </p>
             </div>
 
@@ -409,7 +430,7 @@ export default function UnityDreamPortal() {
 
           <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
             <p className="text-slate-400">
-              © 2026 Unity Dream Properties Ltd.[cite: 1] | Official Strategic Marketing & Sales Partner of Pushpodhara Properties Ltd.
+              © 2026 Unity Dream Properties | BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:
             </p>
             <p className="text-slate-500">
               Hosaf Tower, Malibag, Dhaka
@@ -419,33 +440,194 @@ export default function UnityDreamPortal() {
         </div>
       </footer>
 
-      {/* ===================== ৬. ফ্লোটিং কল ও মেসেঞ্জার বাটন ===================== */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-        <a
-          href="tel:+8801681196700"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110"
-          title="সরাসরি কল করুন"
-        >
-          <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-            <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-          </svg>
-        </a>
+      {/* ===================== ৫. লগইন ও রেজিস্ট্রেশন মোডাল (My Account) ===================== */}
+      {authModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
+            
+            {/* মোডাল হেডার */}
+            <div className="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
+              <h3 className="font-bold text-base flex items-center gap-2">
+                <span>👤</span> {authModal === 'login' ? 'LOGIN' : 'CREATE ACCOUNT'}
+              </h3>
+              <button 
+                onClick={() => setAuthModal(null)}
+                className="text-white hover:text-gray-200 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
 
-        <a
-          href="https://m.me/unitydreamproperties"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-[#0084FF] hover:bg-[#0072db] text-white p-3.5 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110"
-          title="Chat with Unity Dream Properties on Messenger"
-        >
-          <svg 
-            className="w-7 h-7 fill-current" 
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.455 5.518 3.734 7.218v3.524l3.38-1.855c.924.256 1.895.394 2.886.394 5.523 0 10-4.145 10-9.281C22 6.145 17.523 2 12 2zm1.066 12.443l-2.613-2.787-5.1 2.787 5.61-5.955 2.68 2.787 5.033-2.787-5.61 5.955z"/>
-          </svg>
-        </a>
-      </div>
+            <div className="p-6">
+              
+              {/* --- LOGIN FORM --- */}
+              {authModal === 'login' && (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  setCurrentUser({
+                    name: 'আতিকুর রহমান',
+                    email: 'atiq@unitydream.com',
+                    role: 'Super Admin',
+                    isLoggedIn: true
+                  });
+                  setAuthModal(null);
+                  alert('সফলভাবে লগইন হয়েছে!');
+                }}>
+                  <div className="mb-4">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Your Email</label>
+                    <input 
+                      type="email" 
+                      required 
+                      placeholder="Email" 
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+                    <input 
+                      type="password" 
+                      required 
+                      placeholder="Password" 
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
+                  >
+                    Login
+                  </button>
+
+                  <div className="mt-4 text-center text-xs text-gray-600">
+                    Don't have an account yet?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setAuthModal('register')}
+                      className="text-emerald-600 font-bold hover:underline"
+                    >
+                      Create New Account
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* --- CREATE ACCOUNT FORM (Individual vs Company) --- */}
+              {authModal === 'register' && (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  alert('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! অনুগ্রহ করে লগইন করুন।');
+                  setAuthModal('login');
+                }}>
+                  
+                  {/* Account Type Selector */}
+                  <div className="flex items-center gap-6 mb-4 text-xs font-bold text-gray-700">
+                    <span>I am:</span>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="accountType" 
+                        checked={registerType === 'individual'} 
+                        onChange={() => setRegisterType('individual')}
+                      />
+                      Individual
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="accountType" 
+                        checked={registerType === 'company'} 
+                        onChange={() => setRegisterType('company')}
+                      />
+                      Company
+                    </label>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    {registerType === 'individual' ? (
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-0.5">Name *</label>
+                        <input type="text" required placeholder="Enter your full name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-0.5">Company Name *</label>
+                          <input type="text" required placeholder="Company name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-0.5">Contact Person Name *</label>
+                          <input type="text" required placeholder="Enter contact person name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-0.5">Designation *</label>
+                          <input type="text" required placeholder="Enter designation" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-0.5">Office Address *</label>
+                          <input type="text" required placeholder="Enter office address" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                        </div>
+                      </>
+                    )}
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-0.5">E-mail *</label>
+                      <input type="email" required placeholder="Enter valid e-mail address" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-0.5">Mobile *</label>
+                      <input type="tel" required placeholder="Enter your valid mobile number" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-0.5">Password *</label>
+                      <input type="password" required placeholder="Password" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-0.5">Confirm Password *</label>
+                      <input type="password" required placeholder="Retype password" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-1.5 text-[11px] text-gray-600 cursor-pointer">
+                        <input type="checkbox" required defaultChecked />
+                        I am Agree to Terms & Conditions
+                      </label>
+                    </div>
+
+                    {/* Humanity Captcha */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-[11px] text-gray-600">Prove your humanity: 8 + 8 =</span>
+                      <input type="number" required placeholder="16" className="w-16 border border-gray-300 rounded px-2 py-1 text-center font-bold" />
+                    </div>
+
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
+                  >
+                    Register Now
+                  </button>
+
+                  <div className="mt-3 text-center text-xs text-gray-600">
+                    <button 
+                      type="button"
+                      onClick={() => setAuthModal('login')}
+                      className="text-emerald-600 font-bold hover:underline"
+                    >
+                      Click for login
+                    </button>
+                  </div>
+
+                </form>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
