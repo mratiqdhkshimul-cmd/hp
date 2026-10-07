@@ -2,8 +2,23 @@
 
 import React, { useState } from 'react';
 
-// প্রজেক্ট তালিকা (ঢাকা ওয়েস্টার্ন ভ্যালি প্রথমে)
-const initialProjects = [
+// ===================== টাইপ ডেফিনিশন =====================
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'Super Admin' | 'Accounts' | 'Director' | 'Deputy Director' | 'GM' | 'DGM' | 'AGM' | 'Business Partner' | 'Agent';
+  salesKatha: number;
+  totalEarnings: number;
+  teamSalesKatha: number;
+  teamEarnings: number;
+  isSuperAdmin: boolean;
+  hasAccountsAccess: boolean;
+}
+
+// প্রজেক্টের সম্পূর্ণ ডাটাবেজ ও বিস্তারিত শর্তাবলী
+const projectsData = [
   {
     id: 1,
     name: "Dhaka Western Valley",
@@ -14,7 +29,14 @@ const initialProjects = [
     size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
     price: "১৪,৫০,০০০ ৳ / কাঠা",
     statusBadge: "প্যাকেজ / রেট",
-    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "সর্বনিম্ন প্লট সাইজ ৫ কাঠা থেকে শুরু। ৩ কাঠার কোনো প্লট বরাদ্দযোগ্য নয়।",
+      "এককালীন পরিশোধে বিশেষ মূল্যছাড় ও তাৎক্ষণিক সাফ-কবলা রেজিস্ট্রেশন সুবিধা।",
+      "সর্বোচ্চ ৬০টি সহজ মাসিক কিস্তিতে মূল্য পরিশোধের সুবর্ণ সুযোগ।",
+      "বুকিং মানি মোট মূল্যের ১০% প্রদান সাপেক্ষে সাময়িক প্লট বরাদ্দ নিশ্চিত করা হবে।",
+      "প্রকল্প এলাকায় বিদ্যুৎ, সুপ্রশস্ত রাস্তা ও ড্রেনেজ নেটওয়ার্ক অন্তর্ভুক্ত।"
+    ]
   },
   {
     id: 2,
@@ -26,7 +48,14 @@ const initialProjects = [
     size: "১০০, ৩০০, ৫০০, ১,০০০, ২,০০০, ৩,০০০ ও ৫,০০০ Sq Ft / Fractional Share",
     price: "৫০,০০০ ৳ / প্রতি স্কয়ার ফিট",
     statusBadge: "শেয়ার ও ওনারশিপ ইনভেস্টমেন্ট",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "প্রতি স্কয়ার ফিটের বর্তমান কর্পোরেট মূল্য ৫০,০০০ টাকা নির্ধারিত।",
+      "১০০, ৩০০, ৫০০, ১০০০, ২০০০, ৩০০০ এবং ৫০০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ার বিক্রয়যোগ্য।",
+      "আজীবন সাব-কবলা দলিল ও লভ্যাংশ (ROI) পাওয়ার শতভাগ আইনি গ্যারান্টি।",
+      "বুকিংয়ের পর চুক্তিপত্র সম্পাদন এবং কিস্তিতে বিনিয়োগ পরিশোধের সুবিধা।",
+      "প্রতি বছর হোটেল ও রিসোর্টে নির্ধারিত দিন পারিবারিক ফ্রি অবকাশ যাপনের সুবিধা।"
+    ]
   },
   {
     id: 3,
@@ -38,7 +67,13 @@ const initialProjects = [
     size: "সর্বনিম্ন ৫ কাঠা (৫, ১০ ও ২০ কাঠা প্লট)",
     price: "১০,৫০,০০০ ৳ / কাঠা থেকে শুরু",
     statusBadge: "প্যাকেজ / রেট",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার কোনো প্লট রাখা হয়নি।",
+      "পদ্মা সেতু সংলগ্ন ও এক্সপ্রেসওয়ের সরাসরি সংযোগ সংবলিত আধুনিক ইকো-সিটি।",
+      "৫০% মূল্য পরিশোধ সাপেক্ষে প্রাথমিক পজেশন ও বাউন্ডারি ওয়াল নির্মাণের অনুমতি।",
+      "সহজ কিস্তির মেয়াদ সর্বনিম্ন ৩৬ মাস থেকে সর্বোচ্চ ৭২ মাস পর্যন্ত প্রযোজ্য।"
+    ]
   },
   {
     id: 4,
@@ -50,7 +85,12 @@ const initialProjects = [
     size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
     price: "আকর্ষণীয় কিস্তি সুবিধা",
     statusBadge: "প্যাকেজ / প্লট",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "সর্বনিম্ন প্লট সাইজ ৫ কাঠা নির্ধারিত।",
+      "নাগরিক সকল সুযোগ-সুবিধা যেমন স্কুল, কলেজ, মসজিদ, পার্ক ও শপিংমল পরিকল্পিত।",
+      "বুকিং মানি জমাদানের ৩০ দিনের মধ্যে কোম্পানি অনুমোদিত বায়না দলিল প্রদান।"
+    ]
   },
   {
     id: 5,
@@ -62,7 +102,11 @@ const initialProjects = [
     size: "সর্বনিম্ন ৫ কাঠা প্লট",
     price: "যোগাযোগ সাপেক্ষে",
     statusBadge: "বুকিং চলছে",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "বাণিজ্যিক ও আবাসিক সমন্বিত নিরাপদ প্লট প্রকল্প।",
+      "সর্বনিম্ন ৫ কাঠার প্লট বরাদ্দ। ভিজিট ও বুকিংয়ের জন্য কেন্দ্রীয় অফিসে যোগাযোগ প্রযোজ্য।"
+    ]
   },
   {
     id: 6,
@@ -74,55 +118,80 @@ const initialProjects = [
     size: "বাণিজ্যিক ও আবাসিক স্পেস",
     price: "যোগাযোগ সাপেক্ষে",
     statusBadge: "বুকিং চলছে",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+    terms: [
+      "ঢাকার প্রাণকেন্দ্রে আধুনিক কমার্শিয়াল ও রেসিডেন্সিয়াল ফ্লোর স্পেস।",
+      "সরাসরি ডেভেলপার অংশীদারিত্ব ও শেয়ার ওনারশিপ বিনিয়োগ সুবিধা।"
+    ]
   }
 ];
 
-// কোম্পানির প্রাতিষ্ঠানিক হায়ারার্কি প্রটোকল ও কমিশন হার
-const companyHierarchy = [
-  { role: 'Agent', bn: 'এজেন্ট', rate: 0.03, override: 0 },
-  { role: 'Business Partner', bn: 'বিজনেস পার্টনার', rate: 0.05, override: 0.01 },
-  { role: 'AGM', bn: 'সহকারী মহাব্যবস্থাপক (AGM)', rate: 0.06, override: 0.015 },
-  { role: 'DGM', bn: 'উপ-মহাব্যবস্থাপক (DGM)', rate: 0.07, override: 0.02 },
-  { role: 'GM', bn: 'মহাব্যবস্থাপক (GM)', rate: 0.08, override: 0.025 },
-  { role: 'Deputy Director', bn: 'ডেপুটি ডিরেক্টর', rate: 0.09, override: 0.03 },
-  { role: 'Director', bn: 'ডিরেক্টর', rate: 0.10, override: 0.035 },
-  { role: 'Managing Director', bn: 'ম্যানেজিং ডিরেক্টর', rate: 0.11, override: 0.04 },
-  { role: 'Chairman', bn: 'চেয়ারম্যান', rate: 0.12, override: 0.05 },
-];
+// একমাত্র ভেরিফাইড সুপার এডমিন প্রোফাইল
+const defaultSuperAdmin: UserProfile = {
+  id: 'UDP-SA-001',
+  name: 'MOHAMMAD ATIQUL ISLAM',
+  email: 'mr.atiq.dhk.shimul@gmail.com',
+  phone: '+8801689333000',
+  role: 'Super Admin',
+  salesKatha: 45,
+  totalEarnings: 3262500,
+  teamSalesKatha: 120,
+  teamEarnings: 1740000,
+  isSuperAdmin: true,
+  hasAccountsAccess: true
+};
 
 export default function UnityDreamPortal() {
-  // মেনু ও মোডাল স্টেট
+  // অথেন্টিকেশন স্টেট
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(defaultSuperAdmin);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
   const [registerType, setRegisterType] = useState<'individual' | 'company'>('individual');
+
+  // ERP মডিউল ও পারমিশন স্টেট
+  const [showERP, setShowERP] = useState(false);
+  const [activeTab, setActiveTab] = useState<'my_ledger' | 'central_accounts' | 'access_control'>('my_ledger');
   
-  // ইউজার ও অথেন্টিকেশন স্টেট (ডিফল্ট সুপার এডমিন সক্রিয়)
-  const [currentUser, setCurrentUser] = useState({
-    name: 'আতিকুর রহমান',
-    email: 'atiq@unitydream.com',
-    role: 'Super Admin',
-    isLoggedIn: true
-  });
+  // ট্রানজ্যাকশন এন্ট্রি স্টেট (সুপার এডমিন ও একাউন্টস ম্যানেজমেন্টের জন্য)
+  const [newSaleKatha, setNewSaleKatha] = useState<number>(5);
+  const [saleRate, setSaleRate] = useState<number>(1450000);
+  const [partnerPhone, setPartnerPhone] = useState<string>('+8801689333000');
+  const [selectedPartnerName, setSelectedPartnerName] = useState<string>('MOHAMMAD ATIQUL ISLAM');
 
-  // ERP ও হায়ারার্কিক্যাল লেজার স্টেট
-  const [showLedger, setShowLedger] = useState(false);
-  const [soldKatha, setSoldKatha] = useState<number>(5);
-  const [pricePerKatha, setPricePerKatha] = useState<number>(1450000);
-  const [selectedRole, setSelectedRole] = useState<string>('Business Partner');
+  // প্রজেক্টের বিস্তারিত শর্তাবলীর মোডাল
+  const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
 
-  // হায়ারার্কিক্যাল ইনকাম ও লেজার ক্যালকুলেশন
-  const totalSalesAmount = soldKatha * pricePerKatha;
-  const currentHierarchy = companyHierarchy.find(h => h.role === selectedRole) || companyHierarchy[1];
-  const directCommission = totalSalesAmount * currentHierarchy.rate;
-  const teamOverrideCommission = totalSalesAmount * currentHierarchy.override;
-  const totalEarning = directCommission + teamOverrideCommission;
+  // হোয়াটসঅ্যাপে ট্রানজ্যাকশন ও ভাউচার পাঠানোর সরাসরি ফাংশন
+  const sendWhatsAppVoucher = (phone: string, name: string, katha: number, total: number, commission: number) => {
+    const formattedPhone = phone.replace(/[^0-9]/g, '');
+    const message = encodeURIComponent(
+      `*UNITY DREAM PROPERTIES LTD.* - Transaction Voucher\n` +
+      `-------------------------------------------\n` +
+      `মাননীয় পার্টনার: ${name}\n` +
+      `বিক্রিত জমির পরিমাণ: ${katha} কাঠা\n` +
+      `মোট সেলস ভ্যালু: ${total.toLocaleString('bn-BD')} ৳\n` +
+      `আপনার প্রাপ্ত কমিশন: ${commission.toLocaleString('bn-BD')} ৳\n` +
+      `স্ট্যাটাস: Approved by Central Accounts\n` +
+      `-------------------------------------------\n` +
+      `BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:\n` +
+      `হটলাইন: +8801689333000 | Hosaf Tower, Malibag, Dhaka`
+    );
+    window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${message}`, '_blank');
+  };
+
+  const handleCreateSale = (e: React.FormEvent) => {
+    e.preventDefault();
+    const totalVal = newSaleKatha * saleRate;
+    const earnedCommission = totalVal * 0.05; // ৫% প্রমিত কমিশন
+    alert(`সেন্ট্রাল ডাটাবেজে ${newSaleKatha} কাঠা সেল সফলভাবে যুক্ত হয়েছে!`);
+    sendWhatsAppVoucher(partnerPhone, selectedPartnerName, newSaleKatha, totalVal, earnedCommission);
+  };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ===================== ১. হেডার ও অরিজিনাল নেভিগেশন বার ===================== */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+      {/* ===================== ১. হেডার ও মেনুবার ===================== */}
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
@@ -147,7 +216,7 @@ export default function UnityDreamPortal() {
               </div>
             </div>
 
-            {/* অরিজিনাল মেনু আইটেমসমূহ */}
+            {/* মূল মেনুবার */}
             <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
               <a href="#for-sale" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Sale</a>
@@ -158,169 +227,286 @@ export default function UnityDreamPortal() {
               <a href="#blog" className="hover:text-emerald-600 transition-colors">Blog</a>
             </nav>
 
-            {/* My Account ড্রপডাউন ও ইউজার কন্ট্রোল */}
-            <div className="relative flex items-center gap-3">
-              
-              <div className="relative">
-                <button 
-                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 px-3.5 py-2 rounded-md border border-slate-300 text-xs font-bold transition-colors"
-                >
-                  <span>My account</span>
-                  <span className="text-[10px]">▼</span>
-                </button>
+            {/* My Account কন্ট্রোল */}
+            <div className="relative">
+              <button 
+                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-4 py-2 rounded-lg border border-emerald-200 text-xs font-bold transition-all"
+              >
+                <span>👤</span>
+                <span>{currentUser ? currentUser.name.split(' ')[0] : 'My account'}</span>
+                <span className="text-[10px]">▼</span>
+              </button>
 
-                {/* My Account ড্রপডাউন মেনু */}
-                {accountMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 text-xs">
-                    {currentUser.isLoggedIn ? (
-                      <>
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="font-bold text-slate-900">{currentUser.name}</p>
-                          <p className="text-[11px] text-emerald-600 font-semibold">{currentUser.role}</p>
-                          <p className="text-[10px] text-gray-400">{currentUser.email}</p>
-                        </div>
-                        <button 
-                          onClick={() => { setShowLedger(true); setAccountMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-emerald-50 text-slate-700 font-medium"
-                        >
-                          📊 ERP লেজার ও হিসাব
-                        </button>
-                        <button 
-                          onClick={() => { 
-                            setCurrentUser({ ...currentUser, isLoggedIn: false }); 
-                            setAccountMenuOpen(false); 
-                          }}
-                          className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100"
-                        >
-                          🚪 Sign Out (সাইন আউট)
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button 
-                          onClick={() => { setAuthModal('login'); setAccountMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-800 flex items-center gap-2 font-semibold"
-                        >
-                          <span>👤</span> Login
-                        </button>
-                        <button 
-                          onClick={() => { setAuthModal('register'); setAccountMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-800 flex items-center gap-2 font-semibold"
-                        >
-                          <span>📝</span> Create Account
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+              {accountMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 text-xs">
+                  {currentUser ? (
+                    <>
+                      <div className="px-4 py-3 border-b border-gray-100 bg-slate-50">
+                        <p className="font-extrabold text-slate-900 leading-tight">{currentUser.name}</p>
+                        <p className="text-[11px] text-emerald-600 font-bold mt-0.5">{currentUser.role}</p>
+                        <p className="text-[10px] text-gray-500 font-mono mt-0.5">{currentUser.email}</p>
+                        <p className="text-[10px] text-gray-500 font-mono">{currentUser.phone}</p>
+                      </div>
 
+                      <button 
+                        onClick={() => { setShowERP(true); setAccountMenuOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 font-bold flex items-center gap-2"
+                      >
+                        <span>📊</span> ERP লেজার ও ড্যাশবোর্ড
+                      </button>
+
+                      <button 
+                        onClick={() => { 
+                          setCurrentUser(null); 
+                          setShowERP(false);
+                          setAccountMenuOpen(false); 
+                        }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100 flex items-center gap-2"
+                      >
+                        <span>🚪</span> Log Out (লগআউট)
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => { setAuthModal('login'); setAccountMenuOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-slate-800 flex items-center gap-2 font-bold"
+                      >
+                        <span>🔑</span> Login
+                      </button>
+                      <button 
+                        onClick={() => { setAuthModal('register'); setAccountMenuOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-slate-800 flex items-center gap-2 font-bold"
+                      >
+                        <span>📝</span> Create Account
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>
         </div>
       </header>
 
-      {/* ===================== ২. সেন্ট্রাল ক্লাউড ERP ও হায়ারার্কি লেজার ===================== */}
+      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ও কন্ট্রোল প্যানেল ===================== */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                সেন্ট্রাল ক্লাউড ডাটাবেজ সংযুক্ত
+                সেন্ট্রাল ক্লাউড ডাটাবেজ সংযুক্ত (অনলাইন সিংকিং সক্রিয়)
               </div>
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-                Unity Dream Properties — সেন্ট্রাল একাউন্টিং ও টিম ম্যানেজমেন্ট ERP
+                Unity Dream Properties — সেন্ট্রাল একাউন্টিং ও রোল-বেসড টিম ERP
               </h2>
               <p className="text-sm text-slate-300 mt-1">
-                পুষ্পধারা প্রপার্টিজ লিমিটেডের অধীনে পরিচালিত সকল মেগা প্রজেক্টের অফিশিয়াল সেলস ও ভেরিফাইড ম্যানেজমেন্ট সিস্টেম।
+                রোল ভিত্তিক এক্সেস কন্ট্রোল: পার্টনাররা নিজস্ব সেলস দেখবেন এবং সুপার এডমিন সেন্ট্রাল একাউন্টস নিয়ন্ত্রণ করবেন।
               </p>
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
               <button 
-                onClick={() => setShowLedger(!showLedger)}
+                onClick={() => setShowERP(!showERP)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-all flex items-center gap-2"
               >
-                <span>{showLedger ? 'লেজার বন্ধ করুন' : 'হায়ারার্কিক্যাল ইনকাম ও লেজার দেখুন'}</span>
+                <span>{showERP ? 'ERP বন্ধ করুন' : 'সেন্ট্রাল ERP ও একাউন্টিং খুলুন'}</span>
               </button>
             </div>
           </div>
 
-          {/* হায়ারার্কিক্যাল একাউন্টিং ও ইনকাম লেজার সিমুলেটর */}
-          {showLedger && (
-            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/70 p-5 rounded-xl">
-              <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                <h3 className="text-sm md:text-base font-bold text-amber-400">
-                  📊 প্রাতিষ্ঠানিক হায়ারার্কি ভিত্তিক কাঠা সেলস ও ইনকাম লেজার
-                </h3>
-                <span className="text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded">
-                  ERP Live Sync Active
-                </span>
-              </div>
+          {/* ===================== ২.১ ক্লাউড ERP ড্যাশবোর্ড ইন্টারফেস ===================== */}
+          {showERP && (
+            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/80 p-5 rounded-xl">
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                {/* কাঠা সংখ্যা */}
+              {/* ERP ট্যাব নেভিগেশন */}
+              <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
+                <button 
+                  onClick={() => setActiveTab('my_ledger')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'my_ledger' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  👤 আমার নিজস্ব সেলস ও ইনকাম লেজার
+                </button>
+
+                {/* সেন্ট্রাল একাউন্টস এক্সেস কেবল সুপার এডমিন ও অনুমোদিত একাউন্টসের জন্য */}
+                {currentUser?.hasAccountsAccess && (
+                  <button 
+                    onClick={() => setActiveTab('central_accounts')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'central_accounts' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    🔒 সেন্ট্রাল একাউন্টিং ও হোয়াটসঅ্যাপ ট্রানজ্যাকশন ভাউচার
+                  </button>
+                )}
+
+                {/* এক্সেস কন্ট্রোল ও ইউজার পারমিশন (শুধুমাত্র সুপার এডমিন) */}
+                {currentUser?.isSuperAdmin && (
+                  <button 
+                    onClick={() => setActiveTab('access_control')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'access_control' ? 'bg-red-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    ⚙️ ইউজার পারমিশন ও একাউন্টস কন্ট্রোল (Super Admin Only)
+                  </button>
+                )}
+              </div>
+
+              {/* ট্যাব ১: ইউজারের নিজস্ব সেলস ও কমিশন লেজার */}
+              {activeTab === 'my_ledger' && currentUser && (
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">বিক্রিত মোট জমির পরিমাণ</label>
-                  <div className="flex items-center">
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={soldKatha}
-                      onChange={(e) => setSoldKatha(Math.max(1, Number(e.target.value)))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 font-bold"
-                    />
-                    <span className="ml-2 text-xs text-slate-400 whitespace-nowrap">কাঠা</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                      <span className="text-[11px] text-slate-400 block font-semibold">আমার মোট বিক্রিত জমি</span>
+                      <span className="text-2xl font-black text-emerald-400">{currentUser.salesKatha} কাঠা</span>
+                      <span className="text-[10px] text-slate-500 block mt-1">সরাসরি ক্লায়েন্ট সেলস</span>
+                    </div>
+
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                      <span className="text-[11px] text-slate-400 block font-semibold">আমার প্রাপ্ত মোট কমিশন</span>
+                      <span className="text-2xl font-black text-amber-400">
+                        {currentUser.totalEarnings.toLocaleString('bn-BD')} ৳
+                      </span>
+                      <span className="text-[10px] text-emerald-400 block mt-1">সম্পূর্ণ পরিশোধিত ও অনুমোদিত</span>
+                    </div>
+
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                      <span className="text-[11px] text-slate-400 block font-semibold">অধীনস্থ টিমের মোট সেলস</span>
+                      <span className="text-2xl font-black text-blue-400">{currentUser.teamSalesKatha} কাঠা</span>
+                      <span className="text-[10px] text-slate-500 block mt-1">টিম পার্টনারদের সেলস</span>
+                    </div>
+
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                      <span className="text-[11px] text-slate-400 block font-semibold">টিম ওভাররাইড ইনকাম</span>
+                      <span className="text-2xl font-black text-purple-400">
+                        {currentUser.teamEarnings.toLocaleString('bn-BD')} ৳
+                      </span>
+                      <span className="text-[10px] text-purple-300 block mt-1">হায়ারার্কিক্যাল ওভাররাইড বোনাস</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+                    <div>
+                      আইডি: <strong className="text-white font-mono">{currentUser.id}</strong> | পদবী: <strong className="text-emerald-400">{currentUser.role}</strong>
+                    </div>
+                    <span className="text-emerald-400">● আপনার সকল ট্রানজ্যাকশন ডাটাবেজ সুরক্ষিত</span>
                   </div>
                 </div>
+              )}
 
-                {/* কাঠা প্রতি রেট */}
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">প্রতি কাঠার প্যাকেজ রেট (টাকা)</label>
-                  <input 
-                    type="number" 
-                    value={pricePerKatha}
-                    onChange={(e) => setPricePerKatha(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 font-bold"
-                  />
+              {/* ট্যাব ২: সেন্ট্রাল একাউন্টিং ও হোয়াটসঅ্যাপ ট্রানজ্যাকশন মডিউল */}
+              {activeTab === 'central_accounts' && currentUser?.hasAccountsAccess && (
+                <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                  <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+                    <span>💳</span> নতুন ট্রানজ্যাকশন এন্ট্রি ও সরাসরি হোয়াটসঅ্যাপ ভাউচার প্রেরণ
+                  </h4>
+
+                  <form onSubmit={handleCreateSale} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">পার্টনারের নাম</label>
+                      <input 
+                        type="text" 
+                        value={selectedPartnerName}
+                        onChange={(e) => setSelectedPartnerName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">পার্টনারের হোয়াটসঅ্যাপ মোবাইল</label>
+                      <input 
+                        type="text" 
+                        value={partnerPhone}
+                        onChange={(e) => setPartnerPhone(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono font-semibold focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">বিক্রিত পরিমাণ (কাঠা)</label>
+                      <input 
+                        type="number" 
+                        value={newSaleKatha}
+                        onChange={(e) => setNewSaleKatha(Number(e.target.value))}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">প্রতি কাঠার মূল্য (টাকা)</label>
+                      <input 
+                        type="number" 
+                        value={saleRate}
+                        onChange={(e) => setSaleRate(Number(e.target.value))}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-semibold focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+
+                    <div className="md:col-span-4 flex items-center justify-between pt-2 border-t border-slate-800">
+                      <div className="text-xs text-slate-300">
+                        মোট সেলস: <strong>{(newSaleKatha * saleRate).toLocaleString('bn-BD')} ৳</strong> | প্রাক্কলিত কমিশন (৫%): <strong>{((newSaleKatha * saleRate) * 0.05).toLocaleString('bn-BD')} ৳</strong>
+                      </div>
+                      <button 
+                        type="submit"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow flex items-center gap-2"
+                      >
+                        <span>📲</span> ট্রানজ্যাকশন সেভ ও হোয়াটসঅ্যাপে ভাউচার পাঠান
+                      </button>
+                    </div>
+                  </form>
                 </div>
+              )}
 
-                {/* হায়ারার্কি পদবী নির্ধারণ */}
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">কোম্পানি প্রটোকল পদবী</label>
-                  <select 
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
-                  >
-                    {companyHierarchy.map((h) => (
-                      <option key={h.role} value={h.role}>
-                        {h.bn} ({h.rate * 100}%)
-                      </option>
-                    ))}
-                  </select>
+              {/* ট্যাব ৩: সুপার এডমিন পারমিশন ও এক্সেস কন্ট্রোল */}
+              {activeTab === 'access_control' && currentUser?.isSuperAdmin && (
+                <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
+                  <h4 className="text-sm font-bold text-red-400 mb-3">
+                    👑 সেন্ট্রাল একাউন্টস এক্সেস ও ইউজার রোল ব্যবস্থাপনা (Super Admin Control)
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400">
+                          <th className="py-2 px-3">নাম</th>
+                          <th className="py-2 px-3">ইমেইল</th>
+                          <th className="py-2 px-3">বর্তমান রোল</th>
+                          <th className="py-2 px-3">সেন্ট্রাল একাউন্টস এক্সেস</th>
+                          <th className="py-2 px-3">একশন</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        <tr>
+                          <td className="py-3 px-3 font-bold text-white">MOHAMMAD ATIQUL ISLAM</td>
+                          <td className="py-3 px-3 font-mono">mr.atiq.dhk.shimul@gmail.com</td>
+                          <td className="py-3 px-3 text-red-400 font-bold">Super Admin</td>
+                          <td className="py-3 px-3 text-emerald-400 font-bold">পূর্ণ এক্সেস (Unrestricted)</td>
+                          <td className="py-3 px-3 text-slate-500">Master Account</td>
+                        </tr>
+                        <tr>
+                          <td className="py-3 px-3">সেন্ট্রাল একাউন্ট্যান্ট ১</td>
+                          <td className="py-3 px-3 font-mono">accounts@unitydream.com</td>
+                          <td className="py-3 px-3">Accounts Manager</td>
+                          <td className="py-3 px-3 text-emerald-400">অনুমোদিত (Verified)</td>
+                          <td className="py-3 px-3">
+                            <button className="text-red-400 hover:underline">Revoke</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+              )}
 
-                {/* মোট ইনকাম ডিসপ্লে */}
-                <div className="bg-slate-900/90 border border-emerald-500/40 rounded-lg p-3 flex flex-col justify-center">
-                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
-                    মোট প্রাপ্য কমিশন ও ওভাররাইড
-                  </span>
-                  <span className="text-xl font-extrabold text-amber-400 mt-0.5">
-                    {Math.round(totalEarning).toLocaleString('bn-BD')} ৳
-                  </span>
-                </div>
-              </div>
-
-              {/* হিসাবের বিস্তারিত ব্রেকডাউন */}
-              <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-800 text-xs text-slate-300 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div>• মোট সেলস ভ্যালু: <strong>{totalSalesAmount.toLocaleString('bn-BD')} ৳</strong></div>
-                <div>• পদবীর বেসিক কমিশন: <strong>{directCommission.toLocaleString('bn-BD')} ৳ ({currentHierarchy.rate * 100}%)</strong></div>
-                <div>• টিম ওভাররাইড বোনাস: <strong>{teamOverrideCommission.toLocaleString('bn-BD')} ৳ ({currentHierarchy.override * 100}%)</strong></div>
-              </div>
             </div>
           )}
         </div>
@@ -342,7 +528,7 @@ export default function UnityDreamPortal() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {initialProjects.map((project) => (
+          {projectsData.map((project) => (
             <div 
               key={project.id} 
               className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
@@ -386,8 +572,12 @@ export default function UnityDreamPortal() {
                 </div>
               </div>
 
+              {/* বিস্তারিত ও বুকিং শর্তাবলী বাটন */}
               <div className="p-5 pt-0">
-                <button className="w-full text-center py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors">
+                <button 
+                  onClick={() => setSelectedProjectForTerms(project)}
+                  className="w-full text-center py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors"
+                >
                   বিস্তারিত ও বুকিং শর্তাবলী
                 </button>
               </div>
@@ -398,7 +588,54 @@ export default function UnityDreamPortal() {
 
       </main>
 
-      {/* ===================== ৪. ফুটার সেকশন ===================== */}
+      {/* ===================== ৪. প্রজেক্টের বিস্তারিত শর্তাবলীর মোডাল ===================== */}
+      {selectedProjectForTerms && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200">
+            <div className="bg-emerald-700 text-white px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base">{selectedProjectForTerms.name}</h3>
+                <p className="text-xs text-emerald-200 mt-0.5">{selectedProjectForTerms.location}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedProjectForTerms(null)}
+                className="text-white hover:text-gray-200 text-2xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6">
+              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
+                📋 বুকিং নিয়মাবলী ও আইনি শর্তসমূহ:
+              </h4>
+              <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
+                {selectedProjectForTerms.terms.map((term, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✔</span>
+                    <span>{term}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-gray-400 block">অফিসিয়াল বুকিং ও হেল্পলাইন</span>
+                  <span className="text-xs font-bold text-emerald-800">+8801689333000</span>
+                </div>
+                <button 
+                  onClick={() => setSelectedProjectForTerms(null)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-lg"
+                >
+                  ঠিক আছে
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ৫. ফুটার সেকশন ===================== */}
       <footer className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -407,6 +644,9 @@ export default function UnityDreamPortal() {
               <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:। সেন্ট্রাল ক্লাউড ডাটাবেজ সমন্বিত রিয়েল এস্টেট ইআরপি সিস্টেম।
+              </p>
+              <p className="text-xs text-amber-400 mt-2 font-mono">
+                Helpline: +8801689333000
               </p>
             </div>
 
@@ -440,15 +680,14 @@ export default function UnityDreamPortal() {
         </div>
       </footer>
 
-      {/* ===================== ৫. লগইন ও রেজিস্ট্রেশন মোডাল (My Account) ===================== */}
+      {/* ===================== ৬. লগইন ও রেজিস্ট্রেশন মোডাল (My Account) ===================== */}
       {authModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
             
-            {/* মোডাল হেডার */}
             <div className="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
-                <span>👤</span> {authModal === 'login' ? 'LOGIN' : 'CREATE ACCOUNT'}
+                <span>👤</span> {authModal === 'login' ? 'LOGIN TO ERP' : 'CREATE NEW ACCOUNT'}
               </h3>
               <button 
                 onClick={() => setAuthModal(null)}
@@ -464,21 +703,17 @@ export default function UnityDreamPortal() {
               {authModal === 'login' && (
                 <form onSubmit={(e) => {
                   e.preventDefault();
-                  setCurrentUser({
-                    name: 'আতিকুর রহমান',
-                    email: 'atiq@unitydream.com',
-                    role: 'Super Admin',
-                    isLoggedIn: true
-                  });
+                  // ডিফল্ট লগইন হিসেবে সুপার এডমিন সক্রিয় হবে
+                  setCurrentUser(defaultSuperAdmin);
                   setAuthModal(null);
-                  alert('সফলভাবে লগইন হয়েছে!');
+                  alert('স্বাগতম MOHAMMAD ATIQUL ISLAM! Super Admin হিসেবে সফলভাবে লগইন হয়েছে।');
                 }}>
                   <div className="mb-4">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Your Email</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
                     <input 
                       type="email" 
                       required 
-                      placeholder="Email" 
+                      defaultValue="mr.atiq.dhk.shimul@gmail.com"
                       className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
                     />
                   </div>
@@ -487,7 +722,7 @@ export default function UnityDreamPortal() {
                     <input 
                       type="password" 
                       required 
-                      placeholder="Password" 
+                      defaultValue="password123"
                       className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
                     />
                   </div>
@@ -519,9 +754,8 @@ export default function UnityDreamPortal() {
                   setAuthModal('login');
                 }}>
                   
-                  {/* Account Type Selector */}
                   <div className="flex items-center gap-6 mb-4 text-xs font-bold text-gray-700">
-                    <span>I am:</span>
+                    <span>Account Type:</span>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input 
                         type="radio" 
@@ -545,8 +779,8 @@ export default function UnityDreamPortal() {
                   <div className="space-y-3 text-xs">
                     {registerType === 'individual' ? (
                       <div>
-                        <label className="block font-medium text-gray-700 mb-0.5">Name *</label>
-                        <input type="text" required placeholder="Enter your full name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                        <label className="block font-medium text-gray-700 mb-0.5">Full Name *</label>
+                        <input type="text" required placeholder="Enter full name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
                       </div>
                     ) : (
                       <>
@@ -555,28 +789,20 @@ export default function UnityDreamPortal() {
                           <input type="text" required placeholder="Company name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
                         </div>
                         <div>
-                          <label className="block font-medium text-gray-700 mb-0.5">Contact Person Name *</label>
-                          <input type="text" required placeholder="Enter contact person name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
-                        </div>
-                        <div>
-                          <label className="block font-medium text-gray-700 mb-0.5">Designation *</label>
-                          <input type="text" required placeholder="Enter designation" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
-                        </div>
-                        <div>
-                          <label className="block font-medium text-gray-700 mb-0.5">Office Address *</label>
-                          <input type="text" required placeholder="Enter office address" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                          <label className="block font-medium text-gray-700 mb-0.5">Contact Person *</label>
+                          <input type="text" required placeholder="Contact person name" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
                         </div>
                       </>
                     )}
 
                     <div>
                       <label className="block font-medium text-gray-700 mb-0.5">E-mail *</label>
-                      <input type="email" required placeholder="Enter valid e-mail address" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                      <input type="email" required placeholder="Enter e-mail" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">Mobile *</label>
-                      <input type="tel" required placeholder="Enter your valid mobile number" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
+                      <label className="block font-medium text-gray-700 mb-0.5">Mobile (WhatsApp) *</label>
+                      <input type="tel" required placeholder="WhatsApp enabled mobile number" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
                     </div>
 
                     <div>
@@ -587,13 +813,6 @@ export default function UnityDreamPortal() {
                     <div>
                       <label className="block font-medium text-gray-700 mb-0.5">Confirm Password *</label>
                       <input type="password" required placeholder="Retype password" className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" />
-                    </div>
-
-                    <div className="pt-1">
-                      <label className="flex items-center gap-1.5 text-[11px] text-gray-600 cursor-pointer">
-                        <input type="checkbox" required defaultChecked />
-                        I am Agree to Terms & Conditions
-                      </label>
                     </div>
 
                     {/* Humanity Captcha */}
