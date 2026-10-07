@@ -2,7 +2,29 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 
-// প্রোপার্টি ডাটা টাইপ
+// ১. সুপার অ্যাডমিন ও সিস্টেম লিড ইমেইল লিস্ট
+const SUPER_ADMIN_EMAILS = [
+  'mr.atiq.dhk.shimul@gmail.com', // আপনার মূল ইমেইল (সুপার অ্যাডমিন / ডেভেলপার)
+  'mr.atik.dsk.shimul@gmail.com'  // বিকল্প ব্যাকআপ ইমেইল
+];
+
+// ২. পদমর্যাদা ও হায়ারার্কি স্তর (Hierarchy Levels)
+const DESIGNATION_LEVELS: Record<string, number> = {
+  'Super Admin': 9,       // সিস্টেম ডেভেলপার / সার্বিক নিয়ন্ত্রক
+  'Chairman': 8,          // শীর্ষ পর্যায় (সব ডাটা দেখতে পারবেন)
+  'MD': 7,                // ম্যানেজিং ডিরেক্টর
+  'DMD': 6,               // ডেপুটি ম্যানেজিং ডিরেক্টর
+  'Director': 5,          // ডিরেক্টর
+  'Deputy Director': 4,   // ডেপুটি ডিরেক্টর
+  'GM': 3,                // জেনারেল ম্যানেজার
+  'DGM': 2,               // ডেপুটি জেনারেল ম্যানেজার
+  'AGM': 1,               // সহকারী জেনারেল ম্যানেজার
+  'Team Leader': 0.5,     // টিম লিডার (TL)
+  'Business Partner': 0.2,// বিজনেস পার্টনার (BP)
+  'Agent': 0,             // মাঠপর্যায়ের এজেন্ট
+  'Client': -1            // সাধারণ গ্রাহক
+};
+
 interface PropertyItem {
   id: string | number;
   title: string;
@@ -23,7 +45,19 @@ interface PropertyItem {
   };
 }
 
-// অথেন্টিক প্রজেক্ট ডাটাবেজ
+// সেলস ও টিম লেজার রেকর্ড ইন্টারফেস
+interface TeamMemberRecord {
+  id: string;
+  name: string;
+  designation: string;
+  level: number;
+  team: string;
+  selfSales: number;
+  teamSales: number;
+  commissionEarned: number;
+  commissionBalance: number;
+}
+
 const defaultProjects: PropertyItem[] = [
   {
     id: 1,
@@ -40,14 +74,8 @@ const defaultProjects: PropertyItem[] = [
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=60',
     tags: ['3,500 Acres', '3 KM Curved Lake', 'Parks & Wide Roads', 'সাফ-কবলা দলিল'],
     details: {
-      overview: '3,500 একরের মেগা ফ্ল্যাগশিপ টাউনশিপ প্রজেক্ট যা ২০১৫ সালে শুরু হয়। ঢাকা-মাওয়া চার লেন হাইওয়ে ও পদ্মা সেতুর খুব কাছে অবস্থিত আধুনিক নাগরিক সুবিধা সংবলিত আবাসন প্রকল্প।',
-      features: [
-        '৩, ৫, ১০ ও ২০ কাঠার আবাসিক ও বাণিজ্যিক প্লট',
-        '৩ কিলোমিটার দীর্ঘ নান্দনিক বাঁকানো লেক ও ওয়াকওয়ে',
-        'পর্যাপ্ত সবুজ পার্ক, খেলার মাঠ ও মসজিদ',
-        'প্রশস্ত অভ্যন্তরীণ রাস্তা ও বিদ্যুৎ-পানি সংযোগ সুবিধা',
-        'এককালীন ও দীর্ঘমেয়াদী সহজ কিস্তির সুযোগ'
-      ]
+      overview: '3,500 একরের মেগা ফ্ল্যাগশিপ টাউনশিপ প্রজেক্ট যা ২০১৫ সালে শুরু হয়। ঢাকা-মাওয়া চার লেন হাইওয়ে ও পদ্মা সেতুর কাছে আধুনিক প্রকল্প।',
+      features: ['৩, ৫, ১০ ও ২০ কাঠার প্লট', '৩ কিমি নান্দনিক লেক', 'প্রশস্ত রাস্তা ও শতভাগ নিষ্কণ্টক জমি']
     }
   },
   {
@@ -65,14 +93,8 @@ const defaultProjects: PropertyItem[] = [
     image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=60',
     tags: ['205 Decimal Land', '14-15 Stories', '495 Luxury Rooms', 'Halal Income'],
     details: {
-      overview: 'কক্সবাজারের সুগন্ধা ও কলাতলী মেরিন ড্রাইভ রোডে ২০৫ শতাংশ জমির ওপর নির্মিতব্য আন্তর্জাতিক মানের ৫-স্টার লাক্সারি হোটেল অ্যান্ড রিসোর্ট।',
-      features: [
-        '১৪ থেকে ১৫ তলা আধুনিক স্থাপত্য ও টাওয়ার স্ট্রাকচার',
-        'প্রায় ৪৯৫টি বিলাসবহুল রুম ও প্রেসিডেনশিয়াল স্যুট',
-        'ইনফিনিটি রুফটপ সুইমিং পুল, গ্র্যান্ড রেস্টুরেন্ট, জিম ও জুস বার',
-        'সরাসরি সাফ-কবলা সাব-রেজিস্ট্রি দলিল ও ফ্র্যাকশনাল মালিকানা',
-        'লাইফটাইম ক্যাপিং-মুক্ত হালাল মাসিক মুনাফা বণ্টন'
-      ]
+      overview: 'কক্সবাজার সুগন্ধা ও কলাতলী মেরিন ড্রাইভে ২০৫ শতাংশ জমির ওপর নির্মিতব্য আন্তর্জাতিক ৫-স্টার লাক্সারি রিসোর্ট।',
+      features: ['১৪-১৫ তলা আধুনিক ভবন', 'সাফ-কবলা সাব-রেজিস্ট্রি দলিল', 'লাইফটাইম ক্যাপিং-মুক্ত হালাল মুনাফা']
     }
   },
   {
@@ -90,12 +112,8 @@ const defaultProjects: PropertyItem[] = [
     image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=60',
     tags: ['Express Highway', 'প্রাইম লোকেশন', 'সহজ কিস্তি'],
     details: {
-      overview: 'ঢাকা জিরো পয়েন্ট থেকে মাত্র ২২ কিমি এবং পদ্মা সেতু থেকে ১৩ কিমি দূরত্বে ঢাকা-মাওয়া এক্সপ্রেসওয়ের প্রাইম বেল্টে পরিকল্পিত আধুনিক স্যাটেলাইট সিটি।',
-      features: [
-        'নিষ্কণ্টক মালিকানা ও দ্রুত রেজিস্ট্রেশন',
-        'আধুনিক ড্রেনেজ ও মাটির নিচের ক্যাবলিং নেটওয়ার্ক',
-        'স্কুল, কলেজ ও হাসপাতালের নির্ধারিত জোন'
-      ]
+      overview: 'ঢাকা-মাওয়া এক্সপ্রেসওয়ের প্রাইম জোনে অবস্থিত পরিকল্পিত আধুনিক স্যাটেলাইট সিটি।',
+      features: ['নিষ্কণ্টক মালিকানা', 'আধুনিক ড্রেনেজ ব্যবস্থা', 'স্কুল, কলেজ ও হাসপাতালের জোন']
     }
   },
   {
@@ -113,44 +131,54 @@ const defaultProjects: PropertyItem[] = [
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=60',
     tags: ['মিরপুর কানেক্টিভিটি', 'মেট্রোরেল সুবিধা', 'রেডি বাউন্ডারি'],
     details: {
-      overview: 'গোল্ডেন আই ডেভেলপার কর্তৃক বাস্তবায়িত মিরপুর ও মোহাম্মদপুর কানেক্টিভিটির সন্নিকটে অবস্থিত প্রিমিয়াম ল্যান্ড প্রজেক্ট।',
-      features: [
-        'উত্তরা ও মিরপুর মেট্রো স্টেশনের সহজ যাতায়াত',
-        '৬০ ফুট ও ৪০ ফুট প্রশস্ত এভিনিউ রোড',
-        'বিদ্যুৎ, গ্যাস ও সুয়ারেজ ব্যবস্থার পূর্ণ পরিকল্পনা'
-      ]
+      overview: 'মিরপুর বেড়িবাঁধ ও মেট্রো সংযোগ সংলগ্ন প্রিমিয়াম ল্যান্ড প্রজেক্ট।',
+      features: ['৬০ ও ৪০ ফুট প্রশস্ত রাস্তা', 'উত্তরা-মিরপুর সহজ যোগাযোগ']
     }
   }
 ];
 
-export default function UnityDreamPropertiesAll() {
+// প্রাথমিক টিম ও হায়ারার্কিকাল ডাটাবেজ
+const initialTeamLedger: TeamMemberRecord[] = [
+  { id: 'TM-01', name: 'মোঃ আতিকুল ইসলাম (Admin)', designation: 'Super Admin', level: 9, team: 'Developer & Control Wing', selfSales: 350000000, teamSales: 950000000, commissionEarned: 35000000, commissionBalance: 12000000 },
+  { id: 'TM-02', name: 'চেয়ারম্যান স্যার', designation: 'Chairman', level: 8, team: 'Board of Directors', selfSales: 250000000, teamSales: 850000000, commissionEarned: 25000000, commissionBalance: 8500000 },
+  { id: 'TM-03', name: 'ম্যানেজিং ডিরেক্টর (MD)', designation: 'MD', level: 7, team: 'Executive Directorate', selfSales: 150000000, teamSales: 550000000, commissionEarned: 15000000, commissionBalance: 4500000 },
+  { id: 'TM-04', name: 'মোঃ ফারুক হোসেন', designation: 'Director', level: 5, team: 'Delta Team', selfSales: 60000000, teamSales: 210000000, commissionEarned: 6200000, commissionBalance: 1200000 },
+  { id: 'TM-05', name: 'হাসান মাহামুদ', designation: 'GM', level: 3, team: 'Padma Division', selfSales: 40000000, teamSales: 110000000, commissionEarned: 3500000, commissionBalance: 750000 },
+  { id: 'TM-06', name: 'আরিফুল ইসলাম', designation: 'DGM', level: 2, team: 'Padma Wing A', selfSales: 25000000, teamSales: 65000000, commissionEarned: 1800000, commissionBalance: 420000 },
+  { id: 'TM-07', name: 'নাজমুল হুদা', designation: 'AGM', level: 1, team: 'Echo Unit 1', selfSales: 18000000, teamSales: 35000000, commissionEarned: 1100000, commissionBalance: 280000 },
+  { id: 'TM-08', name: 'কামরুল হাসান', designation: 'Team Leader', level: 0.5, team: 'Echo Alpha', selfSales: 12000000, teamSales: 18000000, commissionEarned: 650000, commissionBalance: 190000 },
+  { id: 'TM-09', name: 'জাহিদুল ইসলাম', designation: 'Business Partner', level: 0.2, team: 'Echo Alpha', selfSales: 8500000, teamSales: 0, commissionEarned: 290000, commissionBalance: 85000 },
+  { id: 'TM-10', name: 'তানভীর আহমেদ', designation: 'Agent', level: 0, team: 'Echo Alpha', selfSales: 4500000, teamSales: 0, commissionEarned: 140000, commissionBalance: 45000 },
+];
+
+export default function CompleteERPPlatform() {
   const [properties, setProperties] = useState<PropertyItem[]>(defaultProjects);
+  const [teamLedger, setTeamLedger] = useState<TeamMemberRecord[]>(initialTeamLedger);
   const [currentNav, setCurrentNav] = useState('Home');
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   // মোডাল ও অথ স্টেট
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
   const [regType, setRegType] = useState<'individual' | 'company'>('individual');
+  const [selectedDesignation, setSelectedDesignation] = useState('Agent');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [postAdModal, setPostAdModal] = useState(false);
   const [detailsModal, setDetailsModal] = useState<PropertyItem | null>(null);
 
-  // ফর্ম স্টেট
+  // রেজিস্টার ফর্ম ফিল্ড
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regMobile, setRegMobile] = useState('');
-  const [regMobile2, setRegMobile2] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regContactPerson, setRegContactPerson] = useState('');
-  const [regDesignation, setRegDesignation] = useState('');
-  const [regOfficeAddress, setRegOfficeAddress] = useState('');
   const [regCaptcha, setRegCaptcha] = useState('');
 
+  // লগইন ফর্ম ফিল্ড
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // পোস্ট অ্যাড স্টেট
+  // পোস্ট অ্যাড ফিল্ড
   const [adTitle, setAdTitle] = useState('');
   const [adCompany, setAdCompany] = useState('Pushpodhara Properties Ltd.');
   const [adCategory, setAdCategory] = useState('plot');
@@ -161,17 +189,96 @@ export default function UnityDreamPropertiesAll() {
   // লোকাল স্টোরেজ সিঙ্ক
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('udp_live_items');
-      if (saved) setProperties(JSON.parse(saved));
+      const savedProps = localStorage.getItem('udp_live_items');
+      if (savedProps) setProperties(JSON.parse(savedProps));
+
+      const savedUser = localStorage.getItem('udp_active_user');
+      if (savedUser) setCurrentUser(JSON.parse(savedUser));
     } catch (e) {
       console.error(e);
     }
   }, []);
 
+  // রেজিস্ট্রেশন প্রসেস
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (regPassword !== regConfirmPassword) {
+      alert('পাসওয়ার্ড মেলেনি!');
+      return;
+    }
+    if (regCaptcha !== '16') {
+      alert('ক্যাপচা ভুল! ৮ + ৮ = ১৬ লিখুন।');
+      return;
+    }
+
+    const emailClean = regEmail.trim().toLowerCase();
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.some(email => email.toLowerCase() === emailClean);
+
+    const assignedDesignation = isSuperAdmin ? 'Super Admin' : selectedDesignation;
+    const assignedLevel = isSuperAdmin ? 9 : (DESIGNATION_LEVELS[assignedDesignation] ?? 0);
+
+    const userObj = {
+      name: regType === 'individual' ? regName : regContactPerson || regName,
+      email: regEmail.trim(),
+      mobile: regMobile,
+      type: regType,
+      designation: assignedDesignation,
+      level: assignedLevel,
+      isSuperAdmin: isSuperAdmin
+    };
+
+    setCurrentUser(userObj);
+    localStorage.setItem('udp_active_user', JSON.stringify(userObj));
+
+    // টিম ডাটাবেজে রেকর্ড যুক্ত করা
+    const newMember: TeamMemberRecord = {
+      id: `TM-${Date.now().toString().slice(-4)}`,
+      name: userObj.name,
+      designation: userObj.designation,
+      level: userObj.level,
+      team: 'General Sales Wing',
+      selfSales: 0,
+      teamSales: 0,
+      commissionEarned: 0,
+      commissionBalance: 0
+    };
+    const updatedLedger = [newMember, ...teamLedger];
+    setTeamLedger(updatedLedger);
+
+    alert(`অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে! ${isSuperAdmin ? '👑 আপনি সুপার অ্যাডমিন হিসেবে পূর্ণ এক্সেস পেয়েছেন।' : `পদমর্যাদা: ${userObj.designation}`}`);
+    setAuthModal(null);
+  };
+
+  // লগইন প্রসেস (mr.atiq.dhk.shimul@gmail.com এর জন্য সুপার অ্যাডমিন স্বয়ংক্রিয় সক্রিয়)
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailClean = loginEmail.trim().toLowerCase();
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.some(email => email.toLowerCase() === emailClean);
+
+    const userObj = {
+      name: isSuperAdmin ? 'আতিকুর রহমান (Developer & Super Admin)' : loginEmail.split('@')[0],
+      email: loginEmail.trim(),
+      designation: isSuperAdmin ? 'Super Admin' : 'Agent',
+      level: isSuperAdmin ? 9 : 0,
+      isSuperAdmin: isSuperAdmin
+    };
+
+    setCurrentUser(userObj);
+    localStorage.setItem('udp_active_user', JSON.stringify(userObj));
+    alert(`লগইন সফল! ${isSuperAdmin ? '👑 আপনি সুপার অ্যাডমিন হিসেবে সমস্ত মডিউল ও ডেটার পূর্ণ নিয়ন্ত্রণ পেয়েছেন।' : ''}`);
+    setAuthModal(null);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('udp_active_user');
+  };
+
+  // নতুন প্রোপার্টি লাইভ পাবলিশ করা
   const handleAddNewAd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!adTitle || !adLocation || !adPrice) {
-      alert('সবগুলো জরুরি ঘর পূরণ করুন!');
+      alert('সব প্রয়োজনীয় তথ্য পূরণ করুন!');
       return;
     }
 
@@ -190,8 +297,8 @@ export default function UnityDreamPropertiesAll() {
       image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=60',
       tags: ['সরাসরি লাইভ', 'অনলাইন ডাটাবেজ'],
       details: {
-        overview: 'ব্যবহারকারী কর্তৃক সরাসরি অনলাইন ডাটাবেজে যুক্ত হওয়া প্রজেক্ট।',
-        features: ['নিষ্কণ্টক জমি', 'দ্রুত রেজিস্ট্রি']
+        overview: 'অনলাইন সেন্ট্রাল ডাটাবেজে সদ্য যুক্ত হওয়া প্রজেক্ট।',
+        features: ['নিষ্কণ্টক জমি', 'দ্রুত সাফ-কবলা দলিল']
       }
     };
 
@@ -202,34 +309,17 @@ export default function UnityDreamPropertiesAll() {
     setPostAdModal(false);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (regPassword !== regConfirmPassword) {
-      alert('পাসওয়ার্ড মিলছে না!');
-      return;
+  // হায়ারার্কিকাল অ্যাক্সেস কন্ট্রোল ফিল্টার (Strict Access Rules)
+  const accessibleMembers = useMemo(() => {
+    if (!currentUser) return [];
+    // সুপার অ্যাডমিন (লেভেল ৯), চেয়ারম্যান (লেভেল ৮) ও এমডি (লেভেল ৭) সবার ডাটা দেখতে পাবেন
+    if (currentUser.isSuperAdmin || currentUser.level >= 7) {
+      return teamLedger;
     }
-    if (regCaptcha !== '16') {
-      alert('ক্যাপচা ভুল! ৮ + ৮ = ১৬ লিখুন।');
-      return;
-    }
-    const user = {
-      name: regType === 'individual' ? regName : regContactPerson || regName,
-      email: regEmail,
-      type: regType
-    };
-    setCurrentUser(user);
-    alert(`অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে! স্বাগতম ${user.name}`);
-    setAuthModal(null);
-  };
+    // অন্য যে কেউ শুধু তার নিজের এবং তার নিচের লেভেলের মেম্বারদের দেখতে পারবে
+    return teamLedger.filter(m => m.level <= currentUser.level);
+  }, [teamLedger, currentUser]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentUser({ name: loginEmail.split('@')[0], email: loginEmail });
-    alert('লগইন সম্পন্ন হয়েছে!');
-    setAuthModal(null);
-  };
-
-  // ফিল্টার
   const displayedItems = useMemo(() => {
     if (currentNav === 'For Sale') return properties.filter(p => p.type === 'plot' || p.type === 'flat');
     if (currentNav === 'For Rent') return properties.filter(p => p.type === 'rent');
@@ -241,17 +331,11 @@ export default function UnityDreamPropertiesAll() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between">
       
-      {/* =========================================================
-          মেনুবার হেডার (bdhousing শৈলীতে শতভাগ দৃশ্যমান ও ফিক্সড)
-      ========================================================= */}
+      {/* ১. শীর্ষ হেডার ও নেভিগেশন বার */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-3">
           
-          {/* লোগো */}
-          <div 
-            onClick={() => setCurrentNav('Home')} 
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
+          <div onClick={() => setCurrentNav('Home')} className="flex items-center gap-2 cursor-pointer select-none">
             <div className="w-10 h-10 bg-[#0d5c3a] text-white font-black text-xl flex items-center justify-center rounded shadow">
               UDP
             </div>
@@ -260,12 +344,11 @@ export default function UnityDreamPropertiesAll() {
                 UNITY DREAM PROPERTIES
               </span>
               <span className="text-[11px] text-slate-500 font-semibold block">
-                পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার পোর্টাল
+                পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার ও ERP সিস্টেম
               </span>
             </div>
           </div>
 
-          {/* মেনু আইটেমসমূহ */}
           <nav className="flex items-center flex-wrap gap-1 sm:gap-2 text-sm font-semibold text-slate-700">
             {['Home', 'For Sale', 'For Rent', 'Roommates', 'Developers', 'Jobs', 'Blog'].map((item) => (
               <button
@@ -281,34 +364,35 @@ export default function UnityDreamPropertiesAll() {
               </button>
             ))}
 
-            {/* My Account ড্রপডাউন[cite: 1, 2] */}
+            {/* My Account ড্রপডাউন */}
             <div className="relative">
               <button
                 onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
                 className="flex items-center gap-1 px-3 py-1.5 border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold text-sm"
               >
-                👤 {currentUser ? currentUser.name : 'My account'}
+                👤 {currentUser ? `${currentUser.name} (${currentUser.designation})` : 'My account'}
                 <span className="text-xs">▼</span>
               </button>
 
               {accountDropdownOpen && (
                 <div 
-                  className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded shadow-xl py-1 z-50 text-xs"
+                  className="absolute right-0 mt-1 w-64 bg-white border border-slate-200 rounded shadow-xl py-1 z-50 text-xs"
                   onClick={() => setAccountDropdownOpen(false)}
                 >
                   {currentUser ? (
                     <>
-                      <div className="px-3 py-1.5 text-emerald-800 font-bold border-b border-slate-100">
-                        লগইন: {currentUser.name}
+                      <div className="px-3 py-2 bg-emerald-50 text-[#0d5c3a] font-bold border-b border-slate-100">
+                        {currentUser.isSuperAdmin ? '👑 সুপার অ্যাডমিন (পূর্ণ এক্সেস)' : `পদবী: ${currentUser.designation}`}
+                        <div className="text-[10px] text-slate-500 font-normal">{currentUser.email}</div>
                       </div>
                       <button 
                         onClick={() => setCurrentNav('ERP')} 
-                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 font-bold text-emerald-700"
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 font-bold text-emerald-800 flex items-center gap-1.5"
                       >
-                        💼 ইআরপি লেজার
+                        💼 হায়ারার্কিকাল ERP ড্যাশবোর্ড
                       </button>
                       <button 
-                        onClick={() => setCurrentUser(null)} 
+                        onClick={handleLogout} 
                         className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 font-bold"
                       >
                         🚪 লগআউট
@@ -318,13 +402,13 @@ export default function UnityDreamPropertiesAll() {
                     <>
                       <button 
                         onClick={() => setAuthModal('login')} 
-                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium"
                       >
                         👤 Login
                       </button>
                       <button 
                         onClick={() => setAuthModal('register')} 
-                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium"
                       >
                         📝 Create Account
                       </button>
@@ -333,7 +417,7 @@ export default function UnityDreamPropertiesAll() {
                         onClick={() => setCurrentNav('ERP')} 
                         className="w-full text-left px-3 py-2 hover:bg-emerald-50 text-[#0d5c3a] font-bold"
                       >
-                        💼 সরাসরি ERP ড্যাশবোর্ড
+                        🏢 সরাসরি ERP পোর্টাল
                       </button>
                     </>
                   )}
@@ -341,10 +425,10 @@ export default function UnityDreamPropertiesAll() {
               )}
             </div>
 
-            {/* কমলা রঙের POST AD FREE বাটন[cite: 2] */}
+            {/* পোস্ট অ্যাড বাটন */}
             <button
               onClick={() => setPostAdModal(true)}
-              className="bg-[#f39c12] hover:bg-[#d68910] text-white text-xs font-black px-3.5 py-2 rounded shadow transition flex items-center gap-1 uppercase"
+              className="bg-[#f39c12] hover:bg-[#d68910] text-white text-xs font-black px-3.5 py-2 rounded shadow transition uppercase"
             >
               POST AD <span className="bg-[#0d5c3a] text-white px-1.5 py-0.5 rounded text-[10px] ml-1">FREE</span>
             </button>
@@ -352,15 +436,13 @@ export default function UnityDreamPropertiesAll() {
         </div>
       </header>
 
-      {/* =========================================================
-          মেইন বডি
-      ========================================================= */}
+      {/* ২. মার্কেটপ্লেস ইন্টারফেস */}
       {currentNav !== 'ERP' ? (
         <main className="max-w-7xl mx-auto w-full px-4 py-8 flex-1">
           <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
               <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full inline-block mb-2">
-                ● অনলাইন ক্লাউড ডাটাবেজ সক্রিয়
+                ● সেন্ট্রাল ক্লাউড ডাটাবেজ সংযুক্ত
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-800">
                 {currentNav === 'Home' ? 'পুষ্পধারা প্রপার্টিজ ও সিস্টার কনসার্ন প্রজেক্টসমূহ' : `${currentNav} প্রজেক্ট তালিকা`}
@@ -373,17 +455,13 @@ export default function UnityDreamPropertiesAll() {
               onClick={() => setCurrentNav('ERP')}
               className="bg-[#0d5c3a] hover:bg-emerald-800 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow transition"
             >
-              💼 কাস্টমার ও এজেন্ট ইআরপি ড্যাশবোর্ড
+              💼 হায়ারার্কিকাল ইআরপি লেজার দেখুন
             </button>
           </div>
 
-          {/* প্রোপার্টি গ্রিড */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between"
-              >
+              <div key={item.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
                 <div>
                   <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
@@ -410,14 +488,6 @@ export default function UnityDreamPropertiesAll() {
                         <span className="font-bold text-[#f39c12]">{item.priceText}</span>
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {item.tags.map((t, i) => (
-                        <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 </div>
 
@@ -434,56 +504,143 @@ export default function UnityDreamPropertiesAll() {
           </div>
         </main>
       ) : (
-        /* ইআরপি মোড */
-        <main className="max-w-7xl mx-auto w-full px-4 py-8 flex-1">
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <div>
-                <h3 className="text-lg font-bold text-[#0d5c3a]">পুষ্পধারা একাউন্টিং ও কিস্তি লেজার (ERP)</h3>
-                <p className="text-xs text-slate-500">বুকিং, মানি রিসিট ও সেলস পার্টনার কমিশন কন্ট্রোল</p>
+        /* ৩. হায়ারার্কিকাল অ্যাক্সেস কন্ট্রোলসহ ERP ড্যাশবোর্ড */
+        <main className="max-w-7xl mx-auto w-full px-4 py-8 flex-1 space-y-6">
+          
+          {/* ইউজার স্ট্যাটাস বার */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-[#0d5c3a]">
+                  পুষ্পধারা সেন্ট্রাল একাউন্টিং ও টিম ম্যানেজমেন্ট ERP
+                </h2>
+                {currentUser?.isSuperAdmin && (
+                  <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                    👑 SUPER ADMIN ACCESS
+                  </span>
+                )}
               </div>
+              <p className="text-xs text-slate-500 mt-1">
+                লগইন স্ট্যাটাস: <strong className="text-slate-800">{currentUser ? currentUser.name : 'গেস্ট ভিউয়ার'}</strong> | 
+                পদবী: <strong className="text-emerald-700">{currentUser ? currentUser.designation : 'Not Assigned'}</strong> | 
+                অ্যাক্সেস লেভেল: <strong className="text-amber-600">{currentUser ? currentUser.level : 0}</strong>
+              </p>
+            </div>
+
+            <div className="flex gap-2">
               <button 
                 onClick={() => setCurrentNav('Home')} 
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded text-xs"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3.5 py-2 rounded text-xs"
               >
                 মার্কেটপ্লেসে ফিরুন
               </button>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span className="text-slate-500">মোট চুক্তিমূল্য</span>
-                <p className="text-lg font-black text-slate-800 mt-1">৳ ৬০,০০,০০০</p>
+          {/* অ্যাকাউন্টস ও হাই-লেভেল সামারি (কেবলমাত্র সুপার অ্যাডমিন, চেয়ারম্যান ও এমডির জন্য) */}
+          {(currentUser?.level >= 7 || currentUser?.isSuperAdmin) && (
+            <div className="bg-slate-900 text-white rounded-xl p-6 shadow-md border border-slate-800">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-amber-400">🏢 কোম্পানির সেন্ট্রাল অ্যাকাউন্টস মডিউল (টপ লেভেল সিকিউরড)</h3>
+                  <p className="text-xs text-slate-400">এই স্পর্শকাতর আর্থিক ডাটা নিম্নস্তরের কেউ দেখতে পারবে না।</p>
+                </div>
+                <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded">
+                  Super Admin, Chairman & MD Only
+                </span>
               </div>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span className="text-slate-500">মোট জমা / পরিশোধ</span>
-                <p className="text-lg font-black text-emerald-700 mt-1">৳ ৪৪,৫০,০০০</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <span className="text-slate-400 block">মোট প্রজেক্ট সেলস ভলিউম</span>
+                  <span className="text-lg font-black text-emerald-400">৳ ৯৫,০০,০০,০০০</span>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <span className="text-slate-400 block">মোট কালেকশন রিসিভড</span>
+                  <span className="text-lg font-black text-white">৳ ৫৮,৪০,০০,০০০</span>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <span className="text-slate-400 block">বকেয়া কিস্তি কালেকশন</span>
+                  <span className="text-lg font-black text-rose-400">৳ ৩৬,৬০,০০,০০০</span>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <span className="text-slate-400 block">মোট কমিশন বিতরণ</span>
+                  <span className="text-lg font-black text-amber-400">৳ ৫,২০,০০,০০০</span>
+                </div>
               </div>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span className="text-slate-500">বকেয়া কিস্তি</span>
-                <p className="text-lg font-black text-rose-600 mt-1">৳ ১৫,৫০,০০০</p>
+            </div>
+          )}
+
+          {/* টিম ও হায়ারার্কিকাল সেলস লেজার টেবিল */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-[#0d5c3a]">
+                  আপনার অনুমোদিত টিম ও অধীনস্থ সেলস রেকর্ড ({accessibleMembers.length} জন)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {currentUser?.isSuperAdmin 
+                    ? 'আপনি সুপার অ্যাডমিন হওয়ায় শীর্ষ চেয়ারম্যান ও এমডি থেকে তৃণমূল পর্যন্ত সবার ডাটা অ্যাক্সেস করতে পারছেন।'
+                    : `হায়ারার্কি নিয়ম অনুযায়ী আপনি কেবল নিজের এবং আপনার নিম্নস্তরের পদবীসমূহের হিসাব দেখতে পাচ্ছেন।`}
+                </p>
               </div>
+            </div>
+
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                  <tr>
+                    <th className="p-3">আইডি</th>
+                    <th className="p-3">সদস্যের নাম</th>
+                    <th className="p-3">পদমর্যাদা (Designation)</th>
+                    <th className="p-3">টিম / উইং</th>
+                    <th className="p-3">ব্যক্তিগত সেলস</th>
+                    <th className="p-3">টিম সেলস ভলিউম</th>
+                    <th className="p-3">মোট কমিশন</th>
+                    <th className="p-3">উত্তোলনযোগ্য ব্যালেন্স</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {accessibleMembers.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50">
+                      <td className="p-3 font-mono text-emerald-800 font-bold">{m.id}</td>
+                      <td className="p-3 font-bold text-slate-800">{m.name}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          m.level >= 8 ? 'bg-purple-100 text-purple-800' :
+                          m.level >= 5 ? 'bg-indigo-100 text-indigo-800' :
+                          m.level >= 2 ? 'bg-blue-100 text-blue-800' :
+                          m.level >= 0.5 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {m.designation} (Lvl {m.level})
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-500">{m.team}</td>
+                      <td className="p-3 font-semibold text-slate-800">৳ {m.selfSales.toLocaleString()}</td>
+                      <td className="p-3 font-semibold text-emerald-700">৳ {m.teamSales.toLocaleString()}</td>
+                      <td className="p-3 font-bold text-amber-600">৳ {m.commissionEarned.toLocaleString()}</td>
+                      <td className="p-3 font-bold text-emerald-600">৳ {m.commissionBalance.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </main>
       )}
 
-      {/* =========================================================
-          রেজিস্ট্রেশন মডাল[cite: 3, 5]
-      ========================================================= */}
+      {/* ৪. অ্যাকাউন্ট রেজিস্ট্রেশন মোডাল */}
       {authModal === 'register' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
           <div className="bg-white rounded-lg max-w-lg w-full overflow-hidden shadow-2xl">
             <div className="bg-[#0d5c3a] p-3 text-white flex justify-between items-center">
-              <div className="flex items-center gap-2 font-bold text-sm">
-                <span>👤</span> CREATE ACCOUNT
-              </div>
+              <span className="font-bold text-sm">👤 CREATE ACCOUNT</span>
               <button onClick={() => setAuthModal(null)} className="text-white text-lg font-bold">✕</button>
             </div>
 
-            <form onSubmit={handleRegister} className="p-6 space-y-3.5 text-xs text-slate-700">
+            <form onSubmit={handleRegister} className="p-6 space-y-3.5 text-xs text-slate-700 max-h-[85vh] overflow-y-auto">
               <div>
-                <label className="font-semibold block mb-1">I am</label>
+                <label className="font-semibold block mb-1">অ্যাকাউন্টের ধরন (Account Type)</label>
                 <div className="flex gap-6">
                   <label className="flex items-center gap-1 cursor-pointer">
                     <input 
@@ -508,55 +665,45 @@ export default function UnityDreamPropertiesAll() {
                 </div>
               </div>
 
-              {regType === 'individual' ? (
-                <>
-                  <div>
-                    <label className="block mb-0.5">Name *</label>
-                    <input type="text" placeholder="Enter your full name" required value={regName} onChange={e => setRegName(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">E-mail *</label>
-                    <input type="email" placeholder="Enter valid e-mail" required value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">Mobile *</label>
-                    <input type="tel" placeholder="Enter mobile number" required value={regMobile} onChange={e => setRegMobile(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block mb-0.5">Company Name *</label>
-                    <input type="text" placeholder="Company name" required value={regName} onChange={e => setRegName(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">Contact Person Name *</label>
-                    <input type="text" placeholder="Contact person" required value={regContactPerson} onChange={e => setRegContactPerson(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">Designation *</label>
-                    <input type="text" placeholder="Designation" value={regDesignation} onChange={e => setRegDesignation(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">E-mail *</label>
-                    <input type="email" placeholder="Valid email" required value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block mb-0.5">Office Address *</label>
-                    <input type="text" placeholder="Office address" value={regOfficeAddress} onChange={e => setRegOfficeAddress(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block mb-0.5">Mobile *</label>
-                      <input type="tel" placeholder="Mobile" required value={regMobile} onChange={e => setRegMobile(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block mb-0.5">Mobile 2 / Landline</label>
-                      <input type="tel" placeholder="Landline" value={regMobile2} onChange={e => setRegMobile2(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* পদমর্যাদা নির্বাচন */}
+              <div>
+                <label className="block mb-0.5 font-bold text-slate-800">পদমর্যাদা নির্বাচন করুন (Designation) *</label>
+                <select 
+                  value={selectedDesignation}
+                  onChange={(e) => setSelectedDesignation(e.target.value)}
+                  className="w-full border border-slate-300 rounded p-2 outline-none bg-slate-50 font-semibold"
+                >
+                  <option value="Agent">Agent (তৃণমূল এজেন্ট)</option>
+                  <option value="Business Partner">Business Partner (বিপি)</option>
+                  <option value="Team Leader">Team Leader (টিম লিডার)</option>
+                  <option value="AGM">AGM (সহকারী জেনারেল ম্যানেজার)</option>
+                  <option value="DGM">DGM (ডেপুটি জেনারেল ম্যানেজার)</option>
+                  <option value="GM">GM (জেনারেল ম্যানেজার)</option>
+                  <option value="Deputy Director">Deputy Director (ডেপুটি ডিরেক্টর)</option>
+                  <option value="Director">Director (ডিরেক্টর)</option>
+                  <option value="DMD">DMD (ডেপুটি ম্যানেজিং ডিরেক্টর)</option>
+                  <option value="MD">MD (ম্যানেজিং ডিরেক্টর)</option>
+                  <option value="Chairman">Chairman (চেয়ারম্যান)</option>
+                </select>
+                <span className="text-[10px] text-amber-600 block mt-0.5">
+                  * {SUPER_ADMIN_EMAILS[0]} ইমেইল স্বয়ংক্রিয়ভাবে সুপার অ্যাডমিন হবে।
+                </span>
+              </div>
+
+              <div>
+                <label className="block mb-0.5">পূর্ণ নাম *</label>
+                <input type="text" placeholder="Enter your full name" required value={regName} onChange={e => setRegName(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+
+              <div>
+                <label className="block mb-0.5">ইমেইল অ্যাড্রেস *</label>
+                <input type="email" placeholder="mr.atiq.dhk.shimul@gmail.com" required value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+
+              <div>
+                <label className="block mb-0.5">মোবাইল নম্বর *</label>
+                <input type="tel" placeholder="01XXXXXXXXX" required value={regMobile} onChange={e => setRegMobile(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -574,7 +721,7 @@ export default function UnityDreamPropertiesAll() {
                 <input type="text" placeholder="16" required value={regCaptcha} onChange={e => setRegCaptcha(e.target.value)} className="w-16 border border-slate-300 rounded p-1 text-center font-bold" />
               </div>
 
-              <button type="submit" className="w-full bg-[#f39c12] hover:bg-[#d68910] text-white font-bold py-2.5 rounded shadow">
+              <button type="submit" className="w-full bg-[#f39c12] hover:bg-[#d68910] text-white font-bold py-2.5 rounded shadow mt-2">
                 Register Now
               </button>
             </form>
@@ -582,9 +729,7 @@ export default function UnityDreamPropertiesAll() {
         </div>
       )}
 
-      {/* =========================================================
-          লগইন মডাল[cite: 8]
-      ========================================================= */}
+      {/* ৫. লগইন মোডাল */}
       {authModal === 'login' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
           <div className="bg-white rounded-lg max-w-sm w-full overflow-hidden shadow-2xl">
@@ -596,11 +741,25 @@ export default function UnityDreamPropertiesAll() {
             <form onSubmit={handleLogin} className="p-6 space-y-4 text-xs text-slate-700">
               <div>
                 <label className="block mb-1 font-semibold">Your Email</label>
-                <input type="email" placeholder="Email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                <input 
+                  type="email" 
+                  placeholder="mr.atiq.dhk.shimul@gmail.com" 
+                  required 
+                  value={loginEmail} 
+                  onChange={e => setLoginEmail(e.target.value)} 
+                  className="w-full border border-slate-300 rounded p-2 outline-none" 
+                />
               </div>
               <div>
                 <label className="block mb-1 font-semibold">Password</label>
-                <input type="password" placeholder="Password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  required 
+                  value={loginPassword} 
+                  onChange={e => setLoginPassword(e.target.value)} 
+                  className="w-full border border-slate-300 rounded p-2 outline-none" 
+                />
               </div>
 
               <button type="submit" className="w-full bg-[#f39c12] hover:bg-[#d68910] text-white font-bold py-2.5 rounded shadow">
@@ -611,14 +770,12 @@ export default function UnityDreamPropertiesAll() {
         </div>
       )}
 
-      {/* =========================================================
-          পোস্ট অ্যাড মডাল (অনলাইন ডাটাবেজে নতুন পোস্টিং)[cite: 2]
-      ========================================================= */}
+      {/* ৬. পোস্ট অ্যাড মোডাল */}
       {postAdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
           <div className="bg-white rounded-xl max-w-md w-full p-6 text-xs text-slate-800 space-y-3 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-              <h3 className="font-bold text-sm text-[#0d5c3a]">➕ পোস্ট করুন (সরাসরি অনলাইন ডাটাবেজ)</h3>
+              <h3 className="font-bold text-sm text-[#0d5c3a]">➕ পোস্ট করুন (অনলাইন সেন্ট্রাল ডাটাবেজ)</h3>
               <button onClick={() => setPostAdModal(false)} className="text-slate-500 text-lg font-bold">✕</button>
             </div>
 
@@ -668,7 +825,7 @@ export default function UnityDreamPropertiesAll() {
         </div>
       )}
 
-      {/* বিস্তারিত মডাল */}
+      {/* ৭. প্রজেক্ট ডিটেইলস মোডাল */}
       {detailsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
           <div className="bg-white rounded-xl max-w-lg w-full p-6 text-xs text-slate-700 space-y-3 max-h-[90vh] overflow-y-auto">
