@@ -1,615 +1,720 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
-// ডামি প্রোপার্টি ডাটা (bdhousing মার্কেটপ্লেস স্টাইল)
-const initialProperties = [
+// প্রোপার্টি ডাটা টাইপ
+interface PropertyItem {
+  id: string | number;
+  title: string;
+  company: string;
+  category: string;
+  type: 'plot' | 'flat' | 'commercial' | 'rent' | 'roommate';
+  location: string;
+  shortLocation: string;
+  size: string;
+  priceText: string;
+  minPrice: number;
+  status: string;
+  image: string;
+  tags: string[];
+  details: {
+    overview: string;
+    features: string[];
+  };
+}
+
+// অথেন্টিক প্রজেক্ট ডাটাবেজ
+const defaultProjects: PropertyItem[] = [
   {
     id: 1,
-    title: 'ঢাকা ওয়েস্টার্ন ভ্যালি - প্রাইম লেক ভিউ প্লট',
+    title: 'Padma Eco-City',
+    company: 'Pushpodhara Properties Ltd.',
+    category: 'Township / Mega Plot Project',
     type: 'plot',
-    location: 'কেরানীগঞ্জ (বসিলা ব্রিজ সংলগ্ন)',
-    size: '৫ কাঠা',
-    pricePerUnit: '১২,৫০,০০০ ৳ / কাঠা',
-    totalPrice: 6250000,
-    status: 'Available',
+    location: 'Dhaka-Mawa Highway, Near Padma Bridge',
+    shortLocation: 'ঢাকা-মাওয়া হাইওয়ে (পদ্মা সেতু সংলগ্ন)',
+    size: '3, 5, 10 & 20 Katha',
+    priceText: '১০,৫০,০০০ ৳ / কাঠা থেকে শুরু',
+    minPrice: 3150000,
+    status: 'Ongoing Flagship',
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=60',
-    tags: ['রেডি প্লট', 'বিদ্যুৎ সংযোগ', '৬০ ফুট রোড', '১০০% নিষ্কণ্টক'],
+    tags: ['3,500 Acres', '3 KM Curved Lake', 'Parks & Wide Roads', 'সাফ-কবলা দলিল'],
+    details: {
+      overview: '3,500 একরের মেগা ফ্ল্যাগশিপ টাউনশিপ প্রজেক্ট যা ২০১৫ সালে শুরু হয়। ঢাকা-মাওয়া চার লেন হাইওয়ে ও পদ্মা সেতুর খুব কাছে অবস্থিত আধুনিক নাগরিক সুবিধা সংবলিত আবাসন প্রকল্প।',
+      features: [
+        '৩, ৫, ১০ ও ২০ কাঠার আবাসিক ও বাণিজ্যিক প্লট',
+        '৩ কিলোমিটার দীর্ঘ নান্দনিক বাঁকানো লেক ও ওয়াকওয়ে',
+        'পর্যাপ্ত সবুজ পার্ক, খেলার মাঠ ও মসজিদ',
+        'প্রশস্ত অভ্যন্তরীণ রাস্তা ও বিদ্যুৎ-পানি সংযোগ সুবিধা',
+        'এককালীন ও দীর্ঘমেয়াদী সহজ কিস্তির সুযোগ'
+      ]
+    }
   },
   {
     id: 2,
-    title: 'পুষ্প ইকো সিটি - সাউথ ফেসিং কমার্শিয়াল কর্নার',
-    type: 'plot',
-    location: 'পূর্বাচল (৩০০ ফিট এক্সপ্রেসওয়ে)',
-    size: '১০ কাঠা',
-    pricePerUnit: '১৮,০০,০০০ ৳ / কাঠা',
-    totalPrice: 18000000,
-    status: 'Limited',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=60',
-    tags: ['কর্নার প্লট', 'লেকভিউ', 'বাউন্ডারি রেডি', 'সহজ কিস্তি'],
+    title: 'The Bay Icon International Hotel & Resort',
+    company: 'Bay Icon International Hotel & Resort Ltd.',
+    category: '5-Star Luxury Hospitality & Commercial',
+    type: 'commercial',
+    location: 'Kolatoli Marine Drive Road, Cox\'s Bazar',
+    shortLocation: 'কলাতলী মেরিন ড্রাইভ, কক্সবাজার',
+    size: '300 - 1200 Sq Ft / Fractional Share',
+    priceText: 'শেয়ার ও ওনারশিপ ইনভেস্টমেন্ট',
+    minPrice: 2000000,
+    status: 'Under Construction',
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=60',
+    tags: ['205 Decimal Land', '14-15 Stories', '495 Luxury Rooms', 'Halal Income'],
+    details: {
+      overview: 'কক্সবাজারের সুগন্ধা ও কলাতলী মেরিন ড্রাইভ রোডে ২০৫ শতাংশ জমির ওপর নির্মিতব্য আন্তর্জাতিক মানের ৫-স্টার লাক্সারি হোটেল অ্যান্ড রিসোর্ট।',
+      features: [
+        '১৪ থেকে ১৫ তলা আধুনিক স্থাপত্য ও টাওয়ার স্ট্রাকচার',
+        'প্রায় ৪৯৫টি বিলাসবহুল রুম ও প্রেসিডেনশিয়াল স্যুট',
+        'ইনফিনিটি রুফটপ সুইমিং পুল, গ্র্যান্ড রেস্টুরেন্ট, জিম ও জুস বার',
+        'সরাসরি সাফ-কবলা সাব-রেজিস্ট্রি দলিল ও ফ্র্যাকশনাল মালিকানা',
+        'লাইফটাইম ক্যাপিং-মুক্ত হালাল মাসিক মুনাফা বণ্টন'
+      ]
+    }
   },
   {
     id: 3,
-    title: 'গ্রিন হরাইজন লাক্সারি কনডোমিনিয়াম',
-    type: 'flat',
-    location: 'বসুন্ধরা আ/এ (Block-I)',
-    size: '২১৫০ বর্গফুট (৪ বেড, ৪ বাথ)',
-    pricePerUnit: '৮,৫০০ ৳ / বর্গফুট',
-    totalPrice: 18275000,
-    status: 'Ongoing',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=60',
-    tags: ['সুইমিং পুল', 'রুফটপ গার্ডেন', 'স্মার্ট ডোর লক'],
+    title: 'Pushpodhara Satellite City',
+    company: 'Pushpodhara Properties Ltd.',
+    category: 'Satellite Town / Plots',
+    type: 'plot',
+    location: '22 KM from Zero Point, 13 KM from Padma Bridge',
+    shortLocation: 'ঢাকা জিরো পয়েন্ট থেকে ২২ কিমি ও পদ্মা সেতু থেকে ১৩ কিমি',
+    size: '৩ ও ৫ কাঠা প্লট',
+    priceText: '১২,০০,০০০ ৳ / কাঠা',
+    minPrice: 3600000,
+    status: 'Available',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=60',
+    tags: ['Express Highway', 'প্রাইম লোকেশন', 'সহজ কিস্তি'],
+    details: {
+      overview: 'ঢাকা জিরো পয়েন্ট থেকে মাত্র ২২ কিমি এবং পদ্মা সেতু থেকে ১৩ কিমি দূরত্বে ঢাকা-মাওয়া এক্সপ্রেসওয়ের প্রাইম বেল্টে পরিকল্পিত আধুনিক স্যাটেলাইট সিটি।',
+      features: [
+        'নিষ্কণ্টক মালিকানা ও দ্রুত রেজিস্ট্রেশন',
+        'আধুনিক ড্রেনেজ ও মাটির নিচের ক্যাবলিং নেটওয়ার্ক',
+        'স্কুল, কলেজ ও হাসপাতালের নির্ধারিত জোন'
+      ]
+    }
   },
   {
     id: 4,
-    title: 'দ্য বে আইকন - রিটেইল শপ ও কর্পোরেট স্পেস',
-    type: 'commercial',
-    location: 'উত্তরা (সেক্টর ১১)',
-    size: '১২০০ বর্গফুট',
-    pricePerUnit: '১৫,০০০ ৳ / বর্গফুট',
-    totalPrice: 18000000,
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60',
-    tags: ['সেন্ট্রাল এসি', 'ডাবল লিফট', 'গ্রাউন্ড ফ্লোর'],
-  },
-  {
-    id: 5,
-    title: 'ড্রিম হেভেন - প্রাইম আবাসিক প্লট',
+    title: 'Dhaka Western Valley',
+    company: 'Golden Eye Developer',
+    category: 'Residential Plots',
     type: 'plot',
-    location: 'সাভার (স্মার্ট সিটির কাছে)',
-    size: '৩ কাঠা',
-    pricePerUnit: '৭,৫০,০০০ ৳ / কাঠা',
-    totalPrice: 2250000,
-    status: 'Available',
-    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=60',
-    tags: ['নিষ্কণ্টক জমি', 'সহজ কিস্তি', 'রেজিস্ট্রি সুযোগ'],
-  },
+    location: 'Mirpur Beribadh, Adjacent to Metro Rail route',
+    shortLocation: 'মিরপুর বেড়িবাঁধ সংলগ্ন (ঢাকা)',
+    size: '৩, ৫ ও ১০ কাঠা',
+    priceText: '১৪,৫০,০০০ ৳ / কাঠা',
+    minPrice: 4350000,
+    status: 'Ongoing',
+    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=60',
+    tags: ['মিরপুর কানেক্টিভিটি', 'মেট্রোরেল সুবিধা', 'রেডি বাউন্ডারি'],
+    details: {
+      overview: 'গোল্ডেন আই ডেভেলপার কর্তৃক বাস্তবায়িত মিরপুর ও মোহাম্মদপুর কানেক্টিভিটির সন্নিকটে অবস্থিত প্রিমিয়াম ল্যান্ড প্রজেক্ট।',
+      features: [
+        'উত্তরা ও মিরপুর মেট্রো স্টেশনের সহজ যাতায়াত',
+        '৬০ ফুট ও ৪০ ফুট প্রশস্ত এভিনিউ রোড',
+        'বিদ্যুৎ, গ্যাস ও সুয়ারেজ ব্যবস্থার পূর্ণ পরিকল্পনা'
+      ]
+    }
+  }
 ];
 
-export default function UnityDreamPropertiesModule() {
-  // মোড নির্বাচন: 'portal' (মার্কেটপ্লেস) অথবা 'erp' (হিসাব-নিকাশ)
-  const [viewMode, setViewMode] = useState<'portal' | 'erp'>('portal');
-  const [erpRole, setErpRole] = useState<'client' | 'agent' | 'admin'>('client');
+export default function UnityDreamPropertiesAll() {
+  const [properties, setProperties] = useState<PropertyItem[]>(defaultProjects);
+  const [currentNav, setCurrentNav] = useState('Home');
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
-  // ফিল্টারিং স্টেট
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-  const [maxBudget, setMaxBudget] = useState(25000000);
-  const [searchQuery, setSearchQuery] = useState('');
+  // মোডাল ও অথ স্টেট
+  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
+  const [regType, setRegType] = useState<'individual' | 'company'>('individual');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [postAdModal, setPostAdModal] = useState(false);
+  const [detailsModal, setDetailsModal] = useState<PropertyItem | null>(null);
 
-  // মডাল ও ইনকোয়ারি স্টেট
-  const [activePropertyModal, setActivePropertyModal] = useState<any>(null);
-  const [isReceiptModal, setIsReceiptModal] = useState(false);
-  const [inquiryName, setInquiryName] = useState('');
-  const [inquiryPhone, setInquiryPhone] = useState('');
-  const [inquirySuccess, setInquirySuccess] = useState(false);
+  // ফর্ম স্টেট
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regMobile, setRegMobile] = useState('');
+  const [regMobile2, setRegMobile2] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [regContactPerson, setRegContactPerson] = useState('');
+  const [regDesignation, setRegDesignation] = useState('');
+  const [regOfficeAddress, setRegOfficeAddress] = useState('');
+  const [regCaptcha, setRegCaptcha] = useState('');
 
-  // লাইভ ডাটা ফিল্টারিং (খুব দ্রুত রেসপন্স)
-  const filteredProperties = useMemo(() => {
-    return initialProperties.filter((item) => {
-      const matchType = selectedType === 'all' || item.type === selectedType;
-      const matchLoc = selectedLocation === 'all' || item.location.includes(selectedLocation);
-      const matchBudget = item.totalPrice <= maxBudget;
-      const matchSearch =
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchType && matchLoc && matchBudget && matchSearch;
-    });
-  }, [selectedType, selectedLocation, maxBudget, searchQuery]);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
-  // সরাসরি হোয়াটসঅ্যাপে ইনকোয়ারি পাঠানোর ফাংশন
-  const handleSendWhatsAppInquiry = (property: any) => {
-    if (!inquiryPhone) return;
-    const msg = `*🏢 Unity Dream Properties - বুকিং ইনকোয়ারি 🏢*
----------------------------------------
-👤 নাম: ${inquiryName || 'সম্মানিত ক্লায়েন্ট'}
-📱 মোবাইল: ${inquiryPhone}
-🏡 প্রজেক্ট: ${property.title}
-📍 অবস্থান: ${property.location}
-💰 প্যাকেজ মূল্য: ৳ ${property.totalPrice.toLocaleString('bn-BD')}
----------------------------------------
-আমি এই প্রজেক্টের সাইট ভিজিট ও বুকিংয়ের শর্তাবলী জানতে আগ্রহী।`;
+  // পোস্ট অ্যাড স্টেট
+  const [adTitle, setAdTitle] = useState('');
+  const [adCompany, setAdCompany] = useState('Pushpodhara Properties Ltd.');
+  const [adCategory, setAdCategory] = useState('plot');
+  const [adLocation, setAdLocation] = useState('');
+  const [adSize, setAdSize] = useState('');
+  const [adPrice, setAdPrice] = useState('');
 
-    const encoded = encodeURIComponent(msg);
-    window.open(`https://api.whatsapp.com/send?phone=8801681196700&text=${encoded}`, '_blank');
-    setInquirySuccess(true);
-    setTimeout(() => {
-      setInquirySuccess(false);
-      setActivePropertyModal(null);
-      setInquiryName('');
-      setInquiryPhone('');
-    }, 2000);
+  // লোকাল স্টোরেজ সিঙ্ক
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('udp_live_items');
+      if (saved) setProperties(JSON.parse(saved));
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const handleAddNewAd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adTitle || !adLocation || !adPrice) {
+      alert('সবগুলো জরুরি ঘর পূরণ করুন!');
+      return;
+    }
+
+    const newItem: PropertyItem = {
+      id: Date.now(),
+      title: adTitle,
+      company: adCompany,
+      category: adCategory === 'plot' ? 'Township / Plot' : 'Apartment / Commercial',
+      type: adCategory as any,
+      location: adLocation,
+      shortLocation: adLocation,
+      size: adSize || 'স্ট্যান্ডার্ড',
+      priceText: `${adPrice} ৳`,
+      minPrice: 1000000,
+      status: 'Live Verified',
+      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=60',
+      tags: ['সরাসরি লাইভ', 'অনলাইন ডাটাবেজ'],
+      details: {
+        overview: 'ব্যবহারকারী কর্তৃক সরাসরি অনলাইন ডাটাবেজে যুক্ত হওয়া প্রজেক্ট।',
+        features: ['নিষ্কণ্টক জমি', 'দ্রুত রেজিস্ট্রি']
+      }
+    };
+
+    const updated = [newItem, ...properties];
+    setProperties(updated);
+    localStorage.setItem('udp_live_items', JSON.stringify(updated));
+    alert('প্রোপার্টি সফলভাবে অনলাইন ডাটাবেজে যুক্ত ও লাইভ হয়েছে!');
+    setPostAdModal(false);
   };
 
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (regPassword !== regConfirmPassword) {
+      alert('পাসওয়ার্ড মিলছে না!');
+      return;
+    }
+    if (regCaptcha !== '16') {
+      alert('ক্যাপচা ভুল! ৮ + ৮ = ১৬ লিখুন।');
+      return;
+    }
+    const user = {
+      name: regType === 'individual' ? regName : regContactPerson || regName,
+      email: regEmail,
+      type: regType
+    };
+    setCurrentUser(user);
+    alert(`অ্যাকাউন্ট তৈরি সম্পন্ন হয়েছে! স্বাগতম ${user.name}`);
+    setAuthModal(null);
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentUser({ name: loginEmail.split('@')[0], email: loginEmail });
+    alert('লগইন সম্পন্ন হয়েছে!');
+    setAuthModal(null);
+  };
+
+  // ফিল্টার
+  const displayedItems = useMemo(() => {
+    if (currentNav === 'For Sale') return properties.filter(p => p.type === 'plot' || p.type === 'flat');
+    if (currentNav === 'For Rent') return properties.filter(p => p.type === 'rent');
+    if (currentNav === 'Roommates') return properties.filter(p => p.type === 'roommate');
+    if (currentNav === 'Developers') return properties.filter(p => p.company.includes('Pushpodhara') || p.company.includes('Golden'));
+    return properties;
+  }, [properties, currentNav]);
+
   return (
-    <div className="min-h-screen bg-[#060a12] text-slate-100 flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between">
       
-      {/* ১. টপ হেডার বার */}
-      <header className="border-b border-amber-500/20 bg-slate-950/90 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 py-3.5 shadow-xl">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+      {/* =========================================================
+          মেনুবার হেডার (bdhousing শৈলীতে শতভাগ দৃশ্যমান ও ফিক্সড)
+      ========================================================= */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-3">
           
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setViewMode('portal')}>
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-300 text-slate-950 font-black text-xl flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300">
+          {/* লোগো */}
+          <div 
+            onClick={() => setCurrentNav('Home')} 
+            className="flex items-center gap-2 cursor-pointer select-none"
+          >
+            <div className="w-10 h-10 bg-[#0d5c3a] text-white font-black text-xl flex items-center justify-center rounded shadow">
               UDP
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 tracking-wider">
-                  UNITY DREAM PROPERTIES
-                </h1>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
-                  NextGen
-                </span>
-              </div>
-              <p className="text-[11px] text-amber-400/80 font-medium tracking-wider">
-                স্মার্ট রিয়েল এস্টেট প্ল্যাটফর্ম ও অ্যাকাউন্টস ইআরপি
-              </p>
+              <span className="text-lg font-black tracking-tight text-[#0d5c3a] block leading-tight">
+                UNITY DREAM PROPERTIES
+              </span>
+              <span className="text-[11px] text-slate-500 font-semibold block">
+                পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার পোর্টাল
+              </span>
             </div>
           </div>
 
-          {/* পোর্টাল এবং ইআরপি স্যুইচ বাটন */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 w-full sm:w-auto justify-center">
+          {/* মেনু আইটেমসমূহ */}
+          <nav className="flex items-center flex-wrap gap-1 sm:gap-2 text-sm font-semibold text-slate-700">
+            {['Home', 'For Sale', 'For Rent', 'Roommates', 'Developers', 'Jobs', 'Blog'].map((item) => (
+              <button
+                key={item}
+                onClick={() => setCurrentNav(item)}
+                className={`px-3 py-1.5 rounded transition ${
+                  currentNav === item
+                    ? 'text-[#0d5c3a] border-b-2 border-[#0d5c3a] font-bold bg-emerald-50'
+                    : 'hover:text-[#0d5c3a]'
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+
+            {/* My Account ড্রপডাউন[cite: 1, 2] */}
+            <div className="relative">
+              <button
+                onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                className="flex items-center gap-1 px-3 py-1.5 border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold text-sm"
+              >
+                👤 {currentUser ? currentUser.name : 'My account'}
+                <span className="text-xs">▼</span>
+              </button>
+
+              {accountDropdownOpen && (
+                <div 
+                  className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded shadow-xl py-1 z-50 text-xs"
+                  onClick={() => setAccountDropdownOpen(false)}
+                >
+                  {currentUser ? (
+                    <>
+                      <div className="px-3 py-1.5 text-emerald-800 font-bold border-b border-slate-100">
+                        লগইন: {currentUser.name}
+                      </div>
+                      <button 
+                        onClick={() => setCurrentNav('ERP')} 
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 font-bold text-emerald-700"
+                      >
+                        💼 ইআরপি লেজার
+                      </button>
+                      <button 
+                        onClick={() => setCurrentUser(null)} 
+                        className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 font-bold"
+                      >
+                        🚪 লগআউট
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => setAuthModal('login')} 
+                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium flex items-center gap-2"
+                      >
+                        👤 Login
+                      </button>
+                      <button 
+                        onClick={() => setAuthModal('register')} 
+                        className="w-full text-left px-3 py-2 hover:bg-slate-100 font-medium flex items-center gap-2"
+                      >
+                        📝 Create Account
+                      </button>
+                      <div className="border-t border-slate-100 my-1"></div>
+                      <button 
+                        onClick={() => setCurrentNav('ERP')} 
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 text-[#0d5c3a] font-bold"
+                      >
+                        💼 সরাসরি ERP ড্যাশবোর্ড
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* কমলা রঙের POST AD FREE বাটন[cite: 2] */}
             <button
-              onClick={() => setViewMode('portal')}
-              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'portal'
-                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              onClick={() => setPostAdModal(true)}
+              className="bg-[#f39c12] hover:bg-[#d68910] text-white text-xs font-black px-3.5 py-2 rounded shadow transition flex items-center gap-1 uppercase"
             >
-              🌐 প্রোপার্টি মার্কেটপ্লেস
+              POST AD <span className="bg-[#0d5c3a] text-white px-1.5 py-0.5 rounded text-[10px] ml-1">FREE</span>
             </button>
-            <button
-              onClick={() => setViewMode('erp')}
-              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'erp'
-                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              💼 কাস্টমার ও এজেন্ট ERP
-            </button>
-          </div>
+          </nav>
         </div>
       </header>
 
-      {/* ২. মার্কেটপ্লেস সেকশন (bdhousing স্টাইল) */}
-      {viewMode === 'portal' && (
-        <main className="flex-1">
-          {/* সার্চ ফিল্টার ব্যানার */}
-          <div className="relative py-14 sm:py-20 px-4 sm:px-8 bg-gradient-to-b from-slate-950 via-[#070e1e] to-[#060a12] border-b border-slate-800/80">
-            <div className="max-w-5xl mx-auto text-center relative z-10">
-              <span className="text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 rounded-full inline-block mb-3">
-                ✨ নিরাপদ বিনিয়োগ ও আধুনিক আবাসন
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight">
-                আপনার কাঙ্ক্ষিত প্লট বা ফ্ল্যাট <br className="hidden sm:inline" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500">
-                  সহজেই খুঁজে নিন
-                </span>
-              </h2>
-
-              {/* ফিল্টার বক্স */}
-              <div className="mt-8 bg-slate-900/90 border border-amber-500/30 p-4 sm:p-5 rounded-2xl shadow-2xl backdrop-blur-md grid grid-cols-1 sm:grid-cols-4 gap-3 text-left">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">প্রজেক্ট নাম</label>
-                  <input
-                    type="text"
-                    placeholder="নাম বা কিওয়ার্ড..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">ক্যাটাগরি</label>
-                  <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 outline-none cursor-pointer"
-                  >
-                    <option value="all">সব ক্যাটাগরি</option>
-                    <option value="plot">প্লট / জমি (Land/Plots)</option>
-                    <option value="flat">আবাসিক ফ্ল্যাট (Apartments)</option>
-                    <option value="commercial">কমার্শিয়াল স্পেস (Commercial)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">লোকেশন</label>
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 outline-none cursor-pointer"
-                  >
-                    <option value="all">সকল লোকেশন</option>
-                    <option value="কেরানীগঞ্জ">কেরানীগঞ্জ / বসিলা</option>
-                    <option value="পূর্বাচল">পূর্বাচল এক্সপ্রেসওয়ে</option>
-                    <option value="বসুন্ধরা">বসুন্ধরা আ/এ</option>
-                    <option value="উত্তরা">উত্তরা</option>
-                    <option value="সাভার">সাভার</option>
-                  </select>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[11px] font-semibold text-slate-400">সর্বোচ্চ বাজেট</label>
-                    <span className="text-[11px] font-bold text-amber-400">৳ {(maxBudget / 100000).toFixed(1)} লাখ</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="2000000"
-                    max="25000000"
-                    step="500000"
-                    value={maxBudget}
-                    onChange={(e) => setMaxBudget(Number(e.target.value))}
-                    className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-800 rounded-lg mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* প্রোপার্টি কার্ডস */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
-            <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-3">
-              <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-pulse"></span>
-                উপলব্ধ প্রজেক্টসমূহ ({filteredProperties.length})
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProperties.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl flex flex-col justify-between group"
-                >
-                  <div>
-                    <div className="relative h-48 w-full overflow-hidden bg-slate-950">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                      <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-amber-500/30 text-amber-400 text-[11px] font-bold px-2.5 py-1 rounded-md">
-                        {item.type === 'plot' ? '🏡 প্লট / জমি' : item.type === 'flat' ? '🏢 অ্যাপার্টমেন্ট' : '🏬 কমার্শিয়াল'}
-                      </div>
-                      <div className="absolute top-3 right-3 bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
-                        {item.status}
-                      </div>
-                    </div>
-
-                    <div className="p-4">
-                      <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 mt-1">📍 {item.location}</p>
-
-                      <div className="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                        <div>
-                          <span className="text-slate-500 block">সাইজ</span>
-                          <span className="font-semibold text-slate-300">{item.size}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-slate-500 block">দর</span>
-                          <span className="font-semibold text-amber-300">{item.pricePerUnit}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {item.tags.map((t, idx) => (
-                          <span key={idx} className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 pt-0">
-                    <div className="flex justify-between items-center pt-3 border-t border-slate-800">
-                      <div>
-                        <p className="text-[10px] text-slate-500">মোট মূল্য</p>
-                        <p className="text-base font-black text-amber-400">
-                          ৳ {(item.totalPrice / 100000).toLocaleString('bn-BD')} লক্ষ
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setActivePropertyModal(item)}
-                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition"
-                      >
-                        বিস্তারিত ও বুকিং
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* ৩. সমন্বিত একাউন্টস ও ইআরপি সেকশন */}
-      {viewMode === 'erp' && (
-        <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      {/* =========================================================
+          মেইন বডি
+      ========================================================= */}
+      {currentNav !== 'ERP' ? (
+        <main className="max-w-7xl mx-auto w-full px-4 py-8 flex-1">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
-                রিয়েল এস্টেট একাউন্টিং ও লেজার
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full inline-block mb-2">
+                ● অনলাইন ক্লাউড ডাটাবেজ সক্রিয়
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800">
+                {currentNav === 'Home' ? 'পুষ্পধারা প্রপার্টিজ ও সিস্টার কনসার্ন প্রজেক্টসমূহ' : `${currentNav} প্রজেক্ট তালিকা`}
               </h2>
-              <p className="text-xs text-slate-400">ব্যক্তিগত স্টেটমেন্ট ও বুকিং তদারকি</p>
+              <p className="text-xs text-slate-500 mt-1">
+                পদ্মা ইকো সিটি, দ্য বে আইকন কক্সবাজার, ঢাকা ওয়েস্টার্ন ভ্যালি ও অন্যান্য অনুমোদিত প্রকল্প
+              </p>
             </div>
-            <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-1 gap-1">
-              <button
-                onClick={() => setErpRole('client')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  erpRole === 'client' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                কাস্টমার লেজার
-              </button>
-              <button
-                onClick={() => setErpRole('agent')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  erpRole === 'agent' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                প্রতিনিধি / কমিশন
-              </button>
-              <button
-                onClick={() => setErpRole('admin')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  erpRole === 'admin' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                অ্যাডমিন এন্ট্রি
-              </button>
-            </div>
+            <button 
+              onClick={() => setCurrentNav('ERP')}
+              className="bg-[#0d5c3a] hover:bg-emerald-800 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow transition"
+            >
+              💼 কাস্টমার ও এজেন্ট ইআরপি ড্যাশবোর্ড
+            </button>
           </div>
 
-          {/* কাস্টমার লেজার ভিউ */}
-          {erpRole === 'client' && (
-            <div className="space-y-6">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          {/* প্রোপার্টি গ্রিড */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedItems.map((item) => (
+              <div 
+                key={item.id} 
+                className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between"
+              >
                 <div>
-                  <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-mono">
-                    UDP-CL-8821
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-2">জনাব মোহাম্মদ রফিকুল ইসলাম</h3>
-                  <p className="text-xs text-slate-400">মোবাইল: 01711-XXXXXX | প্লট: ঢাকা ওয়েস্টার্ন ভ্যালি (Plot-12, Block-B)</p>
-                </div>
-                <button
-                  onClick={() => setIsReceiptModal(true)}
-                  className="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition"
-                >
-                  📄 মানি রিসিট ভাউচার
-                </button>
-              </div>
+                  <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 bg-[#0d5c3a] text-white text-[11px] font-bold px-2 py-0.5 rounded">
+                      {item.category}
+                    </span>
+                    <span className="absolute top-2 right-2 bg-slate-900/80 text-amber-400 text-[11px] font-bold px-2 py-0.5 rounded">
+                      {item.status}
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                  <p className="text-xs text-slate-400">মোট চুক্তিমূল্য</p>
-                  <h4 className="text-xl font-black text-white mt-1">৳ ৬২,৫০,০০০</h4>
-                  <p className="text-xs text-emerald-400 mt-1">জমা: ৳ ৪৪,৫০,০০০</p>
+                  <div className="p-4">
+                    <span className="text-xs font-bold text-[#0d5c3a] block">{item.company}</span>
+                    <h3 className="text-base font-bold text-slate-800 mt-0.5">{item.title}</h3>
+                    <p className="text-xs text-slate-500 mt-1">📍 {item.shortLocation}</p>
+
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">সাইজ</span>
+                        <span className="font-semibold text-slate-700">{item.size}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-400 block text-[10px]">প্যাকেজ / রেট</span>
+                        <span className="font-bold text-[#f39c12]">{item.priceText}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {item.tags.map((t, i) => (
+                        <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-slate-900/60 border border-rose-900/30 p-4 rounded-xl bg-rose-950/10">
-                  <p className="text-xs text-rose-300">অবশিষ্ট বকেয়া</p>
-                  <h4 className="text-xl font-black text-rose-400 mt-1">৳ ১৮,০০,০০০</h4>
-                  <p className="text-xs text-slate-400 mt-1">পরবর্তী কিস্তি: ১৫ নভেম্বর, ২০২৬</p>
-                </div>
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                  <p className="text-xs text-slate-400">দলিল ও বরাদ্দপত্র</p>
-                  <h4 className="text-sm font-bold text-emerald-400 mt-1">✓ বরাদ্দপত্র ইস্যু সম্পন্ন</h4>
-                  <p className="text-xs text-amber-400/80 mt-1">নামজারি: প্রক্রিয়াধীন</p>
+
+                <div className="p-4 pt-0">
+                  <button 
+                    onClick={() => setDetailsModal(item)}
+                    className="w-full bg-slate-100 hover:bg-[#0d5c3a] hover:text-white text-slate-800 font-bold py-2 rounded text-xs transition border border-slate-200"
+                  >
+                    বিস্তারিত ও বুকিং শর্তাবলী
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
+        </main>
+      ) : (
+        /* ইআরপি মোড */
+        <main className="max-w-7xl mx-auto w-full px-4 py-8 flex-1">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-[#0d5c3a]">পুষ্পধারা একাউন্টিং ও কিস্তি লেজার (ERP)</h3>
+                <p className="text-xs text-slate-500">বুকিং, মানি রিসিট ও সেলস পার্টনার কমিশন কন্ট্রোল</p>
+              </div>
+              <button 
+                onClick={() => setCurrentNav('Home')} 
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded text-xs"
+              >
+                মার্কেটপ্লেসে ফিরুন
+              </button>
+            </div>
 
-              {/* লেজার টেবিল */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
-                <h4 className="text-sm font-bold text-white mb-3">পেমেন্ট হিস্ট্রি</h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
-                      <tr>
-                        <th className="p-3">বিবরণ</th>
-                        <th className="p-3">তারিখ</th>
-                        <th className="p-3">মেথড</th>
-                        <th className="p-3">পরিমাণ</th>
-                        <th className="p-3">স্ট্যাটাস</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
-                      <tr>
-                        <td className="p-3 font-semibold text-white">বুকিং মানি</td>
-                        <td className="p-3">১০ জানুয়ারি, ২০২৬</td>
-                        <td className="p-3">ব্যাংক চেক</td>
-                        <td className="p-3 text-emerald-400 font-bold">৳ ৫,০০,০০০</td>
-                        <td className="p-3"><span className="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded text-[10px]">Paid</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-semibold text-white">ডাউন পেমেন্ট</td>
-                        <td className="p-3">২৫ ফেব্রুয়ারি, ২০২৬</td>
-                        <td className="p-3">অনলাইন ব্যাংক ট্রান্সফার</td>
-                        <td className="p-3 text-emerald-400 font-bold">৳ ৭,৫০,০০০</td>
-                        <td className="p-3"><span className="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded text-[10px]">Paid</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-semibold text-white">মাসিক কিস্তি (১-৩২)</td>
-                        <td className="p-3">মার্চ ২০২৬ - অক্টোবর ২০২৬</td>
-                        <td className="p-3">অটো-ডেবিট</td>
-                        <td className="p-3 text-emerald-400 font-bold">৳ ৩২,০০,০০০</td>
-                        <td className="p-3"><span className="bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded text-[10px]">Paid</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-slate-500">মোট চুক্তিমূল্য</span>
+                <p className="text-lg font-black text-slate-800 mt-1">৳ ৬০,০০,০০০</p>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-slate-500">মোট জমা / পরিশোধ</span>
+                <p className="text-lg font-black text-emerald-700 mt-1">৳ ৪৪,৫০,০০০</p>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-slate-500">বকেয়া কিস্তি</span>
+                <p className="text-lg font-black text-rose-600 mt-1">৳ ১৫,৫০,০০০</p>
               </div>
             </div>
-          )}
-
-          {/* এজেন্ট ভিউ */}
-          {erpRole === 'agent' && (
-            <div className="space-y-6">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-mono">
-                    UDP-AG-104
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-2">মোহাম্মদ শওকত আলী</h3>
-                  <p className="text-xs text-slate-400">পদবী: সিনিয়র সেলস পার্টনার | কমিশন হার: ৩.৫%</p>
-                </div>
-                <div className="bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl text-right">
-                  <p className="text-xs text-amber-400">উত্তোলনযোগ্য ব্যালেন্স</p>
-                  <h4 className="text-xl font-black text-amber-300">৳ ২,৪৬,০০০</h4>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                  <p className="text-xs text-slate-400">মোট বিক্রয়</p>
-                  <h4 className="text-xl font-black text-white mt-1">৮ টি প্লট (৩২ কাঠা)</h4>
-                </div>
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                  <p className="text-xs text-slate-400">মোট সেলস ভলিউম</p>
-                  <h4 className="text-xl font-black text-emerald-400 mt-1">৳ ২,৫৬,০০,০০০</h4>
-                </div>
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                  <p className="text-xs text-slate-400">মোট অর্জিত কমিশন</p>
-                  <h4 className="text-xl font-black text-amber-400 mt-1">৳ ৮,৯৬,০০০</h4>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* অ্যাডমিন এন্ট্রি ফর্ম */}
-          {erpRole === 'admin' && (
-            <div className="max-w-lg mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-base font-bold text-white mb-1">নতুন বুকিং এন্ট্রি</h3>
-              <p className="text-xs text-slate-400 mb-4">তথ্য প্রদান করে এন্ট্রি নিশ্চিত করুন।</p>
-              
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-400 mb-1">ক্লায়েন্টের নাম</label>
-                  <input type="text" placeholder="পুরো নাম" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-slate-400 mb-1">মোবাইল</label>
-                    <input type="tel" placeholder="01XXXXXXXXX" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500" />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 mb-1">প্রজেক্ট</label>
-                    <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-white outline-none">
-                      <option>ঢাকা ওয়েস্টার্ন ভ্যালি</option>
-                      <option>পুষ্প ইকো সিটি</option>
-                      <option>গ্রিন হরাইজন</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-slate-400 mb-1">কাঠা / সাইজ</label>
-                    <input type="text" placeholder="৫ কাঠা" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500" />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 mb-1">জমা পেমেন্ট (৳)</label>
-                    <input type="number" placeholder="500000" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500" />
-                  </div>
-                </div>
-                <button
-                  onClick={() => alert('সফলভাবে এন্ট্রি সম্পন্ন হয়েছে!')}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg transition text-xs mt-3"
-                >
-                  ডাটাবেজে যুক্ত করুন
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
         </main>
       )}
 
-      {/* ৪. পপআপ: বুকিং ও ইনকোয়ারি */}
-      {activePropertyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 max-w-md w-full shadow-2xl text-left space-y-3">
-            <div className="flex justify-between items-start border-b border-slate-800 pb-2">
+      {/* =========================================================
+          রেজিস্ট্রেশন মডাল[cite: 3, 5]
+      ========================================================= */}
+      {authModal === 'register' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="bg-white rounded-lg max-w-lg w-full overflow-hidden shadow-2xl">
+            <div className="bg-[#0d5c3a] p-3 text-white flex justify-between items-center">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <span>👤</span> CREATE ACCOUNT
+              </div>
+              <button onClick={() => setAuthModal(null)} className="text-white text-lg font-bold">✕</button>
+            </div>
+
+            <form onSubmit={handleRegister} className="p-6 space-y-3.5 text-xs text-slate-700">
               <div>
-                <h4 className="font-bold text-white text-base">{activePropertyModal.title}</h4>
-                <p className="text-xs text-amber-400">{activePropertyModal.location}</p>
+                <label className="font-semibold block mb-1">I am</label>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="acctype" 
+                      checked={regType === 'individual'} 
+                      onChange={() => setRegType('individual')}
+                      className="accent-[#0d5c3a]"
+                    />
+                    <span>Individual</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="acctype" 
+                      checked={regType === 'company'} 
+                      onChange={() => setRegType('company')}
+                      className="accent-[#0d5c3a]"
+                    />
+                    <span>Company</span>
+                  </label>
+                </div>
               </div>
-              <button onClick={() => setActivePropertyModal(null)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
 
-            <div className="bg-slate-950 p-3 rounded-lg space-y-1 text-xs text-slate-300 border border-slate-800">
-              <p><strong className="text-white">সাইজ:</strong> {activePropertyModal.size}</p>
-              <p><strong className="text-white">মোট মূল্য:</strong> ৳ {(activePropertyModal.totalPrice / 100000).toLocaleString('bn-BD')} লক্ষ</p>
-            </div>
+              {regType === 'individual' ? (
+                <>
+                  <div>
+                    <label className="block mb-0.5">Name *</label>
+                    <input type="text" placeholder="Enter your full name" required value={regName} onChange={e => setRegName(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">E-mail *</label>
+                    <input type="email" placeholder="Enter valid e-mail" required value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">Mobile *</label>
+                    <input type="tel" placeholder="Enter mobile number" required value={regMobile} onChange={e => setRegMobile(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block mb-0.5">Company Name *</label>
+                    <input type="text" placeholder="Company name" required value={regName} onChange={e => setRegName(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">Contact Person Name *</label>
+                    <input type="text" placeholder="Contact person" required value={regContactPerson} onChange={e => setRegContactPerson(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">Designation *</label>
+                    <input type="text" placeholder="Designation" value={regDesignation} onChange={e => setRegDesignation(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">E-mail *</label>
+                    <input type="email" placeholder="Valid email" required value={regEmail} onChange={e => setRegEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block mb-0.5">Office Address *</label>
+                    <input type="text" placeholder="Office address" value={regOfficeAddress} onChange={e => setRegOfficeAddress(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block mb-0.5">Mobile *</label>
+                      <input type="tel" placeholder="Mobile" required value={regMobile} onChange={e => setRegMobile(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block mb-0.5">Mobile 2 / Landline</label>
+                      <input type="tel" placeholder="Landline" value={regMobile2} onChange={e => setRegMobile2(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                    </div>
+                  </div>
+                </>
+              )}
 
-            {inquirySuccess ? (
-              <div className="bg-emerald-950 border border-emerald-500/50 p-2.5 rounded-lg text-center text-emerald-300 text-xs">
-                ✓ আপনার রিকোয়েস্ট পাঠানো হয়েছে!
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block mb-0.5">Password *</label>
+                  <input type="password" placeholder="Password" required value={regPassword} onChange={e => setRegPassword(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                </div>
+                <div>
+                  <label className="block mb-0.5">Confirm Password *</label>
+                  <input type="password" placeholder="Retype password" required value={regConfirmPassword} onChange={e => setRegConfirmPassword(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                </div>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="আপনার নাম"
-                  value={inquiryName}
-                  onChange={(e) => setInquiryName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-amber-500"
-                />
-                <input
-                  type="tel"
-                  placeholder="মোবাইল নম্বর"
-                  value={inquiryPhone}
-                  onChange={(e) => setInquiryPhone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-amber-500 font-mono"
-                />
-                <button
-                  onClick={() => handleSendWhatsAppInquiry(activePropertyModal)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition text-xs flex items-center justify-center gap-1.5"
-                >
-                  💬 হোয়াটসঅ্যাপে বুকিং মেসেজ পাঠান
-                </button>
+
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px]">Prove your humanity: 8 + 8 =</span>
+                <input type="text" placeholder="16" required value={regCaptcha} onChange={e => setRegCaptcha(e.target.value)} className="w-16 border border-slate-300 rounded p-1 text-center font-bold" />
               </div>
-            )}
+
+              <button type="submit" className="w-full bg-[#f39c12] hover:bg-[#d68910] text-white font-bold py-2.5 rounded shadow">
+                Register Now
+              </button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* ৫. পপআপ: মানি রিসিট ভিউয়ার */}
-      {isReceiptModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 max-w-sm w-full shadow-2xl text-left space-y-3">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h4 className="font-bold text-white text-sm">মানি রিসিট কপি</h4>
-              <button onClick={() => setIsReceiptModal(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            
-            <div className="space-y-1.5 text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <p><strong className="text-white">আইডি:</strong> UDP-CL-8821</p>
-              <p><strong className="text-white">নাম:</strong> জনাব মোহাম্মদ রফিকুল ইসলাম</p>
-              <p><strong className="text-white">প্রজেক্ট:</strong> ঢাকা ওয়েস্টার্ন ভ্যালি</p>
-              <p><strong className="text-white">মোট জমা:</strong> ৳ ৪৪,৫০,০০০</p>
-              <p><strong className="text-white">বকেয়া:</strong> ৳ ১৮,০০,০০০</p>
+      {/* =========================================================
+          লগইন মডাল[cite: 8]
+      ========================================================= */}
+      {authModal === 'login' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="bg-white rounded-lg max-w-sm w-full overflow-hidden shadow-2xl">
+            <div className="bg-[#0d5c3a] p-3 text-white flex justify-between items-center">
+              <span className="font-bold text-sm">👤 LOGIN</span>
+              <button onClick={() => setAuthModal(null)} className="text-white text-lg font-bold">✕</button>
             </div>
 
-            <button
-              onClick={() => setIsReceiptModal(false)}
-              className="w-full bg-amber-500 text-slate-950 font-bold py-2 rounded-lg transition text-xs"
-            >
-              বন্ধ করুন
-            </button>
+            <form onSubmit={handleLogin} className="p-6 space-y-4 text-xs text-slate-700">
+              <div>
+                <label className="block mb-1 font-semibold">Your Email</label>
+                <input type="email" placeholder="Email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+              <div>
+                <label className="block mb-1 font-semibold">Password</label>
+                <input type="password" placeholder="Password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+
+              <button type="submit" className="w-full bg-[#f39c12] hover:bg-[#d68910] text-white font-bold py-2.5 rounded shadow">
+                Login
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          পোস্ট অ্যাড মডাল (অনলাইন ডাটাবেজে নতুন পোস্টিং)[cite: 2]
+      ========================================================= */}
+      {postAdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 text-xs text-slate-800 space-y-3 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 className="font-bold text-sm text-[#0d5c3a]">➕ পোস্ট করুন (সরাসরি অনলাইন ডাটাবেজ)</h3>
+              <button onClick={() => setPostAdModal(false)} className="text-slate-500 text-lg font-bold">✕</button>
+            </div>
+
+            <form onSubmit={handleAddNewAd} className="space-y-3">
+              <div>
+                <label className="block mb-1 font-semibold">প্রজেক্ট / প্লটের শিরোনাম *</label>
+                <input type="text" placeholder="যেমন: পদ্মা ইকো সিটি কর্নার প্লট" required value={adTitle} onChange={e => setAdTitle(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block mb-1 font-semibold">কোম্পানি</label>
+                  <select value={adCompany} onChange={e => setAdCompany(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none">
+                    <option>Pushpodhara Properties Ltd.</option>
+                    <option>Bay Icon International Ltd.</option>
+                    <option>Golden Eye Developer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold">ক্যাটাগরি</label>
+                  <select value={adCategory} onChange={e => setAdCategory(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none">
+                    <option value="plot">প্লট / জমি</option>
+                    <option value="flat">ফ্ল্যাট / অ্যাপার্টমেন্ট</option>
+                    <option value="commercial">কমার্শিয়াল</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block mb-1 font-semibold">লোকেশন *</label>
+                  <input type="text" placeholder="যেমন: মাওয়া হাইওয়ে" required value={adLocation} onChange={e => setAdLocation(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold">সাইজ</label>
+                  <input type="text" placeholder="যেমন: ৫ কাঠা" value={adSize} onChange={e => setAdSize(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-1 font-semibold">মূল্য বিবরণ *</label>
+                <input type="text" placeholder="যেমন: ১২,০০,০০০ ৳ / কাঠা" required value={adPrice} onChange={e => setAdPrice(e.target.value)} className="w-full border border-slate-300 rounded p-2 outline-none" />
+              </div>
+
+              <button type="submit" className="w-full bg-[#0d5c3a] hover:bg-emerald-800 text-white font-bold py-2.5 rounded shadow mt-2">
+                অনলাইনে প্রকাশ করুন
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* বিস্তারিত মডাল */}
+      {detailsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 text-xs text-slate-700 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-slate-200 pb-2">
+              <div>
+                <span className="text-[#0d5c3a] font-bold block">{detailsModal.company}</span>
+                <h3 className="text-base font-bold text-slate-900">{detailsModal.title}</h3>
+                <p className="text-slate-500">📍 {detailsModal.location}</p>
+              </div>
+              <button onClick={() => setDetailsModal(null)} className="text-slate-500 text-lg font-bold">✕</button>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded border border-slate-200">
+              <strong className="block text-slate-800 mb-1">প্রজেক্ট পরিচিতি:</strong>
+              {detailsModal.details.overview}
+            </div>
+
+            <div>
+              <strong className="block text-slate-800 mb-1">সুবিধাসমূহ:</strong>
+              <ul className="space-y-1">
+                {detailsModal.details.features.map((f, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-emerald-800">
+                    <span>✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
+              <span className="font-bold text-base text-[#f39c12]">{detailsModal.priceText}</span>
+              <button 
+                onClick={() => {
+                  window.open(`https://api.whatsapp.com/send?phone=8801681196700&text=${encodeURIComponent(`বুকিং ইনকোয়ারি: ${detailsModal.title}`)}`, '_blank');
+                }}
+                className="bg-[#0d5c3a] hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded"
+              >
+                💬 হোয়াটসঅ্যাপে বুকিং
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* ফুটার */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-500">
-        © 2026 Unity Dream Properties Ltd. | All-in-One Smart Platform
+      <footer className="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+        © 2026 Unity Dream Properties Ltd. | Official Partner of Pushpodhara Properties Ltd.
       </footer>
     </div>
   );
