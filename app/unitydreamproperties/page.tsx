@@ -2,10 +2,22 @@
 
 import React, { useState } from 'react';
 
-// প্রজেক্টের সম্পূর্ণ ডাটাবেজ
+// প্রজেক্ট তালিকা (ঢাকা ওয়েস্টার্ন ভ্যালি প্রথমে সেট করা)
 const initialProjects = [
   {
     id: 1,
+    name: "Dhaka Western Valley",
+    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড অনুমোদিত",
+    location: "ঢাকা ওয়েস্টার্ন জোন (সাভার সংলগ্ন)",
+    tag: "Residential Plots",
+    badge: "Ongoing Flagship",
+    size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
+    price: "১৪,৫০,০০০ ৳ / কাঠা",
+    statusBadge: "প্যাকেজ / রেট",
+    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 2,
     name: "The Bay Icon International Hotel & Resort Ltd.",
     developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড / Bay Icon Ltd.",
     location: "কলাতলী মেরিন ড্রাইভ, কক্সবাজার",
@@ -17,7 +29,7 @@ const initialProjects = [
     image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: 2,
+    id: 3,
     name: "Padma Eco-City",
     developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
     location: "ঢাকা-মাওয়া এক্সপ্রেসওয়ে (পদ্মা সেতু সংলগ্ন)",
@@ -29,7 +41,7 @@ const initialProjects = [
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: 3,
+    id: 4,
     name: "Pushpodhara Satellite City",
     developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
     location: "ঢাকা জেলা পয়েন্ট থেকে ২২ কিমি ও পদ্মা সেতু থেকে কাছে",
@@ -39,18 +51,6 @@ const initialProjects = [
     price: "আকর্ষণীয় কিস্তি সুবিধা",
     statusBadge: "প্যাকেজ / প্লট",
     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 4,
-    name: "Dhaka Western Valley",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড অনুমোদিত",
-    location: "ঢাকা ওয়েস্টার্ন জোন (সাভার সংলগ্ন)",
-    tag: "Residential Plots",
-    badge: "Ongoing",
-    size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
-    price: "১৪,৫০,০০০ ৳ / কাঠা",
-    statusBadge: "প্যাকেজ / রেট",
-    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: 5,
@@ -82,16 +82,17 @@ export default function UnityDreamPortal() {
   const [showLedger, setShowLedger] = useState(false);
   const [salesAmount, setSalesAmount] = useState<number>(5000000);
   const [selectedTier, setSelectedTier] = useState<string>('direct');
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
-  // হায়ারার্কিক্যাল ইনকাম ও অ্যাকাউন্টস কমিশন হিসাব
+  // হায়ারার্কিক্যাল ইনকাম ও কমিশন হিসাব
   const calculateCommission = (amount: number, tier: string) => {
     switch (tier) {
       case 'direct':
-        return amount * 0.05; // ৫% সরাসরি পার্টনার কমিশন
+        return amount * 0.05;
       case 'team_leader':
-        return amount * 0.02; // ২% টিম লিডার ওভাররাইড
+        return amount * 0.02;
       case 'manager':
-        return amount * 0.01; // ১% ম্যানেজারিয়াল বোনাস
+        return amount * 0.01;
       default:
         return 0;
     }
@@ -99,15 +100,24 @@ export default function UnityDreamPortal() {
 
   const commission = calculateCommission(salesAmount, selectedTier);
 
+  const handleSignOut = () => {
+    setIsLoggedIn(false);
+    alert('সফলভাবে সাইন আউট করা হয়েছে।');
+  };
+
+  const handleSignIn = () => {
+    setIsLoggedIn(true);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between relative">
       
-      {/* ===================== ১. হেডার ও ব্র্যান্ডেড নেভিগেশন ===================== */}
+      {/* ===================== ১. অরিজিনাল নেভিগেশন বার ===================== */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* লোগো ও ব্র্যান্ড পরিচয় */}
+            {/* একক ব্র্যান্ড লোগো ও টাইটেল */}
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.jpg" 
@@ -116,28 +126,9 @@ export default function UnityDreamPortal() {
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/logo.png';
                 }}
-              />{/* লোগো ও ব্র্যান্ড পরিচয় */}
-<div className="flex items-center gap-3">
-  <img 
-    src="/logo.jpg" 
-    alt="Unity Dream Properties Logo" 
-    className="h-12 w-auto object-contain rounded"
-    onError={(e) => {
-      // যদি logo.jpg না পায়, তবে logo.png লোড করার চেষ্টা করবে
-      (e.target as HTMLImageElement).src = '/logo.png';
-    }}
-  />
-  <div>
-    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
-      UNITY DREAM PROPERTIES
-    </h1>
-    <p className="text-xs font-semibold text-emerald-700">
-      পুষ্পধারা প্রপার্টিজ লিমিটেড পার্টনার ও ERP সিস্টেম
-    </p>
-  </div>
-</div>
+              />
               <div>
-                <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">
+                <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900 leading-tight">
                   UNITY DREAM PROPERTIES
                 </h1>
                 <p className="text-xs font-semibold text-emerald-700">
@@ -146,27 +137,50 @@ export default function UnityDreamPortal() {
               </div>
             </div>
 
-            {/* মেনু লিঙ্ক */}
-            <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-700">
+            {/* আগের মূল নেভিগেশন লিঙ্কসমূহ */}
+            <nav className="hidden xl:flex items-center space-x-5 text-sm font-semibold text-slate-700">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
-              <a href="#leadership" className="hover:text-emerald-600 transition-colors">Leadership</a>
-              <a href="#erp" className="hover:text-emerald-600 transition-colors">ERP Dashboard</a>
-              <a href="#projects" className="hover:text-emerald-600 transition-colors">Projects</a>
-              <a href="#contact" className="hover:text-emerald-600 transition-colors">Contact</a>
+              <a href="#for-sale" className="hover:text-emerald-600 transition-colors">For Sale</a>
+              <a href="#for-rent" className="hover:text-emerald-600 transition-colors">For Rent</a>
+              <a href="#roommates" className="hover:text-emerald-600 transition-colors">Roommates</a>
+              <a href="#developers" className="hover:text-emerald-600 transition-colors">Developers</a>
+              <a href="#jobs" className="hover:text-emerald-600 transition-colors">Jobs</a>
+              <a href="#blog" className="hover:text-emerald-600 transition-colors">Blog</a>
+              <a href="#erp" className="hover:text-emerald-600 transition-colors">ERP Module</a>
             </nav>
 
-            {/* হটলাইন ও অ্যাডমিন প্রোফাইল */}
+            {/* ইউজার স্টেটাস, সাইন আউট ও বাটনস */}
             <div className="flex items-center gap-3">
               <a 
                 href="tel:+8801681196700" 
-                className="hidden lg:flex items-center gap-2 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                className="hidden md:flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200"
               >
                 <span>📞</span> +880 1681-196700
               </a>
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-bold text-slate-900">আতিকুর রহমান</span>
-                <span className="text-[10px] text-emerald-700 font-medium">Developer & Super Admin</span>
-              </div>
+
+              {isLoggedIn ? (
+                <div className="flex items-center gap-3 border-l pl-3 border-gray-200">
+                  <div className="flex flex-col text-right">
+                    <span className="text-xs font-bold text-slate-900">আতিকুর রহমান</span>
+                    <span className="text-[10px] text-emerald-700 font-medium">Developer & Super Admin</span>
+                  </div>
+                  <button 
+                    onClick={handleSignOut}
+                    className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-2.5 py-1.5 rounded transition-colors"
+                    title="Sign Out from Super Admin"
+                  >
+                    সাইন আউট
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={handleSignIn}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                >
+                  লগইন
+                </button>
+              )}
+
               <button className="bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-md shadow transition-colors">
                 POST AD FREE
               </button>
@@ -176,8 +190,8 @@ export default function UnityDreamPortal() {
         </div>
       </header>
 
-      {/* ===================== ২. ম্যানেজমেন্ট ও লিডারশিপ কার্ড ===================== */}
-      <section id="leadership" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
+      {/* ===================== ২. ম্যানেজমেন্ট ও ডিরেক্টর সেকশন ===================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 w-full">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center font-bold text-sm">
@@ -188,7 +202,7 @@ export default function UnityDreamPortal() {
               <h3 className="text-base font-bold text-slate-900">Engr. Md Mustafizur Rahman Rashid</h3>
             </div>
           </div>
-          <div className="text-xs text-slate-600 text-right sm:text-right">
+          <div className="text-xs text-slate-600">
             <span className="bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200 font-medium inline-block">
               Pushpodhara Properties Ltd. & Sister Concerns
             </span>
@@ -226,7 +240,7 @@ export default function UnityDreamPortal() {
             </div>
           </div>
 
-          {/* ড্রপডাউন/টগল: হায়ারার্কিক্যাল কমিশন লেজার */}
+          {/* হায়ারার্কিক্যাল কমিশন ও একাউন্টিং মডিউল */}
           {showLedger && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/60 p-5 rounded-xl">
               <h3 className="text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
@@ -276,7 +290,6 @@ export default function UnityDreamPortal() {
       {/* ===================== ৪. প্রজেক্টস শোকেস সেকশন ===================== */}
       <main id="projects" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         
-        {/* সেকশন হেডিং */}
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-2">
             <span className="h-5 w-1.5 bg-emerald-600 rounded"></span>
@@ -285,11 +298,10 @@ export default function UnityDreamPortal() {
             </h2>
           </div>
           <p className="text-sm text-slate-600 mt-2 font-medium">
-            পদ্মা ইকো সিটি, দ্য বে আইকন কক্সবাজার, পুষ্পধারা স্যাটেলাইট সিটি, ঢাকা ওয়েস্টার্ন ভ্যালি, নারায়ণগঞ্জ ভূঁইগড় ও রামপুরা প্রজেক্ট
+            ঢাকা ওয়েস্টার্ন ভ্যালি, দ্য বে আইকন কক্সবাজার, পদ্মা ইকো সিটি, পুষ্পধারা স্যাটেলাইট সিটি, নারায়ণগঞ্জ ভূঁইগড় ও রামপুরা প্রজেক্ট
           </p>
         </div>
 
-        {/* প্রজেক্ট কার্ড গ্রিড */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {initialProjects.map((project) => (
             <div 
@@ -297,7 +309,6 @@ export default function UnityDreamPortal() {
               className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
             >
               <div>
-                {/* ইমেজ ও ব্যাজ */}
                 <div className="relative h-52 w-full overflow-hidden bg-slate-100">
                   <img 
                     src={project.image} 
@@ -312,7 +323,6 @@ export default function UnityDreamPortal() {
                   </span>
                 </div>
 
-                {/* বিবরণ */}
                 <div className="p-5">
                   <p className="text-xs text-slate-500 font-semibold">{project.developer}</p>
                   <h3 className="text-lg font-bold text-slate-900 mt-1 leading-snug">
@@ -322,7 +332,6 @@ export default function UnityDreamPortal() {
                     📍 {project.location}
                   </p>
 
-                  {/* স্পেসিফিকেশন ও প্রাইসিং */}
                   <div className="mt-5 pt-3 border-t border-gray-100 flex justify-between items-end">
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">সাইজ</span>
@@ -338,7 +347,6 @@ export default function UnityDreamPortal() {
                 </div>
               </div>
 
-              {/* অ্যাকশন বাটন */}
               <div className="p-5 pt-0">
                 <button className="w-full text-center py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors">
                   বিস্তারিত ও বুকিং শর্তাবলী
@@ -356,7 +364,6 @@ export default function UnityDreamPortal() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-8 border-b border-slate-800 text-sm">
-            {/* কোম্পানি পরিচিতি */}
             <div>
               <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES LTD.[cite: 1]</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -370,7 +377,6 @@ export default function UnityDreamPortal() {
               </div>
             </div>
 
-            {/* ম্যানেজমেন্ট */}
             <div>
               <h5 className="text-white font-semibold text-sm mb-2">লিডারশিপ</h5>
               <p className="text-xs text-slate-200 font-bold">Engr. Md Mustafizur Rahman Rashid</p>
@@ -380,7 +386,6 @@ export default function UnityDreamPortal() {
               </p>
             </div>
 
-            {/* কর্পোরেট হেড অফিস ঠিকানা */}
             <div>
               <h5 className="text-white font-semibold text-sm mb-2 flex items-center gap-1.5">
                 <span>📍</span> কর্পোরেট অফিস
@@ -394,11 +399,10 @@ export default function UnityDreamPortal() {
               </p>
             </div>
 
-            {/* অনুমোদিত প্রজেক্টসমূহ */}
             <div>
               <h5 className="text-white font-semibold text-sm mb-2">অনুমোদিত প্রকল্পসমূহ</h5>
               <p className="text-xs text-slate-400 leading-relaxed">
-                পদ্মা ইকো সিটি • দ্য বে আইকন (কক্সবাজার) • পুষ্পধারা স্যাটেলাইট সিটি • ঢাকা ওয়েস্টার্ন ভ্যালি • নারায়ণগঞ্জ ভূঁইগড় • রামপুরা
+                ঢাকা ওয়েস্টার্ন ভ্যালি • দ্য বে আইকন • পদ্মা ইকো সিটি • পুষ্পধারা স্যাটেলাইট সিটি • নারায়ণগঞ্জ ভূঁইগড় • রামপুরা
               </p>
             </div>
           </div>
@@ -415,7 +419,7 @@ export default function UnityDreamPortal() {
         </div>
       </footer>
 
-      {/* ===================== ৬. ফ্লোটিং কল ও ফেসবুক মেসেঞ্জার চ্যাট বাটন ===================== */}
+      {/* ===================== ৬. ফ্লোটিং কল ও মেসেঞ্জার বাটন ===================== */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
         <a
           href="tel:+8801681196700"
