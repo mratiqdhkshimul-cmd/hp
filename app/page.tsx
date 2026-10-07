@@ -1,331 +1,189 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 
 interface Tool {
   id: string;
   name: string;
   type: string;
   price: number;
-  durationDays: number;
-  color: string;
-  iconBg: string;
-  link: string;
 }
 
 const TOOLS: Tool[] = [
-  {
-    id: "gemini-pro",
-    name: "Gemini Pro",
-    type: "Official Access",
-    price: 599,
-    durationDays: 30,
-    color: "from-blue-600 to-indigo-950",
-    iconBg: "bg-blue-500",
-    link: "https://gemini.google.com",
-  },
-  {
-    id: "chatgpt-plus",
-    name: "ChatGPT Plus",
-    type: "Official Access",
-    price: 329,
-    durationDays: 30,
-    color: "from-amber-600 to-orange-950",
-    iconBg: "bg-amber-500",
-    link: "https://chatgpt.com",
-  },
-  {
-    id: "filmora-pro",
-    name: "Filmora Pro",
-    type: "Lifetime / 1 Year",
-    price: 499,
-    durationDays: 365,
-    color: "from-teal-600 to-emerald-950",
-    iconBg: "bg-teal-500",
-    link: "https://filmora.wondershare.com",
-  },
-  {
-    id: "chatgpt-go",
-    name: "ChatGPT Go",
-    type: "Shared Access",
-    price: 99,
-    durationDays: 15,
-    color: "from-purple-600 to-purple-950",
-    iconBg: "bg-purple-500",
-    link: "https://chatgpt.com",
-  },
+  { id: 'gemini', name: 'Gemini Premium', type: 'AI Workspace / Model', price: 599 },
+  { id: 'chatgpt', name: 'ChatGPT Plus', type: 'Official Access', price: 599 },
+  { id: 'filmora', name: 'Filmora Pro', type: 'Lifetime / 1 Year', price: 599 },
 ];
 
-interface SubscriptionRecord {
-  expiry: string;
-  status: "active" | "pending";
-  trxId: string;
-}
-
-export default function ChatSDPPortal() {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [authForm, setAuthForm] = useState({ name: "", email: "" });
+export default function PremiumPortal() {
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"bkash" | "nagad">("bkash");
-  const [trxId, setTrxId] = useState("");
-  const [activeSubscriptions, setActiveSubscriptions] = useState<Record<string, SubscriptionRecord>>({});
-  const [showSuccess, setShowSuccess] = useState<Tool | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    whatsapp: '',
+    email: '',
+    paymentRef: '',
+  });
 
-  // ব্রাউজার লোড হলে লোকাল স্টোরেজ থেকে ডাটা লোড করা
-  useEffect(() => {
-    setIsClient(true);
-    const savedUser = localStorage.getItem("chatsdp_user");
-    const savedSubs = localStorage.getItem("chatsdp_subs");
-
-    if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedSubs) setActiveSubscriptions(JSON.parse(savedSubs));
-  }, []);
-
-  // লগইন হ্যান্ডলার
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (authForm.name.trim() && authForm.email.trim()) {
-      const userData = { name: authForm.name, email: authForm.email };
-      setUser(userData);
-      localStorage.setItem("chatsdp_user", JSON.stringify(userData));
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  // লগআউট হ্যান্ডলার
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("chatsdp_user");
-  };
-
-  // পেমেন্ট সাবমিশন
-  const handleVerifyPayment = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trxId.trim() || !selectedTool) return;
 
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + selectedTool.durationDays);
+    if (!selectedTool) return;
 
-    const updatedSubs: Record<string, SubscriptionRecord> = {
-      ...activeSubscriptions,
-      [selectedTool.id]: {
-        expiry: expiryDate.toLocaleDateString("bn-BD"),
-        status: "active",
-        trxId: trxId.trim().toUpperCase(),
-      },
-    };
+    // WhatsApp Message Format toiri kora hocche
+    const message = `*--- Notun Order Request ---*
+*Service:* ${selectedTool.name}
+*Price:* ${selectedTool.price} BDT
 
-    setActiveSubscriptions(updatedSubs);
-    localStorage.setItem("chatsdp_subs", JSON.stringify(updatedSubs));
+*Customer Details:*
+• Name: ${formData.name}
+• WhatsApp: ${formData.whatsapp}
+• Gmail: ${formData.email}
+• Payment Ref/TrxID: ${formData.paymentRef}
 
-    setShowSuccess(selectedTool);
+Payment Pathano Hoyeche: 01689333000 (bKash/Nagad)`;
+
+    // WhatsApp link URL encode kora
+    const encodedMessage = encodeURIComponent(message);
+    const targetWhatsAppNumber = '8801689333000';
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodedMessage}`;
+
+    // Notun tab-e WhatsApp open kora (Mobile-e app ebong PC-te Web open hobe)
+    window.open(whatsappUrl, '_blank');
+
+    alert('Apnar tothyo gulo WhatsApp-e pathanor jonno window open hocche. Message-ti Send korun.');
+    
+    // Form reset kora
+    setFormData({ name: '', whatsapp: '', email: '', paymentRef: '' });
     setSelectedTool(null);
-    setTrxId("");
   };
 
-  if (!isClient) return null;
-
-  // ১. সাইন-ইন ইন্টারফেস
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-[#070b14] text-white flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-[#0e1626] border border-blue-900/40 p-8 rounded-2xl shadow-2xl">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-extrabold tracking-wider text-blue-400">CHATSDP</h1>
-            <p className="text-sm text-gray-400 mt-1">সব এআই টুল এক প্ল্যাটফর্মে</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">আপনার নাম</label>
-              <input
-                type="text"
-                required
-                placeholder="যেমন: মোঃ আতিক"
-                value={authForm.name}
-                onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-lg bg-[#162032] border border-gray-700 text-white focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">ইমেইল অ্যাড্রেস</label>
-              <input
-                type="email"
-                required
-                placeholder="example@gmail.com"
-                value={authForm.email}
-                onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-lg bg-[#162032] border border-gray-700 text-white focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 font-semibold rounded-lg shadow-lg transition"
-            >
-              লগইন / ড্যাশবোর্ডে প্রবেশ
-            </button>
-          </form>
-        </div>
-      </main>
-    );
-  }
-
-  // ২. প্রধান ড্যাশবোর্ড ইন্টারফেস
   return (
-    <main className="min-h-screen bg-[#080d1a] text-white p-4 sm:p-8">
-      <header className="max-w-5xl mx-auto flex justify-between items-center pb-6 border-b border-gray-800">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-400">CHATSDP</h1>
-          <p className="text-xs text-gray-400">স্বাগতম, {user.name} ({user.email})</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="text-xs bg-red-950/60 border border-red-800/60 text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-900/80 transition"
-        >
-          লগআউট
-        </button>
-      </header>
+    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-12 font-sans">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-2 text-center text-blue-500">
+          প্রিমিয়াম অ্যাপস পোর্টাল
+        </h1>
+        <p className="text-gray-400 text-center mb-10">
+          আপনার পছন্দের সার্ভিসটি সিলেক্ট করে সাবস্ক্রিপশন সম্পন্ন করুন।
+        </p>
 
-      <section className="max-w-5xl mx-auto mt-8">
-        <h2 className="text-lg font-semibold mb-4 text-gray-200">প্রিমিয়াম সফটওয়্যার সমূহ</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TOOLS.map((tool) => {
-            const sub = activeSubscriptions[tool.id];
-            const isSubscribed = !!sub;
-
-            return (
-              <div
-                key={tool.id}
-                className={`rounded-2xl p-5 border border-gray-700/50 bg-gradient-to-b ${tool.color} flex flex-col justify-between shadow-xl`}
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg ${tool.iconBg}`}>
-                      {tool.name[0]}
-                    </div>
-                    <span className="text-xs bg-black/40 px-2.5 py-1 rounded-full border border-white/10 font-mono">
-                      ৳ {tool.price} / {tool.durationDays} দিন
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold">{tool.name}</h3>
-                  <p className="text-xs text-gray-300 mt-0.5">{tool.type}</p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-white/10">
-                  {isSubscribed ? (
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-emerald-300 mb-2">
-                        <span>মেয়াদ: {sub.expiry}</span>
-                        <span className="font-mono bg-black/30 px-1.5 py-0.5 rounded text-[10px] text-gray-300">
-                          {sub.trxId}
-                        </span>
-                      </div>
-                      <a
-                        href={tool.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block text-center w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-sm transition"
-                      >
-                        সফটওয়্যার ওপেন করুন
-                      </a>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setSelectedTool(tool)}
-                      className="w-full py-2.5 bg-black/50 hover:bg-black/70 border border-white/20 rounded-lg text-sm font-semibold tracking-wide transition"
-                    >
-                      আনলক করুন (UNLOCK)
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* পেমেন্ট পপআপ */}
-      {selectedTool && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#121927] border border-gray-700 w-full max-w-md rounded-2xl p-6 relative">
-            <button
-              onClick={() => setSelectedTool(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        {/* Tools Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {TOOLS.map((tool) => (
+            <div
+              key={tool.id}
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-blue-500 transition-all flex flex-col justify-between shadow-lg"
             >
-              ✕
-            </button>
-            <h3 className="text-lg font-bold text-center text-white">{selectedTool.name} সাবস্ক্রিপশন</h3>
-            <p className="text-center text-sm text-emerald-400 font-semibold mb-4">
-              প্রদেয় ফি: ৳ {selectedTool.price} ({selectedTool.durationDays} দিন)
-            </p>
-
-            <div className="flex gap-3 mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-1">{tool.name}</h2>
+                <p className="text-sm text-gray-400 mb-4">{tool.type}</p>
+                <div className="text-3xl font-extrabold text-green-400 mb-6">{tool.price} ৳</div>
+              </div>
               <button
-                type="button"
-                onClick={() => setPaymentMethod("bkash")}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
-                  paymentMethod === "bkash" ? "bg-pink-700/40 border-pink-500 text-pink-200" : "bg-gray-800 border-gray-700"
-                }`}
+                onClick={() => {
+                  setSelectedTool(tool);
+                  window.scrollTo({ top: 500, behavior: 'smooth' });
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition duration-200"
               >
-                bKash Personal
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod("nagad")}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
-                  paymentMethod === "nagad" ? "bg-orange-700/40 border-orange-500 text-orange-200" : "bg-gray-800 border-gray-700"
-                }`}
-              >
-                Nagad Personal
+                এখনই কিনুন
               </button>
             </div>
+          ))}
+        </div>
 
-            <div className="bg-[#0b101a] p-3 rounded-lg border border-gray-800 mb-4 text-xs text-gray-300 space-y-1">
-              <p className="font-semibold text-gray-200">পেমেন্ট করার নিয়ম (Send Money):</p>
-              <p className="text-yellow-400 font-mono text-sm py-1">নম্বর: 01689333000</p>
-              <p className="text-gray-400">• নির্দিষ্ট নম্বরে Send Money করে নিচের বক্সে Transaction ID দিন।</p>
+        {/* Subscription Form Section */}
+        {selectedTool && (
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 md:p-8 max-w-lg mx-auto shadow-2xl transition-all">
+            <h2 className="text-2xl font-bold mb-3 text-center text-white">
+              {selectedTool.name} সাবস্ক্রিপশন ফর্ম
+            </h2>
+            
+            {/* Payment Guidelines */}
+            <div className="bg-gray-800 border border-gray-700 p-4 rounded-xl mb-6 text-sm text-gray-300">
+              <p className="font-semibold text-yellow-400 mb-2">📌 পেমেন্ট নির্দেশিকা:</p>
+              <p>১. বিকাশ বা নগদ সেন্ড মানি করুন: <span className="text-white font-mono font-bold bg-gray-700 px-2 py-0.5 rounded">01689333000</span></p>
+              <p className="mt-1">২. মোট ফি: <span className="text-green-400 font-bold">{selectedTool.price} টাকা</span></p>
+              <p className="mt-1 text-xs text-gray-400">টাকা পাঠানোর পর ট্রানজেকশন আইডি বা রেফারেন্স নিচে লিখে সাবমিট করুন।</p>
             </div>
 
-            <form onSubmit={handleVerifyPayment} className="space-y-4">
-              <input
-                type="text"
-                required
-                placeholder="TRANSACTION ID (TRXID) লিখুন"
-                value={trxId}
-                onChange={(e) => setTrxId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#080d1a] border border-gray-700 rounded-lg text-sm text-white uppercase focus:outline-none focus:border-emerald-500"
-              />
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-sm transition"
-              >
-                ভেরিফাই ও আনলক করুন
-              </button>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1 text-gray-300 font-medium">আপনার নাম</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="আপনার পুরো নাম"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1 text-gray-300 font-medium">হোয়াটসঅ্যাপ নম্বর</label>
+                <input
+                  type="text"
+                  name="whatsapp"
+                  required
+                  placeholder="01XXXXXXXXX"
+                  value={formData.whatsapp}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1 text-gray-300 font-medium">ভ্যালিড জিমেইল আইডি (Family Share-এর জন্য)</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="name@gmail.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1 text-gray-300 font-medium">পেমেন্ট ট্রানজেকশন আইডি / রেফারেন্স</label>
+                <input
+                  type="text"
+                  name="paymentRef"
+                  required
+                  placeholder="TrxID অথবা প্রেরক নম্বর"
+                  value={formData.paymentRef}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTool(null)}
+                  className="w-1/3 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 rounded-xl transition"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="w-2/3 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-green-600/20"
+                >
+                  তথ্য সাবমিট করুন
+                </button>
+              </div>
             </form>
           </div>
-        </div>
-      )}
-
-      {/* সফল কনফার্মেশন পপআপ */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#121927] border border-emerald-500/40 w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl">
-            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 border border-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-              ✓
-            </div>
-            <h3 className="text-xl font-bold text-white">অভিনন্দন!</h3>
-            <p className="text-xs text-gray-300 mt-1 mb-4">
-              আপনার {showSuccess.name} সাবস্ক্রিপশন সফলভাবে আনলক হয়েছে।
-            </p>
-            <button
-              onClick={() => setShowSuccess(null)}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-sm transition"
-            >
-              ড্যাশবোর্ডে ফিরে যান
-            </button>
-          </div>
-        </div>
-      )}
-    </main>
+        )}
+      </div>
+    </div>
   );
 }
