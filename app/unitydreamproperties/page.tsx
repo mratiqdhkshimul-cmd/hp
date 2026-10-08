@@ -2,21 +2,77 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 
-// ===================== Interfaces & Types =====================
+// ===================== ১. টাইপ ডেফিনিশন ও হায়ারার্কি =====================
+export type UserRole = 
+  | 'Super Admin'
+  | 'Chairman'
+  | 'Managing Director'
+  | 'General Manager'
+  | 'DGM'
+  | 'AGM'
+  | 'Team Leader'
+  | 'Business Partner'
+  | 'Agent'
+  | 'Customer'
+  | 'Accounts Head'
+  | 'Accountant';
+
+export const ROLE_HIERARCHY: Record<UserRole, number> = {
+  'Super Admin': 100,
+  'Chairman': 95,
+  'Managing Director': 90,
+  'General Manager': 70,
+  'DGM': 60,
+  'AGM': 50,
+  'Team Leader': 40,
+  'Business Partner': 30,
+  'Agent': 20,
+  'Customer': 10,
+  'Accounts Head': 65,
+  'Accountant': 45
+};
+
+export interface PartnerSaleRecord {
+  id: string;
+  projectName: string;
+  unitOrPlot: string;
+  areaKathaOrSqFt: string;
+  customerName: string;
+  customerPhone: string;
+  salePrice: number;
+  commissionEarned: number;
+  commissionPaid: number;
+  commissionStatus: 'Paid' | 'Held' | 'Pending';
+  saleDate: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
   phone: string;
   password?: string;
-  role: 'Super Admin' | 'Accounts Head' | 'Accountant' | 'Office Staff' | 'Director' | 'Deputy Director' | 'GM' | 'DGM' | 'AGM' | 'Business Partner' | 'Agent';
+  role: UserRole;
+  parentId?: string;
   salesKatha: number;
   totalEarnings: number;
+  heldEarnings: number;
   teamSalesKatha: number;
   teamEarnings: number;
   isSuperAdmin: boolean;
   hasAccountsAccess: boolean;
-  status: 'Active' | 'Pending' | 'Blocked';
+  status: 'Active' | 'Blocked' | 'Pending';
+  salesHistory?: PartnerSaleRecord[];
+  customerPurchase?: {
+    projectName: string;
+    unitOrPlot: string;
+    area: string;
+    totalPrice: number;
+    bookingMoney: number;
+    paidAmount: number;
+    dueAmount: number;
+    installmentCount: number;
+  };
 }
 
 export interface ChartOfAccount {
@@ -70,56 +126,248 @@ export interface ProjectCostReport {
   netProfitLoss: number;
 }
 
-// ===================== Initial Data =====================
+const MASTER_PHONE = '+8801689333000';
+
 const MASTER_SUPER_ADMIN: UserProfile = {
   id: 'UDP-SA-001',
   name: 'MOHAMMAD ATIQUL ISLAM',
   email: 'mr.atiq.dhk.shimul@gmail.com',
-  phone: '+880 1681-196700',
+  phone: MASTER_PHONE,
   password: 'password123',
   role: 'Super Admin',
-  salesKatha: 45,
-  totalEarnings: 3262500,
-  teamSalesKatha: 120,
-  teamEarnings: 1740000,
+  salesKatha: 85,
+  totalEarnings: 6150000,
+  heldEarnings: 0,
+  teamSalesKatha: 350,
+  teamEarnings: 4200000,
   isSuperAdmin: true,
   hasAccountsAccess: true,
-  status: 'Active'
+  status: 'Active',
+  salesHistory: [
+    {
+      id: 'SL-01',
+      projectName: 'Dhaka Western Valley',
+      unitOrPlot: 'Plot # A-12',
+      areaKathaOrSqFt: '5 Katha',
+      customerName: 'Mr. Zahirul Haque',
+      customerPhone: '+8801711111111',
+      salePrice: 7250000,
+      commissionEarned: 362500,
+      commissionPaid: 362500,
+      commissionStatus: 'Paid',
+      saleDate: '2026-08-15'
+    }
+  ]
 };
 
-const INITIAL_USERS: UserProfile[] = [
-  MASTER_SUPER_ADMIN,
-  {
-    id: 'UDP-ACC-01',
-    name: 'Md. Tariqul Islam',
-    email: 'accounts@unitydream.com',
-    phone: '+880 1681-196700',
-    password: 'password123',
-    role: 'Accounts Head',
-    salesKatha: 0,
-    totalEarnings: 0,
-    teamSalesKatha: 0,
-    teamEarnings: 0,
-    isSuperAdmin: false,
-    hasAccountsAccess: true,
-    status: 'Active'
-  },
-  {
-    id: 'UDP-BP-102',
-    name: 'Samia Parvin Shanta',
-    email: 'samia.parvin.shanta@gmail.com',
-    phone: '+8801700000000',
-    password: 'password123',
-    role: 'Business Partner',
-    salesKatha: 10,
-    totalEarnings: 725000,
-    teamSalesKatha: 15,
-    teamEarnings: 217500,
-    isSuperAdmin: false,
-    hasAccountsAccess: false,
-    status: 'Active'
+// ===================== ২. প্রাথমিক ডাটাবেজ =====================
+const generateInitialUsers = (): UserProfile[] => {
+  const users: UserProfile[] = [
+    MASTER_SUPER_ADMIN,
+    {
+      id: 'UDP-CH-002',
+      name: 'Engr. Md Mustafizur Rahman Rashid',
+      email: 'chairman@unitydream.com',
+      phone: MASTER_PHONE,
+      password: 'pass123',
+      role: 'Chairman',
+      salesKatha: 60,
+      totalEarnings: 4500000,
+      heldEarnings: 0,
+      teamSalesKatha: 280,
+      teamEarnings: 3100000,
+      isSuperAdmin: true,
+      hasAccountsAccess: true,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-MD-003',
+      name: 'Mohammad Showkat Ali',
+      email: 'md@unitydream.com',
+      phone: MASTER_PHONE,
+      password: 'pass123',
+      role: 'Managing Director',
+      salesKatha: 55,
+      totalEarnings: 3950000,
+      heldEarnings: 0,
+      teamSalesKatha: 240,
+      teamEarnings: 2900000,
+      isSuperAdmin: true,
+      hasAccountsAccess: true,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-GM-004',
+      name: 'Md. Mahmudur Rahman',
+      email: 'gm@unitydream.com',
+      phone: '+8801722222201',
+      password: 'pass123',
+      role: 'General Manager',
+      salesKatha: 35,
+      totalEarnings: 2100000,
+      heldEarnings: 0,
+      teamSalesKatha: 160,
+      teamEarnings: 1450000,
+      isSuperAdmin: false,
+      hasAccountsAccess: true,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-DGM-005',
+      name: 'Rofiqul Kabir Saikat',
+      email: 'dgm@unitydream.com',
+      phone: '+8801722222202',
+      password: 'pass123',
+      role: 'DGM',
+      salesKatha: 25,
+      totalEarnings: 1550000,
+      heldEarnings: 0,
+      teamSalesKatha: 95,
+      teamEarnings: 820000,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-AGM-006',
+      name: 'Piyal Hasan Rubel',
+      email: 'agm@unitydream.com',
+      phone: '+8801722222203',
+      password: 'pass123',
+      role: 'AGM',
+      salesKatha: 18,
+      totalEarnings: 1120000,
+      heldEarnings: 50000,
+      teamSalesKatha: 60,
+      teamEarnings: 510000,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-TL-007',
+      name: 'Md. Tariqul Islam',
+      email: 'accounts@unitydream.com',
+      phone: MASTER_PHONE,
+      password: 'pass123',
+      role: 'Accounts Head',
+      salesKatha: 0,
+      totalEarnings: 0,
+      heldEarnings: 0,
+      teamSalesKatha: 0,
+      teamEarnings: 0,
+      isSuperAdmin: false,
+      hasAccountsAccess: true,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-BP-102',
+      name: 'Samia Parvin Shanta',
+      email: 'samia.parvin.shanta@gmail.com',
+      phone: '+8801733333301',
+      password: 'pass123',
+      role: 'Business Partner',
+      salesKatha: 12,
+      totalEarnings: 870000,
+      heldEarnings: 0,
+      teamSalesKatha: 20,
+      teamEarnings: 180000,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active',
+      salesHistory: [
+        {
+          id: 'SL-02',
+          projectName: 'The Bay Icon International Hotel & Resort Ltd.',
+          unitOrPlot: 'Suite # 402',
+          areaKathaOrSqFt: '300 Sq Ft',
+          customerName: 'Kazi Farhana',
+          customerPhone: '+8801912345678',
+          salePrice: 15000000,
+          commissionEarned: 450000,
+          commissionPaid: 350000,
+          commissionStatus: 'Paid',
+          saleDate: '2026-09-10'
+        }
+      ]
+    },
+    {
+      id: 'UDP-AGT-201',
+      name: 'Tanvir Hossain',
+      email: 'tanvir.agent@unitydream.com',
+      phone: '+8801744444401',
+      password: 'pass123',
+      role: 'Agent',
+      salesKatha: 5,
+      totalEarnings: 362500,
+      heldEarnings: 0,
+      teamSalesKatha: 0,
+      teamEarnings: 0,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active'
+    },
+    {
+      id: 'UDP-CUST-301',
+      name: 'Khandaker Rafiqul Alam',
+      email: 'rafiqul.client@gmail.com',
+      phone: '+8801712345678',
+      password: 'pass123',
+      role: 'Customer',
+      salesKatha: 0,
+      totalEarnings: 0,
+      heldEarnings: 0,
+      teamSalesKatha: 0,
+      teamEarnings: 0,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active',
+      customerPurchase: {
+        projectName: 'Dhaka Western Valley',
+        unitOrPlot: 'Plot # 14, Block # A',
+        area: '5 Katha',
+        totalPrice: 1450000,
+        bookingMoney: 145000,
+        paidAmount: 500000,
+        dueAmount: 950000,
+        installmentCount: 60
+      }
+    }
+  ];
+
+  const rolesDistribution: UserRole[] = ['Business Partner', 'Agent', 'Customer'];
+  for (let i = 11; i <= 100; i++) {
+    const role = rolesDistribution[i % 3];
+    users.push({
+      id: `UDP-USR-${100 + i}`,
+      name: `Partner/Member ${i}`,
+      email: `user${i}@unitydreamproperties.com`,
+      phone: `+8801700${100000 + i}`,
+      password: 'pass123',
+      role: role,
+      salesKatha: role === 'Customer' ? 0 : (i % 8) * 2,
+      totalEarnings: role === 'Customer' ? 0 : (i % 8) * 145000,
+      heldEarnings: 0,
+      teamSalesKatha: role === 'Business Partner' ? (i % 5) * 5 : 0,
+      teamEarnings: role === 'Business Partner' ? (i % 5) * 45000 : 0,
+      isSuperAdmin: false,
+      hasAccountsAccess: false,
+      status: 'Active',
+      customerPurchase: role === 'Customer' ? {
+        projectName: 'Padma Eco-City',
+        unitOrPlot: `Plot # ${i}, Block # B`,
+        area: '5 Katha',
+        totalPrice: 5250000,
+        bookingMoney: 525000,
+        paidAmount: 1800000,
+        dueAmount: 3450000,
+        installmentCount: 48
+      } : undefined
+    });
   }
-];
+
+  return users;
+};
 
 const INITIAL_COA: ChartOfAccount[] = [
   { code: '1010', name: 'Cash in Hand & Multi-Bank Accounts', type: 'Asset', subType: 'Current Asset' },
@@ -258,7 +506,7 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
   }
 ];
 
-// Project Catalog
+// প্রজেক্ট ক্যাটালগ
 const projectsData = [
   {
     id: '1',
@@ -356,18 +604,22 @@ const projectsData = [
 ];
 
 export default function UnityDreamPortal() {
-  const [usersList, setUsersList] = useState<UserProfile[]>(INITIAL_USERS);
+  const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [transactions, setTransactions] = useState<ERPTransaction[]>(INITIAL_TRANSACTIONS);
-  const [receivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
+  const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
-  // Responsive & Navigation States
+  // Responsive & Modal States
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [showERP, setShowERP] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my_ledger' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'>('my_ledger');
+  
+  // ট্যাব নেভিগেশন (১ম ট্যাব: ⭐ পার্টনার লিস্ট)
+  const [activeTab, setActiveTab] = useState<'partner_list' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'>('partner_list');
   const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
+  const [viewDetailsUser, setViewDetailsUser] = useState<UserProfile | null>(null);
+  const [editUserModal, setEditUserModal] = useState<UserProfile | null>(null);
 
   // Auth Inputs
   const [loginEmail, setLoginEmail] = useState('');
@@ -379,7 +631,7 @@ export default function UnityDreamPortal() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // Voucher Inputs
+  // ভাউচার ইনপুটস
   const [voucherProjectId, setVoucherProjectId] = useState('1');
   const [voucherAccountCode, setVoucherAccountCode] = useState('4010');
   const [voucherType, setVoucherType] = useState<'Debit' | 'Credit'>('Credit');
@@ -390,24 +642,39 @@ export default function UnityDreamPortal() {
   const [voucherVdsRate, setVoucherVdsRate] = useState<number>(0);
   const [voucherRetentionRate, setVoucherRetentionRate] = useState<number>(0);
 
-  // Admin Add User Modal
+  // ইউজার অ্যাড মোডাল
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPhone, setNewUserPhone] = useState('');
-  const [newUserRole, setNewUserRole] = useState<UserProfile['role']>('Business Partner');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('Business Partner');
   const [newUserPassword, setNewUserPassword] = useState('pass123');
   const [newUserAccountsAccess, setNewUserAccountsAccess] = useState(false);
 
   useEffect(() => {
-    const savedUsers = localStorage.getItem('udp_erp_users');
+    const savedUsers = localStorage.getItem('udp_erp_users_v2');
     if (savedUsers) {
-      try { setUsersList(JSON.parse(savedUsers)); } catch (e) { console.error(e); }
+      try { 
+        setUsersList(JSON.parse(savedUsers)); 
+      } catch (e) { 
+        console.error(e); 
+      }
+    } else {
+      const initial = generateInitialUsers();
+      setUsersList(initial);
+      localStorage.setItem('udp_erp_users_v2', JSON.stringify(initial));
     }
+
     const savedTxns = localStorage.getItem('udp_erp_txns');
     if (savedTxns) {
       try { setTransactions(JSON.parse(savedTxns)); } catch (e) { console.error(e); }
     }
+
+    const savedAr = localStorage.getItem('udp_erp_ar');
+    if (savedAr) {
+      try { setReceivables(JSON.parse(savedAr)); } catch (e) { console.error(e); }
+    }
+
     const activeSession = localStorage.getItem('udp_active_session');
     if (activeSession) {
       try { setCurrentUser(JSON.parse(activeSession)); } catch (e) { console.error(e); }
@@ -416,12 +683,17 @@ export default function UnityDreamPortal() {
 
   const saveUsers = (list: UserProfile[]) => {
     setUsersList(list);
-    localStorage.setItem('udp_erp_users', JSON.stringify(list));
+    localStorage.setItem('udp_erp_users_v2', JSON.stringify(list));
   };
 
   const saveTxns = (list: ERPTransaction[]) => {
     setTransactions(list);
     localStorage.setItem('udp_erp_txns', JSON.stringify(list));
+  };
+
+  const triggerWhatsApp = (phone: string, text: string) => {
+    const formatted = phone.replace(/[^0-9]/g, '');
+    window.open(`https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const totalCreditRevenue = useMemo(() => {
@@ -475,10 +747,33 @@ export default function UnityDreamPortal() {
     });
   }, [transactions]);
 
-  const triggerWhatsApp = (phone: string, text: string) => {
-    const formatted = phone.replace(/[^0-9]/g, '');
-    window.open(`https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(text)}`, '_blank');
-  };
+  const visiblePartners = useMemo(() => {
+    if (!currentUser) return [];
+
+    const userWeight = ROLE_HIERARCHY[currentUser.role] || 0;
+
+    if (['Super Admin', 'Chairman', 'Managing Director'].includes(currentUser.role)) {
+      return usersList;
+    }
+
+    if (currentUser.role === 'General Manager') {
+      return usersList.filter(u => !['Super Admin', 'Chairman', 'Managing Director'].includes(u.role));
+    }
+
+    if (['DGM', 'AGM', 'Team Leader', 'Business Partner'].includes(currentUser.role)) {
+      return usersList.filter(u => ROLE_HIERARCHY[u.role] < userWeight || u.id === currentUser.id);
+    }
+
+    if (currentUser.role === 'Agent') {
+      return usersList.filter(u => u.role === 'Agent' || u.id === currentUser.id);
+    }
+
+    if (currentUser.role === 'Customer') {
+      return usersList.filter(u => u.id === currentUser.id);
+    }
+
+    return usersList.filter(u => u.id === currentUser.id);
+  }, [currentUser, usersList]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -491,12 +786,16 @@ export default function UnityDreamPortal() {
       alert('পাসওয়ার্ড ভুল হয়েছে!');
       return;
     }
+    if (user.status === 'Blocked') {
+      alert('আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত (Blocked) করা হয়েছে! অ্যাডমিনের সাথে যোগাযোগ করুন।');
+      return;
+    }
     setCurrentUser(user);
     localStorage.setItem('udp_active_session', JSON.stringify(user));
     setAuthModal(null);
     setLoginEmail('');
     setLoginPassword('');
-    alert(`স্বাগতম ${user.name}! সফলভাবে লগইন হয়েছে।`);
+    alert(`স্বাগতম ${user.name}! পদবী: ${user.role}। সফলভাবে লগইন হয়েছে।`);
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -522,6 +821,7 @@ export default function UnityDreamPortal() {
       role: 'Business Partner',
       salesKatha: 0,
       totalEarnings: 0,
+      heldEarnings: 0,
       teamSalesKatha: 0,
       teamEarnings: 0,
       isSuperAdmin: false,
@@ -535,10 +835,9 @@ export default function UnityDreamPortal() {
     localStorage.setItem('udp_active_session', JSON.stringify(newUser));
     setAuthModal(null);
 
-    triggerWhatsApp(
-      newUser.phone,
-      `*UNITY DREAM PROPERTIES LTD. Registration Confirmed*\nUser ID: ${newUser.id}\nName: ${newUser.name}\nRole: Business Partner\nHelpline: +880 1681-196700`
-    );
+    const msg = `*UNITY DREAM PROPERTIES LTD. Registration Confirmed*\nName: ${newUser.name}\nUser ID: ${newUser.id}\nRole: Business Partner\nHelpline: ${MASTER_PHONE}`;
+    triggerWhatsApp(newUser.phone, msg);
+    triggerWhatsApp(MASTER_PHONE, `*New User Joined UDP*\nID: ${newUser.id}\nName: ${newUser.name}\nPhone: ${newUser.phone}`);
 
     setRegName(''); setRegEmail(''); setRegPhone(''); setRegPassword(''); setRegConfirmPassword('');
     alert(`অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! ইউজার আইডি: ${newId}`);
@@ -552,7 +851,7 @@ export default function UnityDreamPortal() {
       return;
     }
     if (user.password) {
-      triggerWhatsApp(user.phone, `*UNITY DREAM PROPERTIES LTD. Credentials*\nUser ID: ${user.id}\nPassword: ${user.password}\nHelpline: +880 1681-196700`);
+      triggerWhatsApp(user.phone, `*UNITY DREAM PROPERTIES LTD. Credentials*\nUser ID: ${user.id}\nPassword: ${user.password}\nHelpline: ${MASTER_PHONE}`);
       alert(`ইউজার আইডি (${user.id}) ও পাসওয়ার্ড আপনার হোয়াটসঅ্যাপে পাঠানো হয়েছে!`);
     }
     setForgotEmail('');
@@ -608,20 +907,29 @@ export default function UnityDreamPortal() {
     const updated = [newTxn, ...transactions];
     saveTxns(updated);
 
+    triggerWhatsApp(
+      MASTER_PHONE,
+      `*UDP Financial Transaction Alert*\nVoucher: ${newTxn.voucherNo}\nType: ${newTxn.type}\nGross: ${newTxn.grossAmount.toLocaleString('bn-BD')} BDT\nNet: ${newTxn.netAmount.toLocaleString('bn-BD')} BDT\nProject: ${newTxn.projectName}\nRecorded By: ${newTxn.recordedBy}`
+    );
+
     setVoucherDesc('');
     setVoucherGross(0);
     setVoucherTdsRate(0);
     setVoucherVdsRate(0);
     setVoucherRetentionRate(0);
-    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে!`);
+    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে এবং মাস্টার নম্বরে নোটিফিকেশন পাঠানো হয়েছে!`);
   };
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteUser = (email: string) => {
     if (!currentUser?.isSuperAdmin) return;
-    if (confirm('আপনি কি এই লেনদেন ভাউচারটি ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
-      const updated = transactions.filter(t => t.id !== id);
-      saveTxns(updated);
-      alert('লেনদেন মুছে ফেলা হয়েছে!');
+    if (email === MASTER_SUPER_ADMIN.email) {
+      alert('সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!');
+      return;
+    }
+    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
+      const updated = usersList.filter(u => u.email !== email);
+      saveUsers(updated);
+      alert('ইউজার সফলভাবে মুছে ফেলা হয়েছে!');
     }
   };
 
@@ -631,7 +939,7 @@ export default function UnityDreamPortal() {
 
     const cleanEmail = newUserEmail.trim().toLowerCase();
     if (usersList.some(u => u.email.trim().toLowerCase() === cleanEmail)) {
-      alert('এই ইমেইলে অলরেডি ইউজার রয়েছে!');
+      alert('এই ইমেইলে ইতোমধ্যে অ্যাকাউন্ট রয়েছে!');
       return;
     }
 
@@ -645,10 +953,11 @@ export default function UnityDreamPortal() {
       role: newUserRole,
       salesKatha: 0,
       totalEarnings: 0,
+      heldEarnings: 0,
       teamSalesKatha: 0,
       teamEarnings: 0,
-      isSuperAdmin: false,
-      hasAccountsAccess: newUserAccountsAccess,
+      isSuperAdmin: ['Super Admin', 'Chairman', 'Managing Director'].includes(newUserRole),
+      hasAccountsAccess: newUserAccountsAccess || ['Super Admin', 'Accounts Head'].includes(newUserRole),
       status: 'Active'
     };
 
@@ -657,50 +966,43 @@ export default function UnityDreamPortal() {
 
     triggerWhatsApp(
       createdUser.phone,
-      `*UNITY DREAM PROPERTIES LTD. Official ID Created*\nName: ${createdUser.name}\nID: ${createdUser.id}\nRole: ${createdUser.role}\nPassword: ${createdUser.password}\nLogin: https://hp-seven-weld.vercel.app/unitydreamproperties\nHelpline: +880 1681-196700`
+      `*UNITY DREAM PROPERTIES LTD. Official Account Created*\nName: ${createdUser.name}\nUser ID: ${createdUser.id}\nRole: ${createdUser.role}\nPassword: ${createdUser.password}\nPortal: https://hp-seven-weld.vercel.app/unitydreamproperties\nHelpline: ${MASTER_PHONE}`
     );
 
     setNewUserName('');
     setNewUserEmail('');
     setNewUserPhone('');
     setShowAddUserModal(false);
-    alert(`নতুন ইউজার (${createdId}) ক্লাউড ডাটাবেজে যোগ হয়েছে!`);
+    alert(`নতুন ইউজার (${createdId}) ক্লাউড ডাটাবেজে যুক্ত হয়েছে!`);
   };
 
-  const toggleUserAccess = (targetEmail: string) => {
-    if (!currentUser?.isSuperAdmin) return;
+  const handleSaveEditUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUserModal || !currentUser?.isSuperAdmin) return;
+
     const updated = usersList.map(u => {
-      if (u.email === targetEmail) {
-        return { ...u, hasAccountsAccess: !u.hasAccountsAccess };
+      if (u.id === editUserModal.id) {
+        return {
+          ...editUserModal,
+          isSuperAdmin: ['Super Admin', 'Chairman', 'Managing Director'].includes(editUserModal.role)
+        };
       }
       return u;
     });
-    saveUsers(updated);
-    alert('ইউজারের অ্যাকাউন্টস এক্সেস পারমিশন আপডেট হয়েছে!');
-  };
 
-  const handleDeleteUser = (email: string) => {
-    if (!currentUser?.isSuperAdmin) return;
-    if (email === MASTER_SUPER_ADMIN.email) {
-      alert('সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!');
-      return;
-    }
-    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে মুছে ফেলতে চান?')) {
-      const updated = usersList.filter(u => u.email !== email);
-      saveUsers(updated);
-      alert('ইউজার সফলভাবে মুছে ফেলা হয়েছে!');
-    }
+    saveUsers(updated);
+    setEditUserModal(null);
+    alert('ইউজারের তথ্য ও স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!');
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ===================== ১. হেডার ও আধুনিক রেসপন্সিভ মেনুবার ===================== */}
+      {/* ===================== ১. হেডার ও মেনুবার ===================== */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
             
-            {/* ব্র্যান্ড লোগো ও নাম (পর্যাপ্ত মার্জিন ও প্যাডিং দিয়ে অ্যালাইনমেন্ট ঠিক করা হয়েছে) */}
             <div className="flex items-center gap-3 shrink-0 mr-4">
               <img 
                 src="/logo.jpg" 
@@ -719,7 +1021,6 @@ export default function UnityDreamPortal() {
               </div>
             </div>
 
-            {/* ডেস্কটপ মেনুবার (সঠিক অ্যালাইনমেন্ট, স্পেস ও পরিবর্তিত মেনু তালিকা) */}
             <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700 ml-4">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
               <a href="#management" className="hover:text-emerald-600 transition-colors">Management</a>
@@ -729,10 +1030,7 @@ export default function UnityDreamPortal() {
               <a href="#contact" className="hover:text-emerald-600 transition-colors">Contact</a>
             </nav>
 
-            {/* ডান পাশের অপশন: My Account ও মোবাইল মেনু বাটন */}
             <div className="flex items-center gap-2 sm:gap-3">
-              
-              {/* My Account বাটন */}
               <div className="relative">
                 <button 
                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
@@ -788,7 +1086,6 @@ export default function UnityDreamPortal() {
                 )}
               </div>
 
-              {/* মোবাইল হ্যামবার্গার মেনু বাটন (শুধুমাত্র মোবাইল ব্রাউজারে দেখা যাবে) */}
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
@@ -800,57 +1097,19 @@ export default function UnityDreamPortal() {
                   <span className="text-xl font-bold leading-none">☰</span>
                 )}
               </button>
-
             </div>
 
           </div>
         </div>
 
-        {/* মোবাইল মেনু ড্রয়ার (মোবাইলে ক্লিক করলে নিচে সুন্দরভাবে উন্মুক্ত হবে) */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 pb-5 shadow-lg space-y-3 text-sm font-semibold text-slate-700 animate-fadeIn">
-            <a 
-              href="#home" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Home
-            </a>
-            <a 
-              href="#management" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Management
-            </a>
-            <a 
-              href="#for-sale" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              For Sale
-            </a>
-            <a 
-              href="#roommates" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Roommates
-            </a>
-            <a 
-              href="#jobs" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Jobs
-            </a>
-            <a 
-              href="#contact" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Contact
-            </a>
+          <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 pb-5 shadow-lg space-y-3 text-sm font-semibold text-slate-700">
+            <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Home</a>
+            <a href="#management" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Management</a>
+            <a href="#for-sale" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">For Sale</a>
+            <a href="#roommates" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Roommates</a>
+            <a href="#jobs" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Jobs</a>
+            <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Contact</a>
           </div>
         )}
       </header>
@@ -886,18 +1145,17 @@ export default function UnityDreamPortal() {
             </div>
           </div>
 
-          {/* ২.১ কোর একাউন্টস ERP */}
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
               <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
                 <button 
-                  onClick={() => setActiveTab('my_ledger')}
+                  onClick={() => setActiveTab('partner_list')}
                   className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    activeTab === 'my_ledger' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    activeTab === 'partner_list' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  👤 আমার পার্টনার লেজার
+                  ⭐ পার্টনার লিস্ট (সেলস, কমিশন ও ডিটেইলস)
                 </button>
 
                 {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
@@ -905,7 +1163,7 @@ export default function UnityDreamPortal() {
                     <button 
                       onClick={() => setActiveTab('journal_ledger')}
                       className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-white'
+                        activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
                       📒 জেনারেল জার্নাল ও ভাউচার (GL/Debit-Credit)
@@ -961,50 +1219,93 @@ export default function UnityDreamPortal() {
                 )}
               </div>
 
-              {/* TAB 1 */}
-              {activeTab === 'my_ledger' && (
-                <div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">আমার বিক্রিত জমি</span>
-                      <span className="text-2xl font-black text-emerald-400">{currentUser.salesKatha} কাঠা</span>
-                      <span className="text-[10px] text-slate-500 block mt-1">সরাসরি বুকিং ও সেলস</span>
+              {/* TAB 1: ⭐ পার্টনার লিস্ট */}
+              {activeTab === 'partner_list' && (
+                <div className="text-xs">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-400">
+                        ⭐ পার্টনার ও টিম পারফরম্যান্স নেটওয়ার্ক
+                      </h4>
+                      <p className="text-slate-400 text-[11px] mt-0.5">
+                        আপনার পদবী: <strong className="text-white">{currentUser.role}</strong> ({currentUser.name}) | 
+                        অধীনস্থ দৃশ্যমান মেম্বার: <strong className="text-amber-400">{visiblePartners.length} জন</strong>
+                      </p>
                     </div>
-
-                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">মোট প্রাপ্ত কমিশন</span>
-                      <span className="text-2xl font-black text-amber-400">{currentUser.totalEarnings.toLocaleString('bn-BD')} ৳</span>
-                      <span className="text-[10px] text-emerald-400 block mt-1">অ্যাকাউন্টস অনুমোদিত</span>
-                    </div>
-
-                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">টিম নেট সেলস</span>
-                      <span className="text-2xl font-black text-blue-400">{currentUser.teamSalesKatha} কাঠা</span>
-                      <span className="text-[10px] text-slate-500 block mt-1">টিম মেম্বারদের সেলস</span>
-                    </div>
-
-                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">টিম ওভাররাইড ইনকাম</span>
-                      <span className="text-2xl font-black text-purple-400">{currentUser.teamEarnings.toLocaleString('bn-BD')} ৳</span>
-                      <span className="text-[10px] text-purple-300 block mt-1">হায়ারার্কি বোনাস</span>
+                    <div className="text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1.5 rounded-lg">
+                      🔒 আপনার রোল অনুসারে অনুমোদিত ডেটা প্রদর্শিত হচ্ছে
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
-                    <div>
-                      আইডি: <strong className="text-white font-mono">{currentUser.id}</strong> | পদবী: <strong className="text-emerald-400">{currentUser.role}</strong>
-                    </div>
-                    <span className="text-emerald-400">● কেন্দ্রীয় ক্লাউড ডাটাবেজ সিঙ্ক সক্রিয়</span>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">আইডি ও নাম</th>
+                          <th className="py-2.5 px-3">পদবী (Role)</th>
+                          <th className="py-2.5 px-3">মোবাইল</th>
+                          <th className="py-2.5 px-3 text-right">ব্যক্তিগত সেলস</th>
+                          <th className="py-2.5 px-3 text-right">অর্জিত কমিশন</th>
+                          <th className="py-2.5 px-3 text-right">টিম সেলস</th>
+                          <th className="py-2.5 px-3 text-right">টিম ওভাররাইড</th>
+                          <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3 text-center">ডিটেইলস</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {visiblePartners.map((user) => (
+                          <tr key={user.id} className="hover:bg-slate-900/60 transition-colors">
+                            <td className="py-3 px-3">
+                              <span className="font-bold text-white block">{user.name}</span>
+                              <span className="font-mono text-emerald-400 text-[10px]">{user.id}</span>
+                            </td>
+                            <td className="py-3 px-3 font-semibold text-slate-200">
+                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
+                                {user.role}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 font-mono text-[11px]">{user.phone}</td>
+                            <td className="py-3 px-3 text-right font-bold text-emerald-400">
+                              {user.salesKatha} কাঠা
+                            </td>
+                            <td className="py-3 px-3 text-right font-bold text-amber-400">
+                              {user.totalEarnings.toLocaleString('bn-BD')} ৳
+                            </td>
+                            <td className="py-3 px-3 text-right text-slate-400">
+                              {user.teamSalesKatha} কাঠা
+                            </td>
+                            <td className="py-3 px-3 text-right text-purple-400">
+                              {user.teamEarnings.toLocaleString('bn-BD')} ৳
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                                user.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'
+                              }`}>
+                                {user.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => setViewDetailsUser(user)}
+                                className="bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold px-2.5 py-1 rounded border border-slate-700 text-[11px]"
+                              >
+                                বিস্তারিত দেখুন
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
 
-              {/* TAB 2 */}
+              {/* TAB 2: জেনারেল জার্নাল ও ভাউচার */}
               {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div>
                   <form onSubmit={handleAddVoucher} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
                     <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
-                      <span>✍️</span> রিয়েল এস্টেট ভাউচার এন্ট্রি (জার্নাল, TDS, VDS ও ঠিকাদার রিটেনশন মানি অটো-লিংকড)
+                      <span>✍️</span> রিয়েল এস্টেট ভাউচার এন্ট্রি (জার্নাল, TDS, VDS ও অটো এসএমএস অ্যালার্ট)
                     </h4>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -1124,7 +1425,7 @@ export default function UnityDreamPortal() {
                         </div>
                       ) : (
                         <div className="flex items-center text-emerald-400 font-semibold text-[11px] pt-4">
-                          ✓ সরাসরি কোম্পানির মূল একাউন্টসে ক্রেডিট হবে
+                          ✓ কোম্পানির মূল একাউন্টসে ক্রেডিট হবে ও মাস্টার অ্যালার্ট যাবে
                         </div>
                       )}
                     </div>
@@ -1156,9 +1457,8 @@ export default function UnityDreamPortal() {
                           <th className="py-2.5 px-3">COA ও খাত</th>
                           <th className="py-2.5 px-3">বিবরণ</th>
                           <th className="py-2.5 px-3 text-right">গ্রস পরিমাণ</th>
-                          <th className="py-2.5 px-3 text-right">TDS/VDS/Ret.</th>
                           <th className="py-2.5 px-3 text-right">নিট লেনদেন</th>
-                          {currentUser.isSuperAdmin && <th className="py-2.5 px-3 text-center">একশন</th>}
+                          <th className="py-2.5 px-3 text-center">রেকর্ডকারী</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 text-slate-300">
@@ -1172,22 +1472,10 @@ export default function UnityDreamPortal() {
                             <td className={`py-2.5 px-3 text-right font-bold ${t.type === 'Credit' ? 'text-emerald-400' : 'text-red-400'}`}>
                               {t.grossAmount.toLocaleString('bn-BD')} ৳
                             </td>
-                            <td className="py-2.5 px-3 text-right text-slate-400 text-[11px]">
-                              {(t.tdsAmount + t.vdsAmount + t.retentionAmount).toLocaleString('bn-BD')} ৳
-                            </td>
                             <td className="py-2.5 px-3 text-right font-bold text-white">
                               {t.netAmount.toLocaleString('bn-BD')} ৳
                             </td>
-                            {currentUser.isSuperAdmin && (
-                              <td className="py-2.5 px-3 text-center">
-                                <button 
-                                  onClick={() => handleDeleteTransaction(t.id)}
-                                  className="text-red-400 hover:text-red-300 font-bold"
-                                >
-                                  মুছুন
-                                </button>
-                              </td>
-                            )}
+                            <td className="py-2.5 px-3 text-center text-slate-400 text-[11px]">{t.recordedBy}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1196,7 +1484,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 3 */}
+              {/* TAB 3: প্রজেক্ট কস্টিং ও লাভ ক্ষতি */}
               {activeTab === 'project_costing' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="mb-4">
@@ -1238,7 +1526,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 4 */}
+              {/* TAB 4: কাস্টমার কিস্তি ও এজিং */}
               {activeTab === 'ar_installments' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-4">
@@ -1292,7 +1580,7 @@ export default function UnityDreamPortal() {
                                 onClick={() => {
                                   triggerWhatsApp(
                                     ar.phone,
-                                    `*UNITY DREAM PROPERTIES LTD. কিস্তি রিমাইন্ডার*\nগ্রাহক: ${ar.customerName}\nপ্রকল্প: ${ar.projectName}\nবকেয়া: ${ar.dueAmount.toLocaleString('bn-BD')} ৳\nতারিখ: ${ar.nextInstallmentDate}\nহেল্পলাইন: +880 1681-196700`
+                                    `*UNITY DREAM PROPERTIES LTD. কিস্তি রিমাইন্ডার*\nগ্রাহক: ${ar.customerName}\nপ্রকল্প: ${ar.projectName}\nবকেয়া: ${ar.dueAmount.toLocaleString('bn-BD')} ৳\nতারিখ: ${ar.nextInstallmentDate}\nহেল্পলাইন: ${MASTER_PHONE}`
                                   );
                                 }}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[11px] font-bold"
@@ -1308,7 +1596,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 5 */}
+              {/* TAB 5: বিডি ট্যাক্স ও ভ্যাট */}
               {activeTab === 'tax_vat' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="mb-4">
@@ -1342,7 +1630,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 6 */}
+              {/* TAB 6: ব্যালেন্স শীট ও ট্রেজারি */}
               {activeTab === 'balance_sheet' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1370,7 +1658,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 7 */}
+              {/* TAB 7: 👑 ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল */}
               {activeTab === 'admin_users' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -1378,6 +1666,9 @@ export default function UnityDreamPortal() {
                       <h4 className="text-sm font-bold text-red-400">
                         👑 সেন্ট্রাল ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল (Super Admin Control)
                       </h4>
+                      <p className="text-slate-400 text-[11px] mt-0.5">
+                        সুপার অ্যাডমিন হিসেবে যেকোনো ইউজারের পদবী, এক্সেস, কমিশন ও স্ট্যাটাস সম্পূর্ণ নিয়ন্ত্রণ করুন।
+                      </p>
                     </div>
                     <button 
                       onClick={() => setShowAddUserModal(true)}
@@ -1397,7 +1688,7 @@ export default function UnityDreamPortal() {
                           <th className="py-2.5 px-3">মোবাইল</th>
                           <th className="py-2.5 px-3">পদবী (Role)</th>
                           <th className="py-2.5 px-3">পাসওয়ার্ড</th>
-                          <th className="py-2.5 px-3">অ্যাকাউন্টস এক্সেস</th>
+                          <th className="py-2.5 px-3">স্ট্যাটাস</th>
                           <th className="py-2.5 px-3 text-center">অ্যাকশন</th>
                         </tr>
                       </thead>
@@ -1408,39 +1699,37 @@ export default function UnityDreamPortal() {
                             <td className="py-3 px-3 font-bold text-white">{user.name}</td>
                             <td className="py-3 px-3 font-mono">{user.email}</td>
                             <td className="py-3 px-3 font-mono">{user.phone}</td>
-                            <td className="py-3 px-3">{user.role}</td>
+                            <td className="py-3 px-3">
+                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
+                                {user.role}
+                              </span>
+                            </td>
                             <td className="py-3 px-3 font-mono text-amber-300">{user.password || 'N/A'}</td>
                             <td className="py-3 px-3">
-                              {user.hasAccountsAccess ? (
-                                <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded font-bold border border-emerald-800">
-                                  অনুমোদিত
-                                </span>
-                              ) : (
-                                <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                                  সীমাবদ্ধ
-                                </span>
-                              )}
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                user.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'
+                              }`}>
+                                {user.status}
+                              </span>
                             </td>
-                            <td className="py-3 px-3 text-center flex items-center justify-center gap-2">
-                              {user.isSuperAdmin ? (
-                                <span className="text-slate-500 font-mono">Master</span>
+                            <td className="py-3 px-3 text-center">
+                              {user.id === 'UDP-SA-001' ? (
+                                <span className="text-slate-500 font-mono text-[10px]">Master Admin</span>
                               ) : (
-                                <>
+                                <div className="flex items-center justify-center gap-1.5">
                                   <button 
-                                    onClick={() => toggleUserAccess(user.email)}
-                                    className={`px-2.5 py-1 rounded text-[10px] font-bold transition-colors ${
-                                      user.hasAccountsAccess ? 'bg-amber-900/60 text-amber-200' : 'bg-emerald-800 text-white'
-                                    }`}
+                                    onClick={() => setEditUserModal(user)}
+                                    className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-0.5 rounded text-[10px]"
                                   >
-                                    {user.hasAccountsAccess ? 'Revoke' : 'Allow'}
+                                    Edit
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteUser(user.email)}
-                                    className="bg-rose-950 text-rose-300 border border-rose-800 px-2.5 py-1 rounded text-[10px] font-bold hover:bg-rose-900"
+                                    className="bg-rose-950 text-rose-300 border border-rose-800 px-2 py-0.5 rounded text-[10px] font-bold hover:bg-rose-900"
                                   >
                                     ডিলিট
                                   </button>
-                                </>
+                                </div>
                               )}
                             </td>
                           </tr>
@@ -1559,15 +1848,15 @@ export default function UnityDreamPortal() {
               <div className="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[10px] text-gray-500 block">অফিসিয়াল বুকিং ও হেল্পলাইন</span>
-                  <a href="tel:+8801681196700" className="text-xs font-bold text-emerald-800 hover:underline">
-                    +880 1681-196700
+                  <a href={`tel:${MASTER_PHONE}`} className="text-xs font-bold text-emerald-800 hover:underline">
+                    {MASTER_PHONE}
                   </a>
                 </div>
                 
                 <button 
                   onClick={() => {
                     triggerWhatsApp(
-                      '+8801681196700',
+                      MASTER_PHONE,
                       `*UNITY DREAM PROPERTIES LTD. - বুকিং অনুসন্ধান*\nপ্রকল্পের নাম: ${selectedProjectForTerms.name}\nলোকেশন: ${selectedProjectForTerms.location}\nমূল্য/সাইজ: ${selectedProjectForTerms.price} (${selectedProjectForTerms.size})\n\nআমি এই প্রকল্পটির বুকিং ও বিস্তারিত শর্তাবলী সম্পর্কে আলোচনা করতে আগ্রহী।`
                     );
                     setSelectedProjectForTerms(null);
@@ -1582,7 +1871,173 @@ export default function UnityDreamPortal() {
         </div>
       )}
 
-      {/* ===================== ৫. ফুটার সেকশন ===================== */}
+      {/* ===================== ৫. ইউজার ডিটেইলস ইনফো মোডাল ===================== */}
+      {viewDetailsUser && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 text-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-700">
+            <div className="bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-slate-700">
+              <div>
+                <h3 className="font-bold text-base text-emerald-400">{viewDetailsUser.name}</h3>
+                <p className="text-xs text-slate-400">আইডি: {viewDetailsUser.id} | পদবী: {viewDetailsUser.role}</p>
+              </div>
+              <button onClick={() => setViewDetailsUser(null)} className="text-white hover:text-gray-300 text-xl font-bold">
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 text-xs space-y-4">
+              <div className="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <div>মোবাইল: <strong className="text-white">{viewDetailsUser.phone}</strong></div>
+                <div>ইমেইল: <strong className="text-white">{viewDetailsUser.email}</strong></div>
+                <div>স্ট্যাটাস: <strong className="text-emerald-400">{viewDetailsUser.status}</strong></div>
+                <div>কমিশন স্থিতি: <strong className="text-amber-400">{viewDetailsUser.heldEarnings > 0 ? 'কমিশন হোল্ড রয়েছে' : 'নরমাল'}</strong></div>
+              </div>
+
+              {viewDetailsUser.customerPurchase && (
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <h5 className="font-bold text-amber-400 mb-2">🏡 ক্রয়কৃত ফ্ল্যাট / প্লটের বিবরণ</h5>
+                  <div className="space-y-1.5 text-slate-300">
+                    <div>প্রকল্প: <strong className="text-white">{viewDetailsUser.customerPurchase.projectName}</strong></div>
+                    <div>ইউনিট / প্লট: <strong className="text-white">{viewDetailsUser.customerPurchase.unitOrPlot}</strong> ({viewDetailsUser.customerPurchase.area})</div>
+                    <div>মোট মূল্য: <strong className="text-white">{viewDetailsUser.customerPurchase.totalPrice.toLocaleString('bn-BD')} ৳</strong></div>
+                    <div>পরিশোধিত: <strong className="text-emerald-400">{viewDetailsUser.customerPurchase.paidAmount.toLocaleString('bn-BD')} ৳</strong></div>
+                    <div>বকেয়া: <strong className="text-rose-400">{viewDetailsUser.customerPurchase.dueAmount.toLocaleString('bn-BD')} ৳</strong></div>
+                  </div>
+                </div>
+              )}
+
+              {viewDetailsUser.salesHistory && viewDetailsUser.salesHistory.length > 0 && (
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                  <h5 className="font-bold text-emerald-400 mb-2">📋 পার্টনার বিক্রয় ও কমিশন রেকর্ড</h5>
+                  {viewDetailsUser.salesHistory.map((s) => (
+                    <div key={s.id} className="border-t border-slate-800 pt-2 mt-2 space-y-1 text-slate-300">
+                      <div>প্রকল্প: <strong>{s.projectName}</strong> ({s.unitOrPlot})</div>
+                      <div>ক্রেতার নাম: <strong>{s.customerName}</strong> ({s.customerPhone})</div>
+                      <div>বিক্রয় মূল্য: <strong>{s.salePrice.toLocaleString('bn-BD')} ৳</strong></div>
+                      <div>অর্জিত কমিশন: <strong className="text-amber-400">{s.commissionEarned.toLocaleString('bn-BD')} ৳</strong></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-800 px-6 py-3 text-right">
+              <button 
+                onClick={() => setViewDetailsUser(null)} 
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded text-xs"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ৬. সুপার এডমিন ইউজার এডিট মোডাল ===================== */}
+      {editUserModal && currentUser?.isSuperAdmin && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+              <h3 className="font-bold text-sm">👑 ইউজার এডিট ও অ্যাকশন কন্ট্রোল ({editUserModal.id})</h3>
+              <button onClick={() => setEditUserModal(null)} className="text-white hover:text-gray-300 font-bold text-lg">✕</button>
+            </div>
+
+            <form onSubmit={handleSaveEditUser} className="p-6 text-xs space-y-3">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">পূর্ণ নাম</label>
+                <input 
+                  type="text" 
+                  value={editUserModal.name}
+                  onChange={(e) => setEditUserModal({ ...editUserModal, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">মোবাইল</label>
+                <input 
+                  type="tel" 
+                  value={editUserModal.phone}
+                  onChange={(e) => setEditUserModal({ ...editUserModal, phone: e.target.value })}
+                  className="w-full border border-gray-300 rounded p-2 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">পদবী (Role)</label>
+                <select 
+                  value={editUserModal.role}
+                  onChange={(e) => setEditUserModal({ ...editUserModal, role: e.target.value as UserRole })}
+                  className="w-full border border-gray-300 rounded p-2 font-bold"
+                >
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Chairman">Chairman</option>
+                  <option value="Managing Director">Managing Director</option>
+                  <option value="General Manager">General Manager</option>
+                  <option value="DGM">DGM</option>
+                  <option value="AGM">AGM</option>
+                  <option value="Team Leader">Team Leader</option>
+                  <option value="Business Partner">Business Partner</option>
+                  <option value="Agent">Agent</option>
+                  <option value="Customer">Customer</option>
+                  <option value="Accounts Head">Accounts Head</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">পাসওয়ার্ড</label>
+                <input 
+                  type="text" 
+                  value={editUserModal.password || ''}
+                  onChange={(e) => setEditUserModal({ ...editUserModal, password: e.target.value })}
+                  className="w-full border border-gray-300 rounded p-2 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">অ্যাকাউন্ট স্ট্যাটাস</label>
+                <select 
+                  value={editUserModal.status}
+                  onChange={(e) => setEditUserModal({ ...editUserModal, status: e.target.value as 'Active' | 'Blocked' })}
+                  className="w-full border border-gray-300 rounded p-2 font-bold"
+                >
+                  <option value="Active">Active (সক্রিয়)</option>
+                  <option value="Blocked">Blocked (ব্যান / স্থগিত)</option>
+                </select>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
+                  <input 
+                    type="checkbox" 
+                    checked={editUserModal.hasAccountsAccess}
+                    onChange={(e) => setEditUserModal({ ...editUserModal, hasAccountsAccess: e.target.checked })}
+                  />
+                  সেন্ট্রাল অ্যাকাউন্টস ও জেনারেল লেজার এক্সেস দিন
+                </label>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2">
+                <button 
+                  type="button" 
+                  onClick={() => setEditUserModal(null)} 
+                  className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-100"
+                >
+                  বাতিল
+                </button>
+                <button 
+                  type="submit" 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded shadow"
+                >
+                  আপডেট সেভ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ৭. ফুটার সেকশন ===================== */}
       <footer id="contact" className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800 text-sm">
@@ -1592,7 +2047,7 @@ export default function UnityDreamPortal() {
                 BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:। সেন্ট্রাল ক্লাউড ডাটাবেজ সমন্বিত রিয়েল এস্টেট ইআরপি সিস্টেম।
               </p>
               <p className="text-xs text-amber-400 mt-2 font-mono">
-                Helpline: +880 1681-196700
+                Helpline: {MASTER_PHONE}
               </p>
             </div>
 
@@ -1619,13 +2074,13 @@ export default function UnityDreamPortal() {
               © 2026 Unity Dream Properties | BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:
             </p>
             <p className="text-slate-500">
-              Hosaf Tower, Malibag, Dhaka | Helpline: +880 1681-196700
+              Hosaf Tower, Malibag, Dhaka | Helpline: {MASTER_PHONE}
             </p>
           </div>
         </div>
       </footer>
 
-      {/* ===================== ৬. লগইন ও রেজিস্টার মোডাল ===================== */}
+      {/* ===================== ৮. লগইন, রেজিস্টার ও পাসওয়ার্ড রিকভারি মোডাল ===================== */}
       {authModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
@@ -1636,12 +2091,7 @@ export default function UnityDreamPortal() {
                 {authModal === 'register' && 'CREATE NEW ACCOUNT'}
                 {authModal === 'forgot' && 'PASSWORD RECOVERY'}
               </h3>
-              <button 
-                onClick={() => setAuthModal(null)}
-                className="text-white hover:text-gray-200 text-xl font-bold"
-              >
-                ✕
-              </button>
+              <button onClick={() => setAuthModal(null)} className="text-white hover:text-gray-200 text-xl font-bold">✕</button>
             </div>
 
             <div className="p-6">
@@ -1702,7 +2152,7 @@ export default function UnityDreamPortal() {
                 <form onSubmit={handleForgotPassword}>
                   <div className="mb-4">
                     <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                      নিবন্ধিত ইমেইল লিখুন। আপনার ইউজার আইডি ও পাসওয়ার্ড WhatsApp-এ পাঠানো হবে।
+                      নিবন্ধিত ইমেইল লিখুন। আপনার পাসওয়ার্ড WhatsApp-এ পাঠানো হবে।
                     </p>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Registered Email Address *</label>
                     <input 
@@ -1731,12 +2181,12 @@ export default function UnityDreamPortal() {
                       ← Back to Login
                     </button>
                     <a 
-                      href="https://api.whatsapp.com/send?phone=8801681196700&text=পাসওয়ার্ড%20রিকভারি%20সহায়তা%20প্রয়োজন"
+                      href={`https://api.whatsapp.com/send?phone=8801689333000&text=পাসওয়ার্ড%20রিকভারি%20সহায়তা%20প্রয়োজন`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-amber-600 font-bold hover:underline"
                     >
-                      Helpline: +880 1681-196700
+                      Helpline: {MASTER_PHONE}
                     </a>
                   </div>
                 </form>
@@ -1829,18 +2279,13 @@ export default function UnityDreamPortal() {
         </div>
       )}
 
-      {/* ===================== ৭. সুপার এডমিন ইউজার অ্যাড মোডাল ===================== */}
+      {/* ===================== ৯. সুপার এডমিন নতুন ইউজার অ্যাড মোডাল ===================== */}
       {showAddUserModal && currentUser?.isSuperAdmin && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
             <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-bold text-sm">👑 নতুন ইউজার যোগ করুন (Super Admin Panel)</h3>
-              <button 
-                onClick={() => setShowAddUserModal(false)}
-                className="text-white hover:text-gray-300 font-bold text-lg"
-              >
-                ✕
-              </button>
+              <button onClick={() => setShowAddUserModal(false)} className="text-white hover:text-gray-300 font-bold text-lg">✕</button>
             </div>
 
             <form onSubmit={handleAdminCreateUser} className="p-6 text-xs space-y-3">
@@ -1851,7 +2296,7 @@ export default function UnityDreamPortal() {
                   required 
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="e.g. Anisur Rahman" 
+                  placeholder="e.g. Md. Hasan Ali" 
                   className="w-full border border-gray-300 rounded p-2 focus:border-emerald-600"
                 />
               </div>
@@ -1863,7 +2308,7 @@ export default function UnityDreamPortal() {
                   required 
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="e.g. anis@unitydream.com" 
+                  placeholder="e.g. hasan@unitydream.com" 
                   className="w-full border border-gray-300 rounded p-2 focus:border-emerald-600"
                 />
               </div>
@@ -1884,15 +2329,20 @@ export default function UnityDreamPortal() {
                 <label className="block font-semibold text-gray-700 mb-1">কোম্পানি পদবী (Role) *</label>
                 <select 
                   value={newUserRole}
-                  onChange={(e) => setNewUserRole(e.target.value as UserProfile['role'])}
+                  onChange={(e) => setNewUserRole(e.target.value as UserRole)}
                   className="w-full border border-gray-300 rounded p-2 font-bold"
                 >
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Chairman">Chairman</option>
+                  <option value="Managing Director">Managing Director</option>
+                  <option value="General Manager">General Manager</option>
+                  <option value="DGM">DGM</option>
+                  <option value="AGM">AGM</option>
+                  <option value="Team Leader">Team Leader</option>
                   <option value="Business Partner">Business Partner</option>
-                  <option value="Accountant">Accountant</option>
-                  <option value="Accounts Head">Accounts Head</option>
-                  <option value="Office Staff">Office Staff</option>
-                  <option value="Director">Director</option>
                   <option value="Agent">Agent</option>
+                  <option value="Customer">Customer</option>
+                  <option value="Accounts Head">Accounts Head</option>
                 </select>
               </div>
 
@@ -1920,14 +2370,14 @@ export default function UnityDreamPortal() {
 
               <div className="pt-3 flex justify-end gap-2">
                 <button 
-                  type="button"
-                  onClick={() => setShowAddUserModal(false)}
+                  type="button" 
+                  onClick={() => setShowAddUserModal(false)} 
                   className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-100"
                 >
                   বাতিল
                 </button>
                 <button 
-                  type="submit"
+                  type="submit" 
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded shadow"
                 >
                   ইউজার সেভ করুন
