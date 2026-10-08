@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 
-// ===================== Interface & Types =====================
+// ===================== Interfaces & Types =====================
 interface UserProfile {
   id: string;
   name: string;
   email: string;
   phone: string;
   password?: string;
-  role: 'Super Admin' | 'Accounts' | 'Director' | 'Deputy Director' | 'GM' | 'DGM' | 'AGM' | 'Business Partner' | 'Agent';
+  role: 'Super Admin' | 'Accounts Head' | 'Accountant' | 'Office Staff' | 'Director' | 'Deputy Director' | 'GM' | 'DGM' | 'AGM' | 'Business Partner' | 'Agent';
   salesKatha: number;
   totalEarnings: number;
   teamSalesKatha: number;
@@ -19,7 +19,29 @@ interface UserProfile {
   status: 'Active' | 'Pending' | 'Blocked';
 }
 
-// Master Super Admin Data
+interface AccountTransaction {
+  id: string;
+  date: string;
+  type: 'Debit' | 'Credit';
+  category: 'Office Expense' | 'Staff Salary' | 'Plot Sales Revenue' | 'Commission Payout' | 'Utility' | 'Client Booking';
+  description: string;
+  amount: number;
+  recordedBy: string;
+}
+
+interface EmployeeRecord {
+  id: string;
+  name: string;
+  phone: string;
+  designation: string;
+  department: 'Accounts' | 'Admin & Operations' | 'Sales & Marketing' | 'Field Support';
+  basicSalary: number;
+  allowance: number;
+  totalSalary: number;
+  status: 'Paid' | 'Pending';
+}
+
+// ===================== Default Core Data =====================
 const MASTER_SUPER_ADMIN: UserProfile = {
   id: 'UDP-SA-001',
   name: 'MOHAMMAD ATIQUL ISLAM',
@@ -36,9 +58,23 @@ const MASTER_SUPER_ADMIN: UserProfile = {
   status: 'Active'
 };
 
-// Default Registered Users
 const INITIAL_USERS: UserProfile[] = [
   MASTER_SUPER_ADMIN,
+  {
+    id: 'UDP-ACC-01',
+    name: 'Md. Tariqul Islam',
+    email: 'accounts@unitydream.com',
+    phone: '+8801711223344',
+    password: 'password123',
+    role: 'Accounts Head',
+    salesKatha: 0,
+    totalEarnings: 0,
+    teamSalesKatha: 0,
+    teamEarnings: 0,
+    isSuperAdmin: false,
+    hasAccountsAccess: true,
+    status: 'Active'
+  },
   {
     id: 'UDP-BP-102',
     name: 'Samia Parvin Shanta',
@@ -53,6 +89,72 @@ const INITIAL_USERS: UserProfile[] = [
     isSuperAdmin: false,
     hasAccountsAccess: false,
     status: 'Active'
+  }
+];
+
+const INITIAL_TRANSACTIONS: AccountTransaction[] = [
+  {
+    id: 'UDP-TXN-1001',
+    date: '2026-10-01',
+    type: 'Credit',
+    category: 'Plot Sales Revenue',
+    description: 'ঢাকা ওয়েস্টার্ন ভ্যালি - ৫ কাঠা ডাউন পেমেন্ট',
+    amount: 1450000,
+    recordedBy: 'MOHAMMAD ATIQUL ISLAM'
+  },
+  {
+    id: 'UDP-TXN-1002',
+    date: '2026-10-02',
+    type: 'Debit',
+    category: 'Commission Payout',
+    description: 'পার্টনার কমিশন বিতরণ (UDP-BP-102)',
+    amount: 72500,
+    recordedBy: 'Md. Tariqul Islam'
+  },
+  {
+    id: 'UDP-TXN-1003',
+    date: '2026-10-05',
+    type: 'Debit',
+    category: 'Office Expense',
+    description: 'হোসাফ টাওয়ার অফিস ভাড়া ও ইউটিলিটি বিল',
+    amount: 85000,
+    recordedBy: 'Md. Tariqul Islam'
+  }
+];
+
+const INITIAL_EMPLOYEES: EmployeeRecord[] = [
+  {
+    id: 'UDP-EMP-01',
+    name: 'Md. Tariqul Islam',
+    phone: '+8801711223344',
+    designation: 'Senior Accountant',
+    department: 'Accounts',
+    basicSalary: 45000,
+    allowance: 10000,
+    totalSalary: 55000,
+    status: 'Paid'
+  },
+  {
+    id: 'UDP-EMP-02',
+    name: 'Kamrul Hasan',
+    phone: '+8801822334455',
+    designation: 'Office Admin Officer',
+    department: 'Admin & Operations',
+    basicSalary: 30000,
+    allowance: 5000,
+    totalSalary: 35000,
+    status: 'Paid'
+  },
+  {
+    id: 'UDP-EMP-03',
+    name: 'Sultana Razia',
+    phone: '+8801933445566',
+    designation: 'Front Desk Executive',
+    department: 'Admin & Operations',
+    basicSalary: 22000,
+    allowance: 3000,
+    totalSalary: 25000,
+    status: 'Pending'
   }
 ];
 
@@ -73,8 +175,7 @@ const projectsData = [
       "সর্বনিম্ন প্লট সাইজ ৫ কাঠা থেকে শুরু। ৩ কাঠার কোনো প্লট বরাদ্দযোগ্য নয়।",
       "এককালীন পরিশোধে বিশেষ মূল্যছাড় ও তাৎক্ষণিক সাফ-কবলা রেজিস্ট্রেশন সুবিধা।",
       "সর্বোচ্চ ৬০টি সহজ মাসিক কিস্তিতে মূল্য পরিশোধের সুবর্ণ সুযোগ।",
-      "বুকিং মানি মোট মূল্যের ১০% প্রদান সাপেক্ষে সাময়িক প্লট বরাদ্দ নিশ্চিত করা হবে।",
-      "প্রকল্প এলাকায় বিদ্যুৎ, সুপ্রশস্ত রাস্তা ও ড্রেনেজ নেটওয়ার্ক অন্তর্ভুক্ত।"
+      "বুকিং মানি মোট মূল্যের ১০% প্রদান সাপেক্ষে সাময়িক প্লট বরাদ্দ নিশ্চিত করা হবে।"
     ]
   },
   {
@@ -89,11 +190,9 @@ const projectsData = [
     statusBadge: "শেয়ার ও ওনারশিপ ইনভেস্টমেন্ট",
     image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     terms: [
-      "প্রতি স্কয়ার ফিটের বর্তমান কর্পোরেট মূল্য ৫০,০০০ টাকা নির্ধারিত।",
-      "১০০, ৩০০, ৫০০, ১০০০, ২০০০, ৩০০০ এবং ৫০০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ার বিক্রয়যোগ্য।",
-      "আজীবন সাব-কবলা দলিল ও লভ্যাংশ (ROI) পাওয়ার শতভাগ আইনি গ্যারান্টি।",
-      "বুকিংয়ের পর চুক্তিপত্র সম্পাদন এবং কিস্তিতে বিনিয়োগ পরিশোধের সুবিধা।",
-      "প্রতি বছর হোটেল ও রিসোর্টে নির্ধারিত দিন পারিবারিক ফ্রি অবকাশ যাপনের সুবিধা।"
+      "প্রতি স্কয়ার ফিটের কর্পোরেট মূল্য ৫০,০০০ টাকা নির্ধারিত।",
+      "১০০ থেকে ৫০০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ার বরাদ্দযোগ্য।",
+      "আজীবন সাব-কবলা দলিল ও নিয়মিত লভ্যাংশ (ROI) পাওয়ার আইনি নিশ্চয়তা।"
     ]
   },
   {
@@ -108,10 +207,8 @@ const projectsData = [
     statusBadge: "প্যাকেজ / রেট",
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
     terms: [
-      "প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার কোনো প্লট রাখা হয়নি।",
-      "পদ্মা সেতু সংলগ্ন ও এক্সপ্রেসওয়ের সরাসরি সংযোগ সংবলিত আধুনিক ইকো-সিটি।",
-      "৫০% মূল্য পরিশোধ সাপেক্ষে প্রাথমিক পজেশন ও বাউন্ডারি ওয়াল নির্মাণের অনুমতি।",
-      "সহজ কিস্তির মেয়াদ সর্বনিম্ন ৩৬ মাস থেকে সর্বোচ্চ ৭২ মাস পর্যন্ত প্রযোজ্য।"
+      "প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার প্লট বরাদ্দ বন্ধ।",
+      "পদ্মা সেতু সংলগ্ন আধুনিক ইকো-সিটি এবং সহজ ৩৬-৭২ মাসের কিস্তি সুবিধা।"
     ]
   },
   {
@@ -127,8 +224,7 @@ const projectsData = [
     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
     terms: [
       "সর্বনিম্ন প্লট সাইজ ৫ কাঠা নির্ধারিত।",
-      "নাগরিক সকল সুযোগ-সুবিধা যেমন স্কুল, কলেজ, মসজিদ, পার্ক ও শপিংমল পরিকল্পিত।",
-      "বুকিং মানি জমাদানের ৩০ দিনের মধ্যে কোম্পানি অনুমোদিত বায়না দলিল প্রদান।"
+      "স্কুল, কলেজ, মসজিদ, পার্ক ও বাণিজ্যিক জোন পরিকল্পিত।"
     ]
   },
   {
@@ -142,10 +238,7 @@ const projectsData = [
     price: "যোগাযোগ সাপেক্ষে",
     statusBadge: "বুকিং চলছে",
     image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-    terms: [
-      "বাণিজ্যিক ও আবাসিক সমন্বিত নিরাপদ প্লট প্রকল্প।",
-      "সর্বনিম্ন ৫ কাঠার প্লট বরাদ্দ। ভিজিট ও বুকিংয়ের জন্য কেন্দ্রীয় অফিসে যোগাযোগ প্রযোজ্য।"
-    ]
+    terms: ["বাণিজ্যিক ও আবাসিক সমন্বিত প্লট। সর্বনিম্ন ৫ কাঠা প্লট বরাদ্দ।"]
   },
   {
     id: 6,
@@ -158,121 +251,118 @@ const projectsData = [
     price: "যোগাযোগ সাপেক্ষে",
     statusBadge: "বুকিং চলছে",
     image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
-    terms: [
-      "ঢাকার প্রাণকেন্দ্রে আধুনিক কমার্শিয়াল ও রেসিডেন্সিয়াল ফ্লোর স্পেস।",
-      "সরাসরি ডেভেলপার অংশীদারিত্ব ও শেয়ার ওনারশিপ বিনিয়োগ সুবিধা।"
-    ]
+    terms: ["বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োাগ সুবিধা।"]
   }
 ];
 
 export default function UnityDreamPortal() {
-  // Authentication & Users State (Initially Logged Out)
+  // App States
   const [usersList, setUsersList] = useState<UserProfile[]>(INITIAL_USERS);
+  const [transactions, setTransactions] = useState<AccountTransaction[]>(INITIAL_TRANSACTIONS);
+  const [employees, setEmployees] = useState<EmployeeRecord[]>(INITIAL_EMPLOYEES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
-  const [registerType, setRegisterType] = useState<'individual' | 'company'>('individual');
 
-  // Login Form Inputs
+  // Modals & Menu States
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
+  const [registerType, setRegisterType] = useState<'individual' | 'company'>('individual');
+  const [showERP, setShowERP] = useState(false);
+  const [activeTab, setActiveTab] = useState<'my_ledger' | 'general_ledger' | 'balance_sheet' | 'salary_sheet' | 'access_control'>('my_ledger');
+  const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
+
+  // Forms
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-
-  // Register Form Inputs
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
 
-  // ERP Dashboard State
-  const [showERP, setShowERP] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my_ledger' | 'central_accounts' | 'access_control'>('my_ledger');
+  // New Transaction Form
+  const [txnType, setTxnType] = useState<'Debit' | 'Credit'>('Credit');
+  const [txnCategory, setTxnCategory] = useState<AccountTransaction['category']>('Plot Sales Revenue');
+  const [txnDesc, setTxnDesc] = useState('');
+  const [txnAmount, setTxnAmount] = useState<number>(0);
 
-  // Terms Modal State
-  const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
-
-  // Sync Users and Session from LocalStorage
+  // Sync with LocalStorage
   useEffect(() => {
     const savedUsers = localStorage.getItem('udp_users_db');
     if (savedUsers) {
-      try {
-        setUsersList(JSON.parse(savedUsers));
-      } catch (err) {
-        console.error(err);
-      }
+      try { setUsersList(JSON.parse(savedUsers)); } catch (e) { console.error(e); }
+    }
+    const savedTxn = localStorage.getItem('udp_txns_db');
+    if (savedTxn) {
+      try { setTransactions(JSON.parse(savedTxn)); } catch (e) { console.error(e); }
+    }
+    const savedEmp = localStorage.getItem('udp_emp_db');
+    if (savedEmp) {
+      try { setEmployees(JSON.parse(savedEmp)); } catch (e) { console.error(e); }
     }
     const activeSession = localStorage.getItem('udp_active_session');
     if (activeSession) {
-      try {
-        setCurrentUser(JSON.parse(activeSession));
-      } catch (err) {
-        console.error(err);
-      }
+      try { setCurrentUser(JSON.parse(activeSession)); } catch (e) { console.error(e); }
     }
   }, []);
 
-  const saveUsersToStorage = (updatedList: UserProfile[]) => {
-    setUsersList(updatedList);
-    localStorage.setItem('udp_users_db', JSON.stringify(updatedList));
+  const saveUsers = (list: UserProfile[]) => {
+    setUsersList(list);
+    localStorage.setItem('udp_users_db', JSON.stringify(list));
   };
+
+  const saveTxns = (list: AccountTransaction[]) => {
+    setTransactions(list);
+    localStorage.setItem('udp_txns_db', JSON.stringify(list));
+  };
+
+  const saveEmps = (list: EmployeeRecord[]) => {
+    setEmployees(list);
+    localStorage.setItem('udp_emp_db', JSON.stringify(list));
+  };
+
+  // Financial Balance Calculations
+  const totalCredit = transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.amount, 0);
+  const totalDebit = transactions.filter(t => t.type === 'Debit').reduce((acc, t) => acc + t.amount, 0);
+  const netBalance = totalCredit - totalDebit;
+  const totalSalaries = employees.reduce((acc, e) => acc + e.totalSalary, 0);
 
   // WhatsApp Alert Function
-  const sendWhatsAppRegistrationMessage = (phone: string, name: string, id: string, email: string) => {
-    const formattedPhone = phone.replace(/[^0-9]/g, '');
-    const message = encodeURIComponent(
-      `*অভিনন্দন! UNITY DREAM PROPERTIES LTD.-এ আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।*\n` +
-      `-------------------------------------------\n` +
-      `নাম: ${name}\n` +
-      `ইউজার আইডি: ${id}\n` +
-      `ইমেইল: ${email}\n` +
-      `পদবী: Business Partner / Agent\n` +
-      `স্ট্যাটাস: Active (সেন্ট্রাল ইআরপি ডাটাবেজে তালিকাভুক্ত)\n` +
-      `-------------------------------------------\n` +
-      `BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:\n` +
-      `লগইন লিংক: https://hp-seven-weld.vercel.app/unitydreamproperties\n` +
-      `হেড অফিস: হোসাফ টাওয়ার (৪র্থ তলা), মালিবাগ, ঢাকা-১২১৭।\n` +
-      `হটলাইন: +8801689333000`
-    );
-    window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${message}`, '_blank');
+  const sendWhatsAppMsg = (phone: string, text: string) => {
+    const formatted = phone.replace(/[^0-9]/g, '');
+    window.open(`https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  // Handle Login
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  // Handlers
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = loginEmail.trim().toLowerCase();
-    const foundUser = usersList.find(u => u.email.trim().toLowerCase() === cleanEmail);
-
-    if (!foundUser) {
-      alert('ভুল ইমেইল! এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে সঠিক তথ্য দিন অথবা Create Account করুন।');
+    const user = usersList.find(u => u.email.trim().toLowerCase() === loginEmail.trim().toLowerCase());
+    if (!user) {
+      alert('ইমেইলটি সঠিক নয় অথবা অ্যাকাউন্ট পাওয়া যায়নি!');
       return;
     }
-
-    if (foundUser.password && foundUser.password !== loginPassword) {
-      alert('ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন।');
+    if (user.password && user.password !== loginPassword) {
+      alert('পাসওয়ার্ড ভুল হয়েছে!');
       return;
     }
-
-    setCurrentUser(foundUser);
-    localStorage.setItem('udp_active_session', JSON.stringify(foundUser));
+    setCurrentUser(user);
+    localStorage.setItem('udp_active_session', JSON.stringify(user));
     setAuthModal(null);
     setLoginEmail('');
     setLoginPassword('');
-    alert(`স্বাগতম ${foundUser.name}! আপনি সফলভাবে লগইন করেছেন।`);
+    alert(`স্বাগতম ${user.name}! সফলভাবে লগইন হয়েছে।`);
   };
 
-  // Handle Register
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = regEmail.trim().toLowerCase();
-    
     if (usersList.some(u => u.email.trim().toLowerCase() === cleanEmail)) {
-      alert('এই ইমেইলে ইতোমধ্যে একটি অ্যাকাউন্ট রয়েছে! অনুগ্রহ করে সরাসরি লগইন করুন।');
+      alert('এই ইমেইলে ইতোমধ্যে অ্যাকাউন্ট রয়েছে!');
       setAuthModal('login');
       return;
     }
-
     if (regPassword !== regConfirmPassword) {
-      alert('পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না!');
+      alert('পাসওয়ার্ড মেলেনি!');
       return;
     }
 
@@ -294,33 +384,65 @@ export default function UnityDreamPortal() {
     };
 
     const updated = [...usersList, newUser];
-    saveUsersToStorage(updated);
-
-    // Auto login new user
+    saveUsers(updated);
     setCurrentUser(newUser);
     localStorage.setItem('udp_active_session', JSON.stringify(newUser));
     setAuthModal(null);
 
-    // Send WhatsApp notification
-    sendWhatsAppRegistrationMessage(newUser.phone, newUser.name, newUser.id, newUser.email);
+    sendWhatsAppMsg(
+      newUser.phone,
+      `*UNITY DREAM PROPERTIES LTD. Registration Confirmed*\nUser ID: ${newUser.id}\nName: ${newUser.name}\nRole: Business Partner\nLogin: https://hp-seven-weld.vercel.app/unitydreamproperties`
+    );
 
-    // Reset inputs
-    setRegName('');
-    setRegEmail('');
-    setRegPhone('');
-    setRegPassword('');
-    setRegConfirmPassword('');
-
-    alert(`অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! ইউজার আইডি: ${newId}। আপনার হোয়াটসঅ্যাপে বিস্তারিত পাঠানো হচ্ছে।`);
+    setRegName(''); setRegEmail(''); setRegPhone(''); setRegPassword(''); setRegConfirmPassword('');
+    alert(`অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! ইউজার আইডি: ${newId}`);
   };
 
-  // Handle Logout
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const user = usersList.find(u => u.email.trim().toLowerCase() === forgotEmail.trim().toLowerCase());
+    if (!user) {
+      alert('ইমেইলটি ডাটাবেজে পাওয়া যায়নি!');
+      return;
+    }
+    if (user.password) {
+      sendWhatsAppMsg(user.phone, `*UNITY DREAM PROPERTIES LTD. Credentials*\nUser ID: ${user.id}\nPassword: ${user.password}`);
+      alert(`ইউজার আইডি (${user.id}) ও পাসওয়ার্ড আপনার হোয়াটসঅ্যাপে পাঠানো হয়েছে!`);
+    }
+    setForgotEmail('');
+    setAuthModal('login');
+  };
+
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('udp_active_session');
     setShowERP(false);
     setAccountMenuOpen(false);
-    alert('সফলভাবে লগআউট করা হয়েছে।');
+    alert('লগআউট সম্পন্ন হয়েছে।');
+  };
+
+  // Add Debit / Credit Transaction (1 Taka transaction also audited)
+  const handleAddTransaction = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (txnAmount <= 0) {
+      alert('টাকার পরিমাণ ০ এর বেশি হতে হবে!');
+      return;
+    }
+    const newTxn: AccountTransaction = {
+      id: `UDP-TXN-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().split('T')[0],
+      type: txnType,
+      category: txnCategory,
+      description: txnDesc.trim(),
+      amount: txnAmount,
+      recordedBy: currentUser?.name || 'Authorized Accounts'
+    };
+
+    const updated = [newTxn, ...transactions];
+    saveTxns(updated);
+    setTxnDesc('');
+    setTxnAmount(0);
+    alert(`লেনদেন (${newTxn.id}) সফলভাবে জেনারেল লেজারে অন্তর্ভুক্ত হয়েছে!`);
   };
 
   // Super Admin Action: Toggle Accounts Access
@@ -332,8 +454,20 @@ export default function UnityDreamPortal() {
       }
       return u;
     });
-    saveUsersToStorage(updated);
-    alert('ইউজারের একাউন্টস এক্সেস পারমিশন সফলভাবে আপডেট করা হয়েছে!');
+    saveUsers(updated);
+    alert('ইউজারের সেন্ট্রাল একাউন্টস এক্সেস পারমিশন আপডেট হয়েছে!');
+  };
+
+  // Toggle Employee Salary Status
+  const toggleSalaryStatus = (empId: string) => {
+    if (!currentUser?.hasAccountsAccess && !currentUser?.isSuperAdmin) return;
+    const updated = employees.map(emp => {
+      if (emp.id === empId) {
+        return { ...emp, status: (emp.status === 'Paid' ? 'Pending' : 'Paid') as 'Paid' | 'Pending' };
+      }
+      return emp;
+    });
+    saveEmps(updated);
   };
 
   return (
@@ -344,15 +478,12 @@ export default function UnityDreamPortal() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* একক ব্র্যান্ড লোগো ও টাইটেল */}
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.jpg" 
                 alt="Unity Dream Properties" 
                 className="h-12 w-auto object-contain rounded"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo.png';
-                }}
+                onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
               />
               <div className="flex flex-col justify-center">
                 <span className="text-xl md:text-2xl font-black tracking-tight text-slate-900 whitespace-nowrap">
@@ -365,7 +496,6 @@ export default function UnityDreamPortal() {
               </div>
             </div>
 
-            {/* মূল মেনুবার */}
             <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
               <a href="#for-sale" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Sale</a>
@@ -376,7 +506,6 @@ export default function UnityDreamPortal() {
               <a href="#blog" className="hover:text-emerald-600 transition-colors">Blog</a>
             </nav>
 
-            {/* My Account কন্ট্রোল */}
             <div className="relative">
               <button 
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
@@ -439,21 +568,18 @@ export default function UnityDreamPortal() {
       {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ===================== */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 সেন্ট্রাল ক্লাউড ডাটাবেজ সংযুক্ত (অনলাইন সিংকিং সক্রিয়)
               </div>
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-                Unity Dream Properties — সেন্ট্রাল একাউন্টিং ও রোল-বেসড টিম ERP
+                Unity Dream Properties — সেন্ট্রাল একাউন্টিং, এইচআর ও টিম ERP
               </h2>
-              <p className="text-sm text-slate-300 mt-1">
-                রোল ভিত্তিক এক্সেস কন্ট্রোল: লগইন সাপেক্ষে পার্টনাররা নিজস্ব সেলস দেখবেন এবং সুপার এডমিন সেন্ট্রাল একাউন্টস নিয়ন্ত্রণ করবেন।
-              </p>
             </div>
             
-            <div className="flex flex-wrap items-center gap-3">
+            <div>
               <button 
                 onClick={() => {
                   if (!currentUser) {
@@ -463,46 +589,73 @@ export default function UnityDreamPortal() {
                   }
                   setShowERP(!showERP);
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-all flex items-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-all flex items-center gap-2 whitespace-nowrap"
               >
                 <span>{showERP ? 'ERP বন্ধ করুন' : 'সেন্ট্রাল ERP ও একাউন্টিং খুলুন'}</span>
               </button>
             </div>
           </div>
 
-          {/* ক্লাউড ERP ড্যাশবোর্ড */}
+          {/* ===================== ২.১ ক্লাউড ERP পূর্ণাঙ্গ মডিউল ===================== */}
           {showERP && currentUser && (
-            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/80 p-5 rounded-xl">
+            <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/90 p-5 rounded-xl">
               
+              {/* মডিউল ট্যাব বার */}
               <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
                 <button 
                   onClick={() => setActiveTab('my_ledger')}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                     activeTab === 'my_ledger' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  👤 আমার নিজস্ব সেলস ও ইনকাম লেজার ({currentUser.name})
+                  👤 আমার নিজস্ব সেলস ও কমিশন
                 </button>
 
-                {currentUser.hasAccountsAccess && (
+                {/* জেনারেল লেজার ও ডেবিট ক্রেডিট (অ্যাকাউন্টস ও সুপার এডমিন) */}
+                {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                   <button 
-                    onClick={() => setActiveTab('central_accounts')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                      activeTab === 'central_accounts' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    onClick={() => setActiveTab('general_ledger')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'general_ledger' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-white'
                     }`}
                   >
-                    🔒 সেন্ট্রাল একাউন্টিং ও ট্রানজ্যাকশন ভাউচার
+                    📒 জেনারেল লেজার (Debit / Credit)
                   </button>
                 )}
 
+                {/* ব্যালেন্স শীট ও আর্থিক সারসংক্ষেপ */}
+                {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                  <button 
+                    onClick={() => setActiveTab('balance_sheet')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'balance_sheet' ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    📈 ব্যালেন্স শীট ও মাসিক গ্রোথ
+                  </button>
+                )}
+
+                {/* এইচআর পে-রোল ও স্যালারি শীট */}
+                {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                  <button 
+                    onClick={() => setActiveTab('salary_sheet')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'salary_sheet' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    💼 কর্মকর্তা-কর্মচারী স্যালারি শীট
+                  </button>
+                )}
+
+                {/* সুপার এডমিন পারমিশন ও পোস্ট কন্ট্রোল */}
                 {currentUser.isSuperAdmin && (
                   <button 
                     onClick={() => setActiveTab('access_control')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === 'access_control' ? 'bg-red-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                     }`}
                   >
-                    ⚙️ সেন্ট্রাল ইউজার পারমিশন ও একাউন্টস কন্ট্রোল (Super Admin Control)
+                    ⚙️ একাউন্টস এক্সেস কন্ট্রোল (Super Admin)
                   </button>
                 )}
               </div>
@@ -514,21 +667,21 @@ export default function UnityDreamPortal() {
                     <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
                       <span className="text-[11px] text-slate-400 block font-semibold">আমার মোট বিক্রিত জমি</span>
                       <span className="text-2xl font-black text-emerald-400">{currentUser.salesKatha} কাঠা</span>
-                      <span className="text-[10px] text-slate-500 block mt-1">সরাসরি ক্লায়েন্ট সেলস</span>
+                      <span className="text-[10px] text-slate-500 block mt-1">সরাসরি ক্লায়েন্ট সেলস</span>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">আমার প্রাপ্ত মোট কমিশন</span>
+                      <span className="text-[11px] text-slate-400 block font-semibold">আমার মোট প্রাপ্ত কমিশন</span>
                       <span className="text-2xl font-black text-amber-400">
                         {currentUser.totalEarnings.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-emerald-400 block mt-1">পরিশোধিত ও অনুমোদিত</span>
+                      <span className="text-[10px] text-emerald-400 block mt-1">অ্যাকাউন্টস অনুমোদিত</span>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-                      <span className="text-[11px] text-slate-400 block font-semibold">অধীনস্থ টিমের মোট সেলস</span>
+                      <span className="text-[11px] text-slate-400 block font-semibold">টিমের মোট সেলস</span>
                       <span className="text-2xl font-black text-blue-400">{currentUser.teamSalesKatha} কাঠা</span>
-                      <span className="text-[10px] text-slate-500 block mt-1">টিম পার্টনারদের সেলস</span>
+                      <span className="text-[10px] text-slate-500 block mt-1">অধীনস্থ পার্টনারদের সেলস</span>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
@@ -536,7 +689,7 @@ export default function UnityDreamPortal() {
                       <span className="text-2xl font-black text-purple-400">
                         {currentUser.teamEarnings.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-purple-300 block mt-1">হায়ারার্কিক্যাল ওভাররাইড বোনাস</span>
+                      <span className="text-[10px] text-purple-300 block mt-1">হায়ারার্কিক্যাল বোনাস</span>
                     </div>
                   </div>
 
@@ -544,38 +697,223 @@ export default function UnityDreamPortal() {
                     <div>
                       আইডি: <strong className="text-white font-mono">{currentUser.id}</strong> | পদবী: <strong className="text-emerald-400">{currentUser.role}</strong>
                     </div>
-                    <span className="text-emerald-400">● শুধুমাত্র আপনার নিজস্ব ডাটা দৃশ্যমান</span>
+                    <span className="text-emerald-400">● আপনার নিজস্ব ডাটাবেজ সংরক্ষিত</span>
                   </div>
                 </div>
               )}
 
-              {/* ট্যাব ২: সেন্ট্রাল একাউন্টিং */}
-              {activeTab === 'central_accounts' && currentUser.hasAccountsAccess && (
-                <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
-                  <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
-                    <span>💳</span> সেন্ট্রাল একাউন্টিং ও সরাসরি হোয়াটসঅ্যাপ ভাউচার সিস্টেম
-                  </h4>
-                  <p className="text-xs text-slate-400 mb-4">
-                    সেন্ট্রাল একাউন্টস থেকে পার্টনারদের সেলস অনুমোদন এবং স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপ ট্রানজ্যাকশন মেসেজ পাঠানোর সুব্যবস্থা।
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="bg-slate-950 p-3 rounded border border-slate-800">
-                      <span className="text-slate-400 block">মোট নিবন্ধিত পার্টনার:</span>
-                      <strong className="text-lg text-white">{usersList.length} জন</strong>
+              {/* ট্যাব ২: জেনারেল লেজার (Debit / Credit এন্ট্রি ও হিস্ট্রি) */}
+              {activeTab === 'general_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                <div>
+                  {/* নতুন লেনদেন ফর্ম */}
+                  <form onSubmit={handleAddTransaction} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
+                    <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+                      <span>✍️</span> নতুন ডেবিট / ক্রেডিট ভাউচার এন্ট্রি (১ টাকা হলেও সফটওয়্যারে ইন/আউট হবে)
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">লেনদেনের ধরন (Type)</label>
+                        <select 
+                          value={txnType} 
+                          onChange={(e) => setTxnType(e.target.value as 'Debit' | 'Credit')}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold"
+                        >
+                          <option value="Credit">Credit (আয় / সফটওয়্যারে ইন)</option>
+                          <option value="Debit">Debit (ব্যয় / সফটওয়্যার থেকে আউট)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-400 block mb-1">খাত (Category)</label>
+                        <select 
+                          value={txnCategory} 
+                          onChange={(e) => setTxnCategory(e.target.value as AccountTransaction['category'])}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-medium"
+                        >
+                          <option value="Plot Sales Revenue">Plot Sales Revenue (প্লট বিক্রি বাবদ আয়)</option>
+                          <option value="Client Booking">Client Booking (বুকিং মানি)</option>
+                          <option value="Staff Salary">Staff Salary (কর্মকর্তা বেতন)</option>
+                          <option value="Commission Payout">Commission Payout (পার্টনার কমিশন)</option>
+                          <option value="Office Expense">Office Expense (অফিস খরচ)</option>
+                          <option value="Utility">Utility (ইউটিলিটি ও আনুষঙ্গিক)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-400 block mb-1">বিবরণ (Narration)</label>
+                        <input 
+                          type="text" 
+                          required 
+                          placeholder="ভাউচারের বিস্তারিত বিবরণ"
+                          value={txnDesc}
+                          onChange={(e) => setTxnDesc(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-400 block mb-1">টাকার পরিমাণ (Amount ৳)</label>
+                        <input 
+                          type="number" 
+                          required 
+                          min="1"
+                          placeholder="পরিমাণ"
+                          value={txnAmount || ''}
+                          onChange={(e) => setTxnAmount(Number(e.target.value))}
+                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold text-amber-400"
+                        />
+                      </div>
                     </div>
-                    <div className="bg-slate-950 p-3 rounded border border-slate-800">
-                      <span className="text-slate-400 block">মোট সেলস অনুমোদিত:</span>
-                      <strong className="text-lg text-emerald-400">৫৫ কাঠা</strong>
+
+                    <div className="mt-3 flex justify-end">
+                      <button 
+                        type="submit" 
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded shadow text-xs"
+                      >
+                        ভাউচার সেভ করুন
+                      </button>
                     </div>
-                    <div className="bg-slate-950 p-3 rounded border border-slate-800">
-                      <span className="text-slate-400 block">সেন্ট্রাল কমিশন প্রদেয়:</span>
-                      <strong className="text-lg text-amber-400">৩৯,৮৭,৫০০ ৳</strong>
+                  </form>
+
+                  {/* লেজার টেবিল */}
+                  <div className="overflow-x-auto text-xs">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">ভাউচার আইডি</th>
+                          <th className="py-2.5 px-3">তারিখ</th>
+                          <th className="py-2.5 px-3">খাত</th>
+                          <th className="py-2.5 px-3">বিবরণ</th>
+                          <th className="py-2.5 px-3 text-right">Debit (ব্যয়)</th>
+                          <th className="py-2.5 px-3 text-right">Credit (আয়)</th>
+                          <th className="py-2.5 px-3 text-center">এন্ট্রিকারী</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {transactions.map((t) => (
+                          <tr key={t.id} className="hover:bg-slate-900/50">
+                            <td className="py-2.5 px-3 font-mono text-emerald-400 font-bold">{t.id}</td>
+                            <td className="py-2.5 px-3 font-mono">{t.date}</td>
+                            <td className="py-2.5 px-3">{t.category}</td>
+                            <td className="py-2.5 px-3 text-slate-200">{t.description}</td>
+                            <td className="py-2.5 px-3 text-right font-bold text-red-400">
+                              {t.type === 'Debit' ? `${t.amount.toLocaleString('bn-BD')} ৳` : '-'}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-bold text-emerald-400">
+                              {t.type === 'Credit' ? `${t.amount.toLocaleString('bn-BD')} ৳` : '-'}
+                            </td>
+                            <td className="py-2.5 px-3 text-center text-slate-400 text-[11px]">{t.recordedBy}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ট্যাব ৩: ব্যালেন্স শীট ও মাসিক সেলস গ্রোথ */}
+              {activeTab === 'balance_sheet' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                <div className="text-xs">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">সর্বমোট ক্রেডিট (Total Credit / আয়)</span>
+                      <span className="text-2xl font-black text-emerald-400 mt-1 block">
+                        {totalCredit.toLocaleString('bn-BD')} ৳
+                      </span>
+                      <span className="text-[10px] text-slate-500">সকল বুকিং ও সেলস ইনকাম</span>
+                    </div>
+
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">সর্বমোট ডেবিট (Total Debit / ব্যয়)</span>
+                      <span className="text-2xl font-black text-red-400 mt-1 block">
+                        {totalDebit.toLocaleString('bn-BD')} ৳
+                      </span>
+                      <span className="text-[10px] text-slate-500">বেতন, কমিশন ও পরিচালন ব্যয়</span>
+                    </div>
+
+                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">নেট ক্যাশ ব্যালেন্স (Cash in Hand)</span>
+                      <span className="text-2xl font-black text-amber-400 mt-1 block">
+                        {netBalance.toLocaleString('bn-BD')} ৳
+                      </span>
+                      <span className="text-[10px] text-emerald-400">ব্যালেন্স শীট ডেবিট-ক্রেডিট সমন্বিত</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-sm font-bold text-white mb-2">📊 মাসিক সেলস গ্রোথ অ্যানালাইসিস (October 2026)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-300">
+                      <div>• বর্তমান মাসের মোট বিক্রিত জমি: <strong>৫৫ কাঠা</strong></div>
+                      <div>• পূর্ববর্তী মাসের তুলনায় গ্রোথ রেট: <strong className="text-emerald-400">+ ১৮.৫% (বৃদ্ধি)</strong></div>
+                      <div>• মাসিক নেট প্রফিট মার্জিন: <strong className="text-amber-400">৯২.২%</strong></div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ট্যাব ৩: সুপার এডমিন এক্সেস কন্ট্রোল ও ইউজার ম্যানেজমেন্ট */}
+              {/* ট্যাব ৪: কর্মকর্তা-কর্মচারী স্যালারি শীট (Payroll) */}
+              {activeTab === 'salary_sheet' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                <div className="text-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-sm font-bold text-teal-400">
+                      💼 কর্মকর্তা-কর্মচারী মাসিক স্যালারি রেজিস্টার ও পে-রোল
+                    </h4>
+                    <span className="text-slate-300">
+                      মাসিক মোট প্রদেয় বেতন: <strong className="text-amber-400 font-bold">{totalSalaries.toLocaleString('bn-BD')} ৳</strong>
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">এমপ্লয়ী আইডি</th>
+                          <th className="py-2.5 px-3">নাম</th>
+                          <th className="py-2.5 px-3">পদবী</th>
+                          <th className="py-2.5 px-3">বিভাগ</th>
+                          <th className="py-2.5 px-3 text-right">মূল বেতন</th>
+                          <th className="py-2.5 px-3 text-right">ভাতা</th>
+                          <th className="py-2.5 px-3 text-right">মোট প্রদেয় বেতন</th>
+                          <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3 text-center">একশন</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {employees.map((emp) => (
+                          <tr key={emp.id} className="hover:bg-slate-900/50">
+                            <td className="py-2.5 px-3 font-mono text-teal-400 font-bold">{emp.id}</td>
+                            <td className="py-2.5 px-3 font-bold text-white">{emp.name}</td>
+                            <td className="py-2.5 px-3">{emp.designation}</td>
+                            <td className="py-2.5 px-3">{emp.department}</td>
+                            <td className="py-2.5 px-3 text-right">{emp.basicSalary.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-2.5 px-3 text-right">{emp.allowance.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-2.5 px-3 text-right font-bold text-amber-400">
+                              {emp.totalSalary.toLocaleString('bn-BD')} ৳
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded font-bold ${
+                                emp.status === 'Paid' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
+                              }`}>
+                                {emp.status}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <button 
+                                onClick={() => toggleSalaryStatus(emp.id)}
+                                className="text-emerald-400 hover:underline font-bold text-[11px]"
+                              >
+                                {emp.status === 'Paid' ? 'Mark Pending' : 'Mark Paid'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ট্যাব ৫: একাউন্টস এক্সেস কন্ট্রোল (Super Admin Only) */}
               {activeTab === 'access_control' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
                   <div className="flex items-center justify-between mb-4">
@@ -594,8 +932,8 @@ export default function UnityDreamPortal() {
                           <th className="py-2.5 px-3">ইউজার আইডি</th>
                           <th className="py-2.5 px-3">নাম</th>
                           <th className="py-2.5 px-3">ইমেইল</th>
-                          <th className="py-2.5 px-3">মোবাইল (WhatsApp)</th>
-                          <th className="py-2.5 px-3">পদবী</th>
+                          <th className="py-2.5 px-3">পদবী (Role)</th>
+                          <th className="py-2.5 px-3">পাসওয়ার্ড</th>
                           <th className="py-2.5 px-3">সেন্ট্রাল একাউন্টস এক্সেস</th>
                           <th className="py-2.5 px-3 text-center">একশন</th>
                         </tr>
@@ -606,8 +944,8 @@ export default function UnityDreamPortal() {
                             <td className="py-3 px-3 font-mono text-emerald-400 font-bold">{user.id}</td>
                             <td className="py-3 px-3 font-bold text-white">{user.name}</td>
                             <td className="py-3 px-3 font-mono">{user.email}</td>
-                            <td className="py-3 px-3 font-mono">{user.phone}</td>
                             <td className="py-3 px-3">{user.role}</td>
+                            <td className="py-3 px-3 font-mono text-amber-300">{user.password || 'N/A'}</td>
                             <td className="py-3 px-3">
                               {user.hasAccountsAccess ? (
                                 <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded font-bold border border-emerald-800">
@@ -708,7 +1046,6 @@ export default function UnityDreamPortal() {
                 </div>
               </div>
 
-              {/* বিস্তারিত ও বুকিং শর্তাবলী বাটন */}
               <div className="p-5 pt-0">
                 <button 
                   onClick={() => setSelectedProjectForTerms(project)}
@@ -756,7 +1093,7 @@ export default function UnityDreamPortal() {
 
               <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-gray-400 block">অফিসিয়াল বুকিং ও হেল্পলাইন</span>
+                  <span className="text-[10px] text-gray-400 block">অফিসিয়াল বুকিং ও হেল্পলাইন</span>
                   <span className="text-xs font-bold text-emerald-800">+8801689333000</span>
                 </div>
                 <button 
@@ -816,14 +1153,17 @@ export default function UnityDreamPortal() {
         </div>
       </footer>
 
-      {/* ===================== ৬. লগইন ও রেজিস্ট্রেশন মোডাল (My Account) ===================== */}
+      {/* ===================== ৬. অথেন্টিকেশন ও পাসওয়ার্ড রিকভারি মোডাল ===================== */}
       {authModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
             
             <div className="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
-                <span>👤</span> {authModal === 'login' ? 'LOGIN TO ERP' : 'CREATE NEW ACCOUNT'}
+                <span>👤</span> 
+                {authModal === 'login' && 'LOGIN TO ERP'}
+                {authModal === 'register' && 'CREATE NEW ACCOUNT'}
+                {authModal === 'forgot' && 'PASSWORD RECOVERY'}
               </h3>
               <button 
                 onClick={() => setAuthModal(null)}
@@ -835,9 +1175,9 @@ export default function UnityDreamPortal() {
 
             <div className="p-6">
               
-              {/* --- LOGIN FORM --- */}
+              {/* LOGIN FORM */}
               {authModal === 'login' && (
-                <form onSubmit={handleLoginSubmit}>
+                <form onSubmit={handleLogin}>
                   <div className="mb-4">
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
                     <input 
@@ -849,8 +1189,17 @@ export default function UnityDreamPortal() {
                       className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
                     />
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-gray-700">Password</label>
+                      <button 
+                        type="button"
+                        onClick={() => setAuthModal('forgot')}
+                        className="text-[11px] text-red-600 hover:underline font-bold"
+                      >
+                        Forgot Password? (পাসওয়ার্ড ভুলে গেছেন?)
+                      </button>
+                    </div>
                     <input 
                       type="password" 
                       required 
@@ -862,7 +1211,7 @@ export default function UnityDreamPortal() {
                   </div>
                   <button 
                     type="submit"
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm mt-2"
                   >
                     Login
                   </button>
@@ -880,10 +1229,54 @@ export default function UnityDreamPortal() {
                 </form>
               )}
 
-              {/* --- CREATE ACCOUNT FORM (With WhatsApp Notification) --- */}
+              {/* FORGOT PASSWORD FORM */}
+              {authModal === 'forgot' && (
+                <form onSubmit={handleForgotPassword}>
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                      আপনার নিবন্ধিত ইমেইল লিখুন। আপনার ইউজার আইডি ও পাসওয়ার্ড সরাসরি নিবন্ধিত নম্বরে WhatsApp-এ পাঠানো হবে।
+                    </p>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Registered Email Address *</label>
+                    <input 
+                      type="email" 
+                      required 
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="Enter registered email" 
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
+                  >
+                    Send Recovery Details on WhatsApp
+                  </button>
+
+                  <div className="mt-4 text-center text-xs text-gray-600 flex justify-between items-center pt-3 border-t border-gray-100">
+                    <button 
+                      type="button"
+                      onClick={() => setAuthModal('login')}
+                      className="text-emerald-600 font-bold hover:underline"
+                    >
+                      ← Back to Login
+                    </button>
+                    <a 
+                      href="https://api.whatsapp.com/send?phone=8801689333000&text=আমার%20ইউজার%20আইডি%20ও%20পাসওয়ার্ড%20রিকভারি%20সহায়তা%20প্রয়োজন"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-600 font-bold hover:underline"
+                    >
+                      Super Admin Help
+                    </a>
+                  </div>
+                </form>
+              )}
+
+              {/* REGISTER FORM */}
               {authModal === 'register' && (
-                <form onSubmit={handleRegisterSubmit}>
-                  
+                <form onSubmit={handleRegister}>
                   <div className="flex items-center gap-6 mb-4 text-xs font-bold text-gray-700">
                     <span>Account Type:</span>
                     <label className="flex items-center gap-1.5 cursor-pointer">
@@ -941,9 +1334,6 @@ export default function UnityDreamPortal() {
                         placeholder="e.g. +8801700000000" 
                         className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600 font-mono" 
                       />
-                      <span className="text-[10px] text-emerald-600 block mt-0.5">
-                        * এই নম্বরে সরাসরি ইউজার আইডি ও রেজিস্ট্রেশন মেসেজ পাঠানো হবে।
-                      </span>
                     </div>
 
                     <div>
@@ -970,12 +1360,10 @@ export default function UnityDreamPortal() {
                       />
                     </div>
 
-                    {/* Humanity Captcha */}
                     <div className="flex items-center gap-2 pt-1">
                       <span className="text-[11px] text-gray-600">Prove your humanity: 8 + 8 =</span>
                       <input type="number" required placeholder="16" className="w-16 border border-gray-300 rounded px-2 py-1 text-center font-bold" />
                     </div>
-
                   </div>
 
                   <button 
@@ -994,7 +1382,6 @@ export default function UnityDreamPortal() {
                       Already have an account? Click for login
                     </button>
                   </div>
-
                 </form>
               )}
 
