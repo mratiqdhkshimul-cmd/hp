@@ -258,6 +258,7 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
   }
 ];
 
+// Project Catalog
 const projectsData = [
   {
     id: '1',
@@ -360,6 +361,8 @@ export default function UnityDreamPortal() {
   const [receivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
+  // Responsive & Navigation States
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [showERP, setShowERP] = useState(false);
@@ -692,51 +695,48 @@ export default function UnityDreamPortal() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ১. হেডার ও মেনুবার */}
+      {/* ===================== ১. হেডার ও আধুনিক রেসপন্সিভ মেনুবার ===================== */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-20 gap-4">
             
-            <div className="flex items-center gap-3">
+            {/* ব্র্যান্ড লোগো ও নাম (পর্যাপ্ত মার্জিন ও প্যাডিং দিয়ে অ্যালাইনমেন্ট ঠিক করা হয়েছে) */}
+            <div className="flex items-center gap-3 shrink-0 mr-4">
               <img 
                 src="/logo.jpg" 
                 alt="Unity Dream Properties" 
-                className="h-12 w-auto object-contain rounded"
+                className="h-11 sm:h-12 w-auto object-contain rounded"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
               />
               <div className="flex flex-col justify-center">
-                <span className="text-xl md:text-2xl font-black tracking-tight text-slate-900 whitespace-nowrap">
+                <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-slate-900 whitespace-nowrap">
                   UNITY DREAM PROPERTIES
                 </span>
-                <span className="text-xs font-semibold text-emerald-700 tracking-wide">
+                <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 tracking-wide">
                   <span className="hidden sm:inline">BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:</span>
                   <span className="sm:hidden">বিটিএম পার্টনার অফ PPL</span>
                 </span>
               </div>
             </div>
 
-            <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700">
+            {/* ডেস্কটপ মেনুবার (সঠিক অ্যালাইনমেন্ট, স্পেস ও পরিবর্তিত মেনু তালিকা) */}
+            <nav className="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-700 ml-4">
               <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
+              <a href="#management" className="hover:text-emerald-600 transition-colors">Management</a>
               <a href="#for-sale" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Sale</a>
-              <a href="#for-rent" className="hover:text-emerald-600 transition-colors whitespace-nowrap">For Rent</a>
               <a href="#roommates" className="hover:text-emerald-600 transition-colors">Roommates</a>
-              <a href="#developers" className="hover:text-emerald-600 transition-colors">Developers</a>
               <a href="#jobs" className="hover:text-emerald-600 transition-colors">Jobs</a>
-              <a href="#blog" className="hover:text-emerald-600 transition-colors">Blog</a>
+              <a href="#contact" className="hover:text-emerald-600 transition-colors">Contact</a>
             </nav>
 
-            <div className="flex items-center gap-3">
-              <a 
-                href="tel:+8801681196700" 
-                className="hidden xl:flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-2 rounded-lg border border-emerald-200"
-              >
-                <span>📞</span> +880 1681-196700
-              </a>
-
+            {/* ডান পাশের অপশন: My Account ও মোবাইল মেনু বাটন */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              
+              {/* My Account বাটন */}
               <div className="relative">
                 <button 
                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-4 py-2 rounded-lg border border-emerald-200 text-xs font-bold transition-all"
+                  className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-3 sm:px-4 py-2 rounded-lg border border-emerald-200 text-xs font-bold transition-all whitespace-nowrap"
                 >
                   <span>👤</span>
                   <span>{currentUser ? currentUser.name.split(' ')[0] : 'My account'}</span>
@@ -787,13 +787,75 @@ export default function UnityDreamPortal() {
                   </div>
                 )}
               </div>
+
+              {/* মোবাইল হ্যামবার্গার মেনু বাটন (শুধুমাত্র মোবাইল ব্রাউজারে দেখা যাবে) */}
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
+                aria-label="Toggle navigation menu"
+              >
+                {mobileMenuOpen ? (
+                  <span className="text-xl font-bold leading-none">✕</span>
+                ) : (
+                  <span className="text-xl font-bold leading-none">☰</span>
+                )}
+              </button>
+
             </div>
 
           </div>
         </div>
+
+        {/* মোবাইল মেনু ড্রয়ার (মোবাইলে ক্লিক করলে নিচে সুন্দরভাবে উন্মুক্ত হবে) */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 pb-5 shadow-lg space-y-3 text-sm font-semibold text-slate-700 animate-fadeIn">
+            <a 
+              href="#home" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Home
+            </a>
+            <a 
+              href="#management" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Management
+            </a>
+            <a 
+              href="#for-sale" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              For Sale
+            </a>
+            <a 
+              href="#roommates" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Roommates
+            </a>
+            <a 
+              href="#jobs" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Jobs
+            </a>
+            <a 
+              href="#contact" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Contact
+            </a>
+          </div>
+        )}
       </header>
 
-      {/* ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার */}
+      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ===================== */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1394,7 +1456,7 @@ export default function UnityDreamPortal() {
         </div>
       </section>
 
-      {/* ৩. প্রজেক্টস শোকেস */}
+      {/* ===================== ৩. প্রজেক্টস শোকেস ===================== */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-2">
@@ -1464,7 +1526,7 @@ export default function UnityDreamPortal() {
         </div>
       </main>
 
-      {/* ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল */}
+      {/* ===================== ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল ===================== */}
       {selectedProjectForTerms && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200">
@@ -1520,8 +1582,8 @@ export default function UnityDreamPortal() {
         </div>
       )}
 
-      {/* ৫. ফুটার সেকশন */}
-      <footer className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
+      {/* ===================== ৫. ফুটার সেকশন ===================== */}
+      <footer id="contact" className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800 text-sm">
             <div>
@@ -1563,7 +1625,7 @@ export default function UnityDreamPortal() {
         </div>
       </footer>
 
-      {/* ৬. লগইন ও রেজিস্টার মোডাল */}
+      {/* ===================== ৬. লগইন ও রেজিস্টার মোডাল ===================== */}
       {authModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
@@ -1767,7 +1829,7 @@ export default function UnityDreamPortal() {
         </div>
       )}
 
-      {/* ৭. সুপার এডমিন ইউজার অ্যাড মোডাল */}
+      {/* ===================== ৭. সুপার এডমিন ইউজার অ্যাড মোডাল ===================== */}
       {showAddUserModal && currentUser?.isSuperAdmin && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
