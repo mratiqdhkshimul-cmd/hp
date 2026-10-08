@@ -35,7 +35,7 @@ export interface ERPTransaction {
   accountCode: string;
   accountName: string;
   type: 'Debit' | 'Credit';
-  category: 'Land Cost' | 'Material Construction' | 'Contractor RA Bill' | 'Plot Sales Revenue' | 'Customer Installment' | 'Staff Salary' | 'Office Overhead' | 'Tax VAT (TDS/VDS)';
+  category: 'Land Cost' | 'Material Construction' | 'Contractor RA Bill' | 'Plot Sales Revenue' | 'Customer Installment' | 'Staff Salary' | 'Office Overhead' | 'Commission Payout' | 'Tax VAT (TDS/VDS)';
   description: string;
   grossAmount: number;
   tdsAmount: number;
@@ -454,7 +454,7 @@ export default function UnityDreamPortal() {
       const mat = projTxns.filter(t => t.category === 'Material Construction').reduce((acc, t) => acc + t.grossAmount, 0);
       const cont = projTxns.filter(t => t.category === 'Contractor RA Bill').reduce((acc, t) => acc + t.grossAmount, 0);
       const land = projTxns.filter(t => t.category === 'Land Cost').reduce((acc, t) => acc + t.grossAmount, 0);
-      const ovh = projTxns.filter(t => t.category === 'Office Overhead' || t.category === 'Staff Salary').reduce((acc, t) => acc + t.grossAmount, 0);
+      const ovh = projTxns.filter(t => t.category === 'Office Overhead' || t.category === 'Commission Payout' || t.category === 'Staff Salary').reduce((acc, t) => acc + t.grossAmount, 0);
       
       const wip = mat + cont + land;
       const net = rev - (mat + cont + land + ovh);
@@ -998,6 +998,7 @@ export default function UnityDreamPortal() {
                           <option value="Land Cost">Land Cost (জমি অধিগ্রহণ ও সাইন-অন)</option>
                           <option value="Office Overhead">Office Overhead (অফিস খরচ)</option>
                           <option value="Staff Salary">Staff Salary (স্টাফ স্যালারি)</option>
+                          <option value="Commission Payout">Commission Payout (কমিশন প্রদান)</option>
                         </select>
                       </div>
 
