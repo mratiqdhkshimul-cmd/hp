@@ -169,8 +169,8 @@ const INITIAL_TRANSACTIONS: ERPTransaction[] = [
     category: 'Material Construction',
     description: 'প্রকল্পের সীমানা প্রাচীর ও বালু ভরাট মেটেরিয়াল ক্রয়',
     grossAmount: 320000,
-    tdsAmount: 9600, // 3% TDS
-    vdsAmount: 16000, // 5% VDS
+    tdsAmount: 9600,
+    vdsAmount: 16000,
     retentionAmount: 0,
     netAmount: 294400,
     recordedBy: 'Md. Tariqul Islam'
@@ -205,9 +205,9 @@ const INITIAL_TRANSACTIONS: ERPTransaction[] = [
     category: 'Contractor RA Bill',
     description: 'কলাতলী সাইটের আরএ বিল-৩ (রানিং বিল) পেমেন্ট',
     grossAmount: 850000,
-    tdsAmount: 42500, // 5% AIT
-    vdsAmount: 63750, // 7.5% VDS
-    retentionAmount: 42500, // 5% Retention Money
+    tdsAmount: 42500,
+    vdsAmount: 63750,
+    retentionAmount: 42500,
     netAmount: 701250,
     recordedBy: 'Md. Tariqul Islam'
   },
@@ -223,7 +223,7 @@ const INITIAL_TRANSACTIONS: ERPTransaction[] = [
     category: 'Commission Payout',
     description: 'পার্টনার কমিশন বিতরণ (UDP-BP-102)',
     grossAmount: 72500,
-    tdsAmount: 7250, // 10% Agent Commission TDS
+    tdsAmount: 7250,
     vdsAmount: 0,
     retentionAmount: 0,
     netAmount: 65250,
@@ -351,18 +351,16 @@ const projectsData = [
     price: "যোগাযোগ সাপেক্ষে",
     statusBadge: "বুকিং চলছে",
     image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
-    terms: ["বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োাগ সুবিধা।"]
+    terms: ["বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োগ সুবিধা।"]
   }
 ];
 
 export default function UnityDreamPortal() {
-  // Master States with Local Storage Persistence
   const [usersList, setUsersList] = useState<UserProfile[]>(INITIAL_USERS);
   const [transactions, setTransactions] = useState<ERPTransaction[]>(INITIAL_TRANSACTIONS);
   const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
-  // UI Modal & Navigation States
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [showERP, setShowERP] = useState(false);
@@ -379,18 +377,18 @@ export default function UnityDreamPortal() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // Transaction Voucher Input Form
+  // Voucher Inputs
   const [voucherProjectId, setVoucherProjectId] = useState('1');
   const [voucherAccountCode, setVoucherAccountCode] = useState('4010');
   const [voucherType, setVoucherType] = useState<'Debit' | 'Credit'>('Credit');
   const [voucherCategory, setVoucherCategory] = useState<ERPTransaction['category']>('Plot Sales Revenue');
   const [voucherDesc, setVoucherDesc] = useState('');
   const [voucherGross, setVoucherGross] = useState<number>(0);
-  const [voucherTdsRate, setVoucherTdsRate] = useState<number>(0); // e.g. 5%
-  const [voucherVdsRate, setVoucherVdsRate] = useState<number>(0); // e.g. 7.5%
-  const [voucherRetentionRate, setVoucherRetentionRate] = useState<number>(0); // e.g. 5%
+  const [voucherTdsRate, setVoucherTdsRate] = useState<number>(0);
+  const [voucherVdsRate, setVoucherVdsRate] = useState<number>(0);
+  const [voucherRetentionRate, setVoucherRetentionRate] = useState<number>(0);
 
-  // Super Admin Add User Modal State
+  // Admin Add User Modal
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -399,7 +397,6 @@ export default function UnityDreamPortal() {
   const [newUserPassword, setNewUserPassword] = useState('pass123');
   const [newUserAccountsAccess, setNewUserAccountsAccess] = useState(false);
 
-  // Sync state on Mount
   useEffect(() => {
     const savedUsers = localStorage.getItem('udp_erp_users');
     if (savedUsers) {
@@ -429,7 +426,6 @@ export default function UnityDreamPortal() {
     localStorage.setItem('udp_erp_txns', JSON.stringify(list));
   };
 
-  // Automated Interconnected Financial Aggregations
   const totalCreditRevenue = useMemo(() => {
     return transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.grossAmount, 0);
   }, [transactions]);
@@ -456,7 +452,6 @@ export default function UnityDreamPortal() {
     return cashIn - cashOut;
   }, [transactions]);
 
-  // Project-wise Cost & Profit-Loss Matrix
   const projectCostMatrix: ProjectCostReport[] = useMemo(() => {
     return projectsData.map(proj => {
       const projTxns = transactions.filter(t => t.projectId === proj.id);
@@ -482,13 +477,11 @@ export default function UnityDreamPortal() {
     });
   }, [transactions]);
 
-  // WhatsApp Helper
   const triggerWhatsApp = (phone: string, text: string) => {
     const formatted = phone.replace(/[^0-9]/g, '');
     window.open(`https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  // Auth Handlers
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const user = usersList.find(u => u.email.trim().toLowerCase() === loginEmail.trim().toLowerCase());
@@ -576,7 +569,6 @@ export default function UnityDreamPortal() {
     alert('লগআউট সম্পন্ন হয়েছে।');
   };
 
-  // Add Voucher (Interconnected to Journal, Tax, Project Costing & Balance Sheet)
   const handleAddVoucher = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.hasAccountsAccess && !currentUser?.isSuperAdmin) {
@@ -623,20 +615,18 @@ export default function UnityDreamPortal() {
     setVoucherTdsRate(0);
     setVoucherVdsRate(0);
     setVoucherRetentionRate(0);
-    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে এবং আর্থিক লেজারে সমন্বিত হয়েছে!`);
+    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে!`);
   };
 
-  // Super Admin: Delete Transaction
   const handleDeleteTransaction = (id: string) => {
     if (!currentUser?.isSuperAdmin) return;
     if (confirm('আপনি কি এই লেনদেন ভাউচারটি ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
       const updated = transactions.filter(t => t.id !== id);
       saveTxns(updated);
-      alert('লেনদেন সফলভাবে মুছে ফেলা হয়েছে!');
+      alert('লেনদেন মুছে ফেলা হয়েছে!');
     }
   };
 
-  // Super Admin: Add New User Directly from Dashboard
   const handleAdminCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.isSuperAdmin) return;
@@ -676,10 +666,9 @@ export default function UnityDreamPortal() {
     setNewUserEmail('');
     setNewUserPhone('');
     setShowAddUserModal(false);
-    alert(`নতুন ইউজার (${createdId}) সফলভাবে যোগ হয়েছে এবং ক্লাউড ডাটাবেজে অ্যাক্টিভ হয়েছে!`);
+    alert(`নতুন ইউজার (${createdId}) ক্লাউড ডাটাবেজে যোগ হয়েছে!`);
   };
 
-  // Super Admin: Toggle Accounts Access
   const toggleUserAccess = (targetEmail: string) => {
     if (!currentUser?.isSuperAdmin) return;
     const updated = usersList.map(u => {
@@ -689,17 +678,16 @@ export default function UnityDreamPortal() {
       return u;
     });
     saveUsers(updated);
-    alert('ইউজারের অ্যাকাউন্টস এক্সেস পারমিশন সফলভাবে পরিবর্তন করা হয়েছে!');
+    alert('ইউজারের অ্যাকাউন্টস এক্সেস পারমিশন আপডেট হয়েছে!');
   };
 
-  // Super Admin: Delete User
   const handleDeleteUser = (email: string) => {
     if (!currentUser?.isSuperAdmin) return;
     if (email === MASTER_SUPER_ADMIN.email) {
       alert('সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!');
       return;
     }
-    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
+    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে মুছে ফেলতে চান?')) {
       const updated = usersList.filter(u => u.email !== email);
       saveUsers(updated);
       alert('ইউজার সফলভাবে মুছে ফেলা হয়েছে!');
@@ -845,7 +833,6 @@ export default function UnityDreamPortal() {
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
-              {/* মডিউল ট্যাব নেভিগেশন */}
               <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 mb-5">
                 <button 
                   onClick={() => setActiveTab('my_ledger')}
@@ -955,7 +942,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 2: Core Journal Ledger (Voucher Entry with TDS/VDS/Retention) */}
+              {/* TAB 2: Core Journal Ledger */}
               {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div>
                   <form onSubmit={handleAddVoucher} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
@@ -1151,7 +1138,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 3: Project Costing, Materials & WIP */}
+              {/* TAB 3: Project Costing & WIP */}
               {activeTab === 'project_costing' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="mb-4">
@@ -1159,7 +1146,7 @@ export default function UnityDreamPortal() {
                       🏗️ প্রকল্পভিত্তিক লাভ-ক্ষতি (Project P&L) ও Work-in-Progress (WIP) বিশ্লেষণ
                     </h4>
                     <p className="text-slate-400 text-[11px]">
-                      প্রতিটি প্রকল্পের মেটেরিয়াল (রড, সিমেন্ট, বালু), ঠিকাদার বিল, ভূমি উন্নয়ন ও ওভারহেড খরচের রিয়েল-টাইম কস্টিং।
+                      প্রতিটি প্রকল্পের মেটেরিয়াল, ঠিকাদার বিল, ভূমি উন্নয়ন ও ওভারহেড খরচের রিয়েল-টাইম কস্টিং।
                     </p>
                   </div>
 
@@ -1196,7 +1183,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 4: Customer Accounts Receivable (AR) & Installments */}
+              {/* TAB 4: AR & Installments */}
               {activeTab === 'ar_installments' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-4">
@@ -1276,7 +1263,7 @@ export default function UnityDreamPortal() {
                     <h4 className="text-sm font-bold text-rose-400">
                       ⚖️ বাংলাদেশী ট্যাক্স, ভ্যাট (NBR Mushak 6.3) ও উৎসে কর কর্তন রেজিস্টার
                     </h4>
-                    <p className="text-slate-400 text-[11px]">সরকারি নিয়ম মেনে সরবরাহকারী ও ঠিকাদারদের বিল থেকে কর্তনকৃত TDS (AIT) ও VDS এর স্বয়ংক্রিয় হিসাব।</p>
+                    <p className="text-slate-400 text-[11px]">সরকারি নিয়ম মেনে TDS (AIT) ও VDS এর স্বয়ংক্রিয় হিসাব।</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1353,7 +1340,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 7: Super Admin Users & Permission Control */}
+              {/* TAB 7: Super Admin Users Control */}
               {activeTab === 'admin_users' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -1515,7 +1502,7 @@ export default function UnityDreamPortal() {
 
       </main>
 
-      {/* ===================== ৪. প্রজেক্টের বিস্তারিত শর্তাবলী ও সরাসরি হোয়াটসঅ্যাপ মোডাল ===================== */}
+      {/* ===================== ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল ===================== */}
       {selectedProjectForTerms && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200">
@@ -1553,7 +1540,6 @@ export default function UnityDreamPortal() {
                   </a>
                 </div>
                 
-                {/* সরাসরি হোয়াটসঅ্যাপ ইন্ডিকেট বাটন */}
                 <button 
                   onClick={() => {
                     triggerWhatsApp(
@@ -1639,7 +1625,6 @@ export default function UnityDreamPortal() {
 
             <div className="p-6">
               
-              {/* LOGIN FORM */}
               {authModal === 'login' && (
                 <form onSubmit={handleLogin}>
                   <div className="mb-4">
@@ -1693,7 +1678,6 @@ export default function UnityDreamPortal() {
                 </form>
               )}
 
-              {/* FORGOT PASSWORD FORM */}
               {authModal === 'forgot' && (
                 <form onSubmit={handleForgotPassword}>
                   <div className="mb-4">
@@ -1738,7 +1722,6 @@ export default function UnityDreamPortal() {
                 </form>
               )}
 
-              {/* REGISTER FORM */}
               {authModal === 'register' && (
                 <form onSubmit={handleRegister}>
                   <div className="space-y-3 text-xs">
