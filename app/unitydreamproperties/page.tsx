@@ -38,9 +38,9 @@ export interface ERPTransaction {
   category: 'Land Cost' | 'Material Construction' | 'Contractor RA Bill' | 'Plot Sales Revenue' | 'Customer Installment' | 'Staff Salary' | 'Office Overhead' | 'Tax VAT (TDS/VDS)';
   description: string;
   grossAmount: number;
-  tdsAmount: number; // AIT / TDS
-  vdsAmount: number; // VDS / VAT
-  retentionAmount: number; // Contractor Retention
+  tdsAmount: number;
+  vdsAmount: number;
+  retentionAmount: number;
   netAmount: number;
   recordedBy: string;
 }
@@ -258,107 +258,106 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
   }
 ];
 
-// Project Catalog
 const projectsData = [
   {
     id: '1',
-    name: "Dhaka Western Valley",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড অনুমোদিত",
-    location: "ঢাকা ওয়েস্টার্ন জোন (সাভার সংলগ্ন)",
-    tag: "Residential Plots",
-    badge: "Ongoing Flagship",
-    size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
-    price: "১৪,৫০,০০০ ৳ / কাঠা",
-    statusBadge: "প্যাকেজ / রেট",
-    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80",
+    name: 'Dhaka Western Valley',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড অনুমোদিত',
+    location: 'ঢাকা ওয়েস্টার্ন জোন (সাভার সংলগ্ন)',
+    tag: 'Residential Plots',
+    badge: 'Ongoing Flagship',
+    size: 'সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)',
+    price: '১৪,৫০,০০০ ৳ / কাঠা',
+    statusBadge: 'প্যাকেজ / রেট',
+    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
     terms: [
-      "সর্বনিম্ন প্লট সাইজ ৫ কাঠা থেকে শুরু। ৩ কাঠার কোনো প্লট বরাদ্দযোগ্য নয়।",
-      "এককালীন পরিশোধে বিশেষ মূল্যছাড় ও তাৎক্ষণিক সাফ-কবলা রেজিস্ট্রেশন সুবিধা।",
-      "সর্বোচ্চ ৬০টি সহজ মাসিক কিস্তিতে মূল্য পরিশোধের সুবর্ণ সুযোগ।",
-      "বুকিং মানি মোট মূল্যের ১০% প্রদান সাপেক্ষে সাময়িক প্লট বরাদ্দ নিশ্চিত করা হবে।"
+      'সর্বনিম্ন প্লট সাইজ ৫ কাঠা থেকে শুরু। ৩ কাঠার কোনো প্লট বরাদ্দযোগ্য নয়।',
+      'এককালীন পরিশোধে বিশেষ মূল্যছাড় ও তাৎক্ষণিক সাফ-কবলা রেজিস্ট্রেশন সুবিধা।',
+      'সর্বোচ্চ ৬০টি সহজ মাসিক কিস্তিতে মূল্য পরিশোধের সুবর্ণ সুযোগ।',
+      'বুকিং মানি মোট মূল্যের ১০% প্রদান সাপেক্ষে সাময়িক প্লট বরাদ্দ নিশ্চিত করা হবে।'
     ]
   },
   {
     id: '2',
-    name: "The Bay Icon International Hotel & Resort Ltd.",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড / Bay Icon Ltd.",
-    location: "কলাতলী মেরিন ড্রাইভ, কক্সবাজার",
-    tag: "5-Star Luxury Hospitality & Commercial",
-    badge: "Under Construction",
-    size: "১০০, ৩০০, ৫০০, ১,০০০, ২,০০০, ৩,০০০ ও ৫,০০০ Sq Ft / Fractional Share",
-    price: "৫০,০০০ ৳ / প্রতি স্কয়ার ফিট",
-    statusBadge: "শেয়ার ও ওনারশিপ ইনভেস্টমেন্ট",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+    name: 'The Bay Icon International Hotel & Resort Ltd.',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড / Bay Icon Ltd.',
+    location: 'কলাতলী মেরিন ড্রাইভ, কক্সবাজার',
+    tag: '5-Star Luxury Hospitality & Commercial',
+    badge: 'Under Construction',
+    size: '১০০, ৩০০, ৫০০, ১,০০০, ২,০০০, ৩,০০০ ও ৫,০০০ Sq Ft / Fractional Share',
+    price: '৫০,০০০ ৳ / প্রতি স্কয়ার ফিট',
+    statusBadge: 'শেয়ার ও ওনারশিপ ইনভেস্টমেন্ট',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
     terms: [
-      "প্রতি স্কয়ার ফিটের কর্পোরেট মূল্য ৫০,০০০ টাকা নির্ধারিত।",
-      "১০০ থেকে ৫০০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ার বরাদ্দযোগ্য।",
-      "আজীবন সাব-কবলা দলিল ও নিয়মিত লভ্যাংশ (ROI) পাওয়ার আইনি নিশ্চয়তা।"
+      'প্রতি স্কয়ার ফিটের কর্পোরেট মূল্য ৫০,০০০ টাকা নির্ধারিত।',
+      '১০০ থেকে ৫০০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ার বরাদ্দযোগ্য।',
+      'আজীবন সাব-কবলা দলিল ও নিয়মিত লভ্যাংশ (ROI) পাওয়ার আইনি নিশ্চয়তা।'
     ]
   },
   {
     id: '3',
-    name: "Padma Eco-City",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
-    location: "ঢাকা-মাওয়া এক্সপ্রেসওয়ে (পদ্মা সেতু সংলগ্ন)",
-    tag: "Township / Mega Plot Project",
-    badge: "Ongoing Flagship",
-    size: "সর্বনিম্ন ৫ কাঠা (৫, ১০ ও ২০ কাঠা প্লট)",
-    price: "১০,৫০,০০০ ৳ / কাঠা থেকে শুরু",
-    statusBadge: "প্যাকেজ / রেট",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+    name: 'Padma Eco-City',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
+    location: 'ঢাকা-মাওয়া এক্সপ্রেসওয়ে (পদ্মা সেতু সংলগ্ন)',
+    tag: 'Township / Mega Plot Project',
+    badge: 'Ongoing Flagship',
+    size: 'সর্বনিম্ন ৫ কাঠা (৫, ১০ ও ২০ কাঠা প্লট)',
+    price: '১০,৫০,০০০ ৳ / কাঠা থেকে শুরু',
+    statusBadge: 'প্যাকেজ / রেট',
+    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
     terms: [
-      "প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার প্লট বরাদ্দ বন্ধ।",
-      "পদ্মা সেতু সংলগ্ন আধুনিক ইকো-সিটি এবং সহজ ৩৬-৭২ মাসের কিস্তি সুবিধা।"
+      'প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার প্লট বরাদ্দ বন্ধ।',
+      'পদ্মা সেতু সংলগ্ন আধুনিক ইকো-সিটি এবং সহজ ৩৬-৭২ মাসের কিস্তি সুবিধা।'
     ]
   },
   {
     id: '4',
-    name: "Pushpodhara Satellite City",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
-    location: "ঢাকা জেলা পয়েন্ট থেকে ২২ কিমি ও পদ্মা সেতু থেকে কাছে",
-    tag: "Satellite Town / Plots",
-    badge: "Available",
-    size: "সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)",
-    price: "আকর্ষণীয় কিস্তি সুবিধা",
-    statusBadge: "প্যাকেজ / প্লট",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    name: 'Pushpodhara Satellite City',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
+    location: 'ঢাকা জেলা পয়েন্ট থেকে ২২ কিমি ও পদ্মা সেতু থেকে কাছে',
+    tag: 'Satellite Town / Plots',
+    badge: 'Available',
+    size: 'সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)',
+    price: 'আকর্ষণীয় কিস্তি সুবিধা',
+    statusBadge: 'প্যাকেজ / প্লট',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
     terms: [
-      "সর্বনিম্ন প্লট সাইজ ৫ কাঠা নির্ধারিত।",
-      "স্কুল, কলেজ, মসজিদ, পার্ক ও বাণিজ্যিক জোন পরিকল্পিত।"
+      'সর্বনিম্ন প্লট সাইজ ৫ কাঠা নির্ধারিত।',
+      'স্কুল, কলেজ, মসজিদ, পার্ক ও বাণিজ্যিক জোন পরিকল্পিত।'
     ]
   },
   {
     id: '5',
-    name: "Narayanganj Bhuighar Project",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
-    location: "ভূঁইগড়, নারায়ণগঞ্জ",
-    tag: "Residential / Commercial Land",
-    badge: "Upcoming Project",
-    size: "সর্বনিম্ন ৫ কাঠা প্লট",
-    price: "যোগাযোগ সাপেক্ষে",
-    statusBadge: "বুকিং চলছে",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-    terms: ["বাণিজ্যিক ও আবাসিক সমন্বিত প্লট। সর্বনিম্ন ৫ কাঠা প্লট বরাদ্দ।"]
+    name: 'Narayanganj Bhuighar Project',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
+    location: 'ভূঁইগড়, নারায়ণগঞ্জ',
+    tag: 'Residential / Commercial Land',
+    badge: 'Upcoming Project',
+    size: 'সর্বনিম্ন ৫ কাঠা প্লট',
+    price: 'যোগাযোগ সাপেক্ষে',
+    statusBadge: 'বুকিং চলছে',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+    terms: ['বাণিজ্যিক ও আবাসিক সমন্বিত প্লট। সর্বনিম্ন ৫ কাঠা প্লট বরাদ্দ।']
   },
   {
     id: '6',
-    name: "Rampura Project",
-    developer: "পুষ্পধারা প্রপার্টিজ লিমিটেড",
-    location: "রামপুরা কাঁচাবাজার সংলগ্ন, ঢাকা",
-    tag: "Commercial & Residential",
-    badge: "Prime Location",
-    size: "বাণিজ্যিক ও আবাসিক স্পেস",
-    price: "যোগাযোগ সাপেক্ষে",
-    statusBadge: "বুকিং চলছে",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
-    terms: ["বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োগ সুবিধা।"]
+    name: 'Rampura Project',
+    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
+    location: 'রামপুরা কাঁচাবাজার সংলগ্ন, ঢাকা',
+    tag: 'Commercial & Residential',
+    badge: 'Prime Location',
+    size: 'বাণিজ্যিক ও আবাসিক স্পেস',
+    price: 'যোগাযোগ সাপেক্ষে',
+    statusBadge: 'বুকিং চলছে',
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+    terms: ['বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োগ সুবিধা।']
   }
 ];
 
 export default function UnityDreamPortal() {
   const [usersList, setUsersList] = useState<UserProfile[]>(INITIAL_USERS);
   const [transactions, setTransactions] = useState<ERPTransaction[]>(INITIAL_TRANSACTIONS);
-  const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
+  const [receivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -405,10 +404,6 @@ export default function UnityDreamPortal() {
     const savedTxns = localStorage.getItem('udp_erp_txns');
     if (savedTxns) {
       try { setTransactions(JSON.parse(savedTxns)); } catch (e) { console.error(e); }
-    }
-    const savedAr = localStorage.getItem('udp_erp_ar');
-    if (savedAr) {
-      try { setReceivables(JSON.parse(savedAr)); } catch (e) { console.error(e); }
     }
     const activeSession = localStorage.getItem('udp_active_session');
     if (activeSession) {
@@ -459,7 +454,7 @@ export default function UnityDreamPortal() {
       const mat = projTxns.filter(t => t.category === 'Material Construction').reduce((acc, t) => acc + t.grossAmount, 0);
       const cont = projTxns.filter(t => t.category === 'Contractor RA Bill').reduce((acc, t) => acc + t.grossAmount, 0);
       const land = projTxns.filter(t => t.category === 'Land Cost').reduce((acc, t) => acc + t.grossAmount, 0);
-      const ovh = projTxns.filter(t => t.category === 'Office Overhead' || t.category === 'Commission Payout' || t.category === 'Staff Salary').reduce((acc, t) => acc + t.grossAmount, 0);
+      const ovh = projTxns.filter(t => t.category === 'Office Overhead' || t.category === 'Staff Salary').reduce((acc, t) => acc + t.grossAmount, 0);
       
       const wip = mat + cont + land;
       const net = rev - (mat + cont + land + ovh);
@@ -697,7 +692,7 @@ export default function UnityDreamPortal() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ===================== ১. হেডার ও মেনুবার ===================== */}
+      {/* ১. হেডার ও মেনুবার */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -798,7 +793,7 @@ export default function UnityDreamPortal() {
         </div>
       </header>
 
-      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ===================== */}
+      {/* ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -829,7 +824,7 @@ export default function UnityDreamPortal() {
             </div>
           </div>
 
-          {/* ===================== ২.১ পূর্ণাঙ্গ রিয়েল এস্টেট কোর একাউন্টস ERP ===================== */}
+          {/* ২.১ কোর একাউন্টস ERP */}
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
@@ -887,7 +882,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'balance_sheet' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      📈 ব্যালেন্স শীট, ট্রায়াল ব্যালেন্স ও ক্যাশফ্লো
+                      📈 ব্যালেন্স শীট ও ট্রেজারি
                     </button>
                   </>
                 )}
@@ -904,7 +899,7 @@ export default function UnityDreamPortal() {
                 )}
               </div>
 
-              {/* TAB 1: Partner Ledger */}
+              {/* TAB 1 */}
               {activeTab === 'my_ledger' && (
                 <div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
@@ -942,7 +937,7 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 2: Core Journal Ledger */}
+              {/* TAB 2 */}
               {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div>
                   <form onSubmit={handleAddVoucher} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
@@ -1019,7 +1014,7 @@ export default function UnityDreamPortal() {
                       </div>
 
                       <div>
-                        <label className="text-slate-400 block mb-1">মোট বিল / গ্রস পরিমাণ (Gross ৳)</label>
+                        <label className="text-slate-400 block mb-1">মোট বিল (Gross ৳)</label>
                         <input 
                           type="number" 
                           required 
@@ -1034,7 +1029,7 @@ export default function UnityDreamPortal() {
                       {voucherType === 'Debit' ? (
                         <div className="grid grid-cols-3 gap-1">
                           <div>
-                            <label className="text-[10px] text-slate-400 block">TDS (AIT %)</label>
+                            <label className="text-[10px] text-slate-400 block">TDS %</label>
                             <input 
                               type="number" 
                               placeholder="%"
@@ -1044,7 +1039,7 @@ export default function UnityDreamPortal() {
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block">VDS (VAT %)</label>
+                            <label className="text-[10px] text-slate-400 block">VDS %</label>
                             <input 
                               type="number" 
                               placeholder="%"
@@ -1054,7 +1049,7 @@ export default function UnityDreamPortal() {
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block">Retention %</label>
+                            <label className="text-[10px] text-slate-400 block">Ret %</label>
                             <input 
                               type="number" 
                               placeholder="%"
@@ -1073,7 +1068,7 @@ export default function UnityDreamPortal() {
 
                     <div className="mt-4 flex justify-between items-center pt-2 border-t border-slate-800">
                       <span className="text-slate-400 text-[11px]">
-                        নিট পেমেন্ট/ক্যাশ সমন্বয়: <strong className="text-white">
+                        নিট সমন্বয়: <strong className="text-white">
                           {voucherType === 'Debit' 
                             ? (voucherGross - ((voucherGross * voucherTdsRate)/100 + (voucherGross * voucherVdsRate)/100 + (voucherGross * voucherRetentionRate)/100)).toLocaleString('bn-BD')
                             : voucherGross.toLocaleString('bn-BD')} ৳
@@ -1138,16 +1133,13 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 3: Project Costing & WIP */}
+              {/* TAB 3 */}
               {activeTab === 'project_costing' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="mb-4">
                     <h4 className="text-sm font-bold text-indigo-400">
                       🏗️ প্রকল্পভিত্তিক লাভ-ক্ষতি (Project P&L) ও Work-in-Progress (WIP) বিশ্লেষণ
                     </h4>
-                    <p className="text-slate-400 text-[11px]">
-                      প্রতিটি প্রকল্পের মেটেরিয়াল, ঠিকাদার বিল, ভূমি উন্নয়ন ও ওভারহেড খরচের রিয়েল-টাইম কস্টিং।
-                    </p>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -1183,16 +1175,13 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 4: AR & Installments */}
+              {/* TAB 4 */}
               {activeTab === 'ar_installments' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <h4 className="text-sm font-bold text-sky-400">
-                        👥 কাস্টমার ইনস্টলমেন্ট ট্র্যাকিং ও রিসিভেবল এজিং (Receivable Aging)
-                      </h4>
-                      <p className="text-slate-400 text-[11px]">প্লট/ফ্ল্যাট ক্রেতাদের কিস্তির বকেয়া এবং ওভারডিউ শিডিউল মনিটরিং।</p>
-                    </div>
+                    <h4 className="text-sm font-bold text-sky-400">
+                      👥 কাস্টমার ইনস্টলমেন্ট ট্র্যাকিং ও রিসিভেবল এজিং (Receivable Aging)
+                    </h4>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -1256,23 +1245,21 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 5: BD Tax & VAT Compliance */}
+              {/* TAB 5 */}
               {activeTab === 'tax_vat' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="mb-4">
                     <h4 className="text-sm font-bold text-rose-400">
                       ⚖️ বাংলাদেশী ট্যাক্স, ভ্যাট (NBR Mushak 6.3) ও উৎসে কর কর্তন রেজিস্টার
                     </h4>
-                    <p className="text-slate-400 text-[11px]">সরকারি নিয়ম মেনে TDS (AIT) ও VDS এর স্বয়ংক্রিয় হিসাব।</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">মোট উৎসে কর (TDS / AIT Collected)</span>
+                      <span className="text-slate-400 block font-semibold">মোট উৎসে কর (TDS / AIT)</span>
                       <span className="text-2xl font-black text-rose-400 mt-1 block">
                         {totalTDSCollected.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-slate-500">সরকারি চালানে জমাদানযোগ্য</span>
                     </div>
 
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
@@ -1280,44 +1267,34 @@ export default function UnityDreamPortal() {
                       <span className="text-2xl font-black text-amber-400 mt-1 block">
                         {totalVDSCollected.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-slate-500">মাসিক ভ্যাট রিটার্নে সমন্বয়যোগ্য</span>
                     </div>
 
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">ঠিকাদার রিটেনশন মানি (Retention Liability)</span>
+                      <span className="text-slate-400 block font-semibold">ঠিকাদার রিটেনশন মানি</span>
                       <span className="text-2xl font-black text-indigo-400 mt-1 block">
                         {totalRetentionPayable.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-slate-500">ওয়ারেন্টি মেয়াদ শেষে প্রদেয়</span>
                     </div>
-                  </div>
-
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-slate-300">
-                    <h5 className="font-bold text-white mb-2">এনবিআর অডিট ও চালানের তথ্য</h5>
-                    <p>• প্রতিটি বিলের সাথে মূসক ৬.৩ চালান সংরক্ষণ নিশ্চিত করা হয়েছে।</p>
-                    <p>• করবর্ষ ২০২৬-২০২৭ অনুযায়ী ঠিকাদার বিলে ৫% এবং মেটেরিয়ালে ৩% স্ট্যান্ডার্ড উৎসে কর সমন্বয় সক্রিয়।</p>
                   </div>
                 </div>
               )}
 
-              {/* TAB 6: Balance Sheet & Treasury Cashflow */}
+              {/* TAB 6 */}
               {activeTab === 'balance_sheet' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
                 <div className="text-xs">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">মোট সম্পদ ও ক্যাশ ব্যালেন্স (Assets)</span>
+                      <span className="text-slate-400 block font-semibold">মোট ক্যাশ ব্যালেন্স (Assets)</span>
                       <span className="text-2xl font-black text-teal-400 mt-1 block">
                         {netCashInHand.toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-slate-500">Multi-Bank Accounts & Liquid Cash</span>
                     </div>
 
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">গ্রাহকদের মোট কিস্তি বকেয়া (Receivables)</span>
+                      <span className="text-slate-400 block font-semibold">গ্রাহকদের মোট কিস্তি বকেয়া</span>
                       <span className="text-2xl font-black text-sky-400 mt-1 block">
                         {receivables.reduce((acc, r) => acc + r.dueAmount, 0).toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-slate-500">ভবিষ্যত ক্যাশফ্লো ইনফ্লো</span>
                     </div>
 
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
@@ -1325,22 +1302,12 @@ export default function UnityDreamPortal() {
                       <span className="text-2xl font-black text-amber-400 mt-1 block">
                         {(totalCreditRevenue - totalDebitExpense).toLocaleString('bn-BD')} ৳
                       </span>
-                      <span className="text-[10px] text-emerald-400">আর্থিক ভারসাম্য সমন্বিত</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <h5 className="text-sm font-bold text-white mb-3">ট্রেজারি ও ব্যাংক রিকনসিলিয়েশন স্ট্যাটাস</h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-300">
-                      <div>• ব্যাংক হিসাব ১ (ইসলামী ব্যাংক বাংলাদেশ): <strong>মিল রয়েছে (Reconciled)</strong></div>
-                      <div>• ব্যাংক হিসাব ২ (ডাচ-বাংলা ব্যাংক): <strong>মিল রয়েছে (Reconciled)</strong></div>
-                      <div>• মাসিক ক্যাশফ্লো পূর্বাভাস: <strong className="text-emerald-400">পজিটিভ লিকুইডিটি</strong></div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 7: Super Admin Users Control */}
+              {/* TAB 7 */}
               {activeTab === 'admin_users' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -1348,7 +1315,6 @@ export default function UnityDreamPortal() {
                       <h4 className="text-sm font-bold text-red-400">
                         👑 সেন্ট্রাল ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল (Super Admin Control)
                       </h4>
-                      <p className="text-[11px] text-slate-400">সুপার অ্যাডমিন পোর্টাল থেকেই যেকোনো ইউজার যোগ, মুছে ফেলা এবং এক্সেস নিয়ন্ত্রণ করতে পারবেন।</p>
                     </div>
                     <button 
                       onClick={() => setShowAddUserModal(true)}
@@ -1384,11 +1350,11 @@ export default function UnityDreamPortal() {
                             <td className="py-3 px-3">
                               {user.hasAccountsAccess ? (
                                 <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded font-bold border border-emerald-800">
-                                  অনুমোদিত (Full)
+                                  অনুমোদিত
                                 </span>
                               ) : (
                                 <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                                  সীমাবদ্ধ (None)
+                                  সীমাবদ্ধ
                                 </span>
                               )}
                             </td>
@@ -1427,9 +1393,8 @@ export default function UnityDreamPortal() {
         </div>
       </section>
 
-      {/* ===================== ৩. প্রজেক্টস শোকেস সেকশন ===================== */}
+      {/* ৩. প্রজেক্টস শোকেস */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-2">
             <span className="h-5 w-1.5 bg-emerald-600 rounded"></span>
@@ -1437,9 +1402,6 @@ export default function UnityDreamPortal() {
               আমাদের অনুমোদিত ও পার্টনার প্রজেক্টসমূহ
             </h2>
           </div>
-          <p className="text-sm text-slate-600 mt-2 font-medium">
-            ঢাকা ওয়েস্টার্ন ভ্যালি, দ্য বে আইকন কক্সবাজার, পদ্মা ইকো সিটি, পুষ্পধারা স্যাটেলাইট সিটি, নারায়ণগঞ্জ ভূঁইগড় ও রামপুরা প্রজেক্ট
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1499,10 +1461,9 @@ export default function UnityDreamPortal() {
             </div>
           ))}
         </div>
-
       </main>
 
-      {/* ===================== ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল ===================== */}
+      {/* ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল */}
       {selectedProjectForTerms && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200">
@@ -1558,10 +1519,9 @@ export default function UnityDreamPortal() {
         </div>
       )}
 
-      {/* ===================== ৫. ফুটার সেকশন ===================== */}
+      {/* ৫. ফুটার সেকশন */}
       <footer className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800 text-sm">
             <div>
               <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES</h4>
@@ -1599,15 +1559,13 @@ export default function UnityDreamPortal() {
               Hosaf Tower, Malibag, Dhaka | Helpline: +880 1681-196700
             </p>
           </div>
-
         </div>
       </footer>
 
-      {/* ===================== ৬. অথেন্টিকেশন ও পাসওয়ার্ড রিকভারি মোডাল ===================== */}
+      {/* ৬. লগইন ও রেজিস্টার মোডাল */}
       {authModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
-            
             <div className="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
                 <span>👤</span> 
@@ -1624,7 +1582,6 @@ export default function UnityDreamPortal() {
             </div>
 
             <div className="p-6">
-              
               {authModal === 'login' && (
                 <form onSubmit={handleLogin}>
                   <div className="mb-4">
@@ -1804,13 +1761,12 @@ export default function UnityDreamPortal() {
                   </div>
                 </form>
               )}
-
             </div>
           </div>
         </div>
       )}
 
-      {/* ===================== ৭. সুপার এডমিন ইউজার অ্যাড মোডাল ===================== */}
+      {/* ৭. সুপার এডমিন ইউজার অ্যাড মোডাল */}
       {showAddUserModal && currentUser?.isSuperAdmin && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
@@ -1862,7 +1818,7 @@ export default function UnityDreamPortal() {
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">কোম্পানি পদবী (Role) *</label>
+                <label className="block font-semibold text-gray-700 mb-1">পদবী (Role) *</label>
                 <select 
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value as UserProfile['role'])}
@@ -1872,9 +1828,6 @@ export default function UnityDreamPortal() {
                   <option value="Accountant">Accountant</option>
                   <option value="Accounts Head">Accounts Head</option>
                   <option value="Office Staff">Office Staff</option>
-                  <option value="AGM">AGM</option>
-                  <option value="DGM">DGM</option>
-                  <option value="GM">GM</option>
                   <option value="Director">Director</option>
                   <option value="Agent">Agent</option>
                 </select>
