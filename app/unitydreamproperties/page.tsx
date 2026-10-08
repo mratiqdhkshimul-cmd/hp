@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 
-// ===================== Interfaces & Types =====================
 export interface UserProfile {
   id: string;
   name: string;
@@ -70,7 +69,6 @@ export interface ProjectCostReport {
   netProfitLoss: number;
 }
 
-// ===================== Initial Data =====================
 const MASTER_SUPER_ADMIN: UserProfile = {
   id: 'UDP-SA-001',
   name: 'MOHAMMAD ATIQUL ISLAM',
@@ -366,7 +364,6 @@ export default function UnityDreamPortal() {
   const [activeTab, setActiveTab] = useState<'my_ledger' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'>('my_ledger');
   const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
 
-  // Auth Inputs
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');
@@ -376,7 +373,6 @@ export default function UnityDreamPortal() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // Voucher Inputs
   const [voucherProjectId, setVoucherProjectId] = useState('1');
   const [voucherAccountCode, setVoucherAccountCode] = useState('4010');
   const [voucherType, setVoucherType] = useState<'Debit' | 'Credit'>('Credit');
@@ -387,7 +383,6 @@ export default function UnityDreamPortal() {
   const [voucherVdsRate, setVoucherVdsRate] = useState<number>(0);
   const [voucherRetentionRate, setVoucherRetentionRate] = useState<number>(0);
 
-  // Admin Add User Modal
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -1818,7 +1813,7 @@ export default function UnityDreamPortal() {
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">পদবী (Role) *</label>
+                <label className="block font-semibold text-gray-700 mb-1">কোম্পানি পদবী (Role) *</label>
                 <select 
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value as UserProfile['role'])}
