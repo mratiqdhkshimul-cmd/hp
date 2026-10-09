@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 
-// ===================== ১. টাইপ ডেফিনিশন ও হায়ারার্কি =====================
+// ===================== ১. টাইপ ডেফিনিশন ও মডেল =====================
 export type UserRole = 
   | 'Super Admin'
   | 'Chairman'
@@ -73,6 +73,44 @@ export interface UserProfile {
     dueAmount: number;
     installmentCount: number;
   };
+}
+
+export interface LeadItem {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  source: 'Facebook Ad' | 'Reference' | 'Walk-in' | 'Telemarketing' | 'Website';
+  interestedProject: string;
+  score: 'Hot' | 'Warm' | 'Cold';
+  stage: 'New Lead' | 'Contacted' | 'Site Visit Planned' | 'Negotiation' | 'Booked' | 'Lost';
+  assignedTo: string;
+  notes: string;
+  createdDate: string;
+}
+
+export interface SiteVisitMeeting {
+  id: string;
+  clientName: string;
+  clientPhone: string;
+  type: 'Site Visit' | 'Office Meeting' | 'Online Call';
+  projectName: string;
+  dateTime: string;
+  coordinator: string;
+  status: 'Scheduled' | 'Completed' | 'Postponed' | 'Cancelled';
+  feedback: string;
+}
+
+export interface MaterialRequisition {
+  id: string;
+  projectName: string;
+  itemType: 'রড (Rod 72G)' | 'সিমেন্ট (Cement)' | 'সিলেট বালু (Sand)' | 'ইট (Bricks)' | 'পাথর (Stone Chips)';
+  requestedQty: number;
+  unit: 'Ton' | 'Bags' | 'CFT' | 'Pcs';
+  estimatedCost: number;
+  status: 'Pending' | 'Approved' | 'Delivered' | 'Rejected';
+  requestedBy: string;
+  requestDate: string;
 }
 
 export interface ChartOfAccount {
@@ -274,37 +312,6 @@ const generateInitialUsers = (): UserProfile[] => {
       teamEarnings: 180000,
       isSuperAdmin: false,
       hasAccountsAccess: false,
-      status: 'Active',
-      salesHistory: [
-        {
-          id: 'SL-02',
-          projectName: 'The Bay Icon International Hotel & Resort Ltd.',
-          unitOrPlot: 'Suite # 402',
-          areaKathaOrSqFt: '300 Sq Ft',
-          customerName: 'Kazi Farhana',
-          customerPhone: '+8801912345678',
-          salePrice: 15000000,
-          commissionEarned: 450000,
-          commissionPaid: 350000,
-          commissionStatus: 'Paid',
-          saleDate: '2026-09-10'
-        }
-      ]
-    },
-    {
-      id: 'UDP-AGT-201',
-      name: 'Tanvir Hossain',
-      email: 'tanvir.agent@unitydream.com',
-      phone: '+8801744444401',
-      password: 'pass123',
-      role: 'Agent',
-      salesKatha: 5,
-      totalEarnings: 362500,
-      heldEarnings: 0,
-      teamSalesKatha: 0,
-      teamEarnings: 0,
-      isSuperAdmin: false,
-      hasAccountsAccess: false,
       status: 'Active'
     },
     {
@@ -352,22 +359,104 @@ const generateInitialUsers = (): UserProfile[] => {
       teamEarnings: role === 'Business Partner' ? (i % 5) * 45000 : 0,
       isSuperAdmin: false,
       hasAccountsAccess: false,
-      status: 'Active',
-      customerPurchase: role === 'Customer' ? {
-        projectName: 'Padma Eco-City',
-        unitOrPlot: `Plot # ${i}, Block # B`,
-        area: '5 Katha',
-        totalPrice: 5250000,
-        bookingMoney: 525000,
-        paidAmount: 1800000,
-        dueAmount: 3450000,
-        installmentCount: 48
-      } : undefined
+      status: 'Active'
     });
   }
 
   return users;
 };
+
+const INITIAL_LEADS: LeadItem[] = [
+  {
+    id: 'LD-101',
+    name: 'Engr. Nazmul Huda',
+    phone: '+8801715554433',
+    email: 'nazmul.engr@gmail.com',
+    source: 'Facebook Ad',
+    interestedProject: 'Dhaka Western Valley',
+    score: 'Hot',
+    stage: 'Site Visit Planned',
+    assignedTo: 'MOHAMMAD ATIQUL ISLAM',
+    notes: 'সাভার সংলগ্ন ৫ কাঠার কর্নার প্লট খুঁজছেন, নগদ সাফ-কবলা কেনার আগ্রহ রয়েছে।',
+    createdDate: '2026-10-02'
+  },
+  {
+    id: 'LD-102',
+    name: 'Dr. Sharmin Akter',
+    phone: '+8801819991122',
+    email: 'dr.sharmin@hospital.com',
+    source: 'Reference',
+    interestedProject: 'The Bay Icon International Hotel & Resort Ltd.',
+    score: 'Hot',
+    stage: 'Negotiation',
+    assignedTo: 'Samia Parvin Shanta',
+    notes: 'কক্সবাজার রিসোর্টে ৩০০ স্কয়ার ফিট ফ্র্যাকশনাল ওনারশিপ শেয়ারে বাৎসরিক ROI নিয়ে কথা চলছে।',
+    createdDate: '2026-10-05'
+  },
+  {
+    id: 'LD-103',
+    name: 'Md. Golam Kibria',
+    phone: '+8801912887766',
+    email: 'kibria.biz@yahoo.com',
+    source: 'Website',
+    interestedProject: 'Padma Eco-City',
+    score: 'Warm',
+    stage: 'Contacted',
+    assignedTo: 'Rofiqul Kabir Saikat',
+    notes: 'পদ্মা সেতু সংলগ্ন ইকো-সিটির ৩৬ মাসের কিস্তি সুবিধার ব্রোশিওর চেয়েছেন।',
+    createdDate: '2026-10-07'
+  }
+];
+
+const INITIAL_VISITS: SiteVisitMeeting[] = [
+  {
+    id: 'SVM-01',
+    clientName: 'Engr. Nazmul Huda',
+    clientPhone: '+8801715554433',
+    type: 'Site Visit',
+    projectName: 'Dhaka Western Valley',
+    dateTime: '2026-10-15 10:30 AM',
+    coordinator: 'MOHAMMAD ATIQUL ISLAM',
+    status: 'Scheduled',
+    feedback: 'অফিস কার যোগে সাইট পরিদর্শন করানো হবে।'
+  },
+  {
+    id: 'SVM-02',
+    clientName: 'Dr. Sharmin Akter',
+    clientPhone: '+8801819991122',
+    type: 'Office Meeting',
+    projectName: 'The Bay Icon International Hotel & Resort Ltd.',
+    dateTime: '2026-10-12 04:00 PM',
+    coordinator: 'Samia Parvin Shanta',
+    status: 'Scheduled',
+    feedback: 'হোসাফ টাওয়ার কর্পোরেট অফিসে মিটিং নির্ধারিত।'
+  }
+];
+
+const INITIAL_REQUISITIONS: MaterialRequisition[] = [
+  {
+    id: 'REQ-01',
+    projectName: 'Dhaka Western Valley',
+    itemType: 'রড (Rod 72G)',
+    requestedQty: 12,
+    unit: 'Ton',
+    estimatedCost: 1140000,
+    status: 'Approved',
+    requestedBy: 'Site Engineer Arif',
+    requestDate: '2026-10-06'
+  },
+  {
+    id: 'REQ-02',
+    projectName: 'Dhaka Western Valley',
+    itemType: 'সিমেন্ট (Cement)',
+    requestedQty: 300,
+    unit: 'Bags',
+    estimatedCost: 165000,
+    status: 'Pending',
+    requestedBy: 'Site Engineer Arif',
+    requestDate: '2026-10-08'
+  }
+];
 
 const INITIAL_COA: ChartOfAccount[] = [
   { code: '1010', name: 'Cash in Hand & Multi-Bank Accounts', type: 'Asset', subType: 'Current Asset' },
@@ -422,60 +511,6 @@ const INITIAL_TRANSACTIONS: ERPTransaction[] = [
     retentionAmount: 0,
     netAmount: 294400,
     recordedBy: 'Md. Tariqul Islam'
-  },
-  {
-    id: 'TXN-003',
-    voucherNo: 'VR-2026-103',
-    date: '2026-10-03',
-    projectId: '2',
-    projectName: 'The Bay Icon International Hotel & Resort Ltd.',
-    accountCode: '4010',
-    accountName: 'Plot & Commercial Space Sales Revenue',
-    type: 'Credit',
-    category: 'Plot Sales Revenue',
-    description: 'কক্সবাজার রিসোর্ট ফ্র্যাকশনাল ওনারশিপ শেয়ার সেলস',
-    grossAmount: 5000000,
-    tdsAmount: 0,
-    vdsAmount: 0,
-    retentionAmount: 0,
-    netAmount: 5000000,
-    recordedBy: 'MOHAMMAD ATIQUL ISLAM'
-  },
-  {
-    id: 'TXN-004',
-    voucherNo: 'VR-2026-104',
-    date: '2026-10-04',
-    projectId: '2',
-    projectName: 'The Bay Icon International Hotel & Resort Ltd.',
-    accountCode: '5030',
-    accountName: 'Contractor Civil Construction Expense',
-    type: 'Debit',
-    category: 'Contractor RA Bill',
-    description: 'কলাতলী সাইটের আরএ বিল-৩ (রানিং বিল) পেমেন্ট',
-    grossAmount: 850000,
-    tdsAmount: 42500,
-    vdsAmount: 63750,
-    retentionAmount: 42500,
-    netAmount: 701250,
-    recordedBy: 'Md. Tariqul Islam'
-  },
-  {
-    id: 'TXN-005',
-    voucherNo: 'VR-2026-105',
-    date: '2026-10-05',
-    projectId: '1',
-    projectName: 'Dhaka Western Valley',
-    accountCode: '5040',
-    accountName: 'Partner Sales Commission',
-    type: 'Debit',
-    category: 'Commission Payout',
-    description: 'পার্টনার কমিশন বিতরণ (UDP-BP-102)',
-    grossAmount: 72500,
-    tdsAmount: 7250,
-    vdsAmount: 0,
-    retentionAmount: 0,
-    netAmount: 65250,
-    recordedBy: 'Md. Tariqul Islam'
   }
 ];
 
@@ -491,22 +526,9 @@ const INITIAL_RECEIVABLES: CustomerReceivable[] = [
     dueAmount: 950000,
     nextInstallmentDate: '2026-10-25',
     daysOverdue: 0
-  },
-  {
-    id: 'AR-02',
-    customerName: 'Engr. Shahinul Islam',
-    phone: '+8801819998877',
-    projectName: 'The Bay Icon Resort',
-    unitOrPlot: 'Suite # 502 (Share 300 Sq Ft)',
-    totalPrice: 15000000,
-    paidAmount: 8000000,
-    dueAmount: 7000000,
-    nextInstallmentDate: '2026-09-30',
-    daysOverdue: 8
   }
 ];
 
-// প্রজেক্ট ক্যাটালগ
 const projectsData = [
   {
     id: '1',
@@ -558,48 +580,6 @@ const projectsData = [
       'প্রকল্পে প্লট সাইজ সর্বনিম্ন ৫ কাঠা। ৩ কাঠার প্লট বরাদ্দ বন্ধ।',
       'পদ্মা সেতু সংলগ্ন আধুনিক ইকো-সিটি এবং সহজ ৩৬-৭২ মাসের কিস্তি সুবিধা।'
     ]
-  },
-  {
-    id: '4',
-    name: 'Pushpodhara Satellite City',
-    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
-    location: 'ঢাকা জেলা পয়েন্ট থেকে ২২ কিমি ও পদ্মা সেতু থেকে কাছে',
-    tag: 'Satellite Town / Plots',
-    badge: 'Available',
-    size: 'সর্বনিম্ন ৫ কাঠা (৫ ও ১০ কাঠা প্লট)',
-    price: 'আকর্ষণীয় কিস্তি সুবিধা',
-    statusBadge: 'প্যাকেজ / প্লট',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
-    terms: [
-      'সর্বনিম্ন প্লট সাইজ ৫ কাঠা নির্ধারিত।',
-      'স্কুল, কলেজ, মসজিদ, পার্ক ও বাণিজ্যিক জোন পরিকল্পিত।'
-    ]
-  },
-  {
-    id: '5',
-    name: 'Narayanganj Bhuighar Project',
-    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
-    location: 'ভূঁইগড়, নারায়ণগঞ্জ',
-    tag: 'Residential / Commercial Land',
-    badge: 'Upcoming Project',
-    size: 'সর্বনিম্ন ৫ কাঠা প্লট',
-    price: 'যোগাযোগ সাপেক্ষে',
-    statusBadge: 'বুকিং চলছে',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
-    terms: ['বাণিজ্যিক ও আবাসিক সমন্বিত প্লট। সর্বনিম্ন ৫ কাঠা প্লট বরাদ্দ।']
-  },
-  {
-    id: '6',
-    name: 'Rampura Project',
-    developer: 'পুষ্পধারা প্রপার্টিজ লিমিটেড',
-    location: 'রামপুরা কাঁচাবাজার সংলগ্ন, ঢাকা',
-    tag: 'Commercial & Residential',
-    badge: 'Prime Location',
-    size: 'বাণিজ্যিক ও আবাসিক স্পেস',
-    price: 'যোগাযোগ সাপেক্ষে',
-    statusBadge: 'বুকিং চলছে',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-    terms: ['বাণিজ্যিক ও আবাসিক স্পেসের সরাসরি ওনারশিপ বিনিয়োগ সুবিধা।']
   }
 ];
 
@@ -607,6 +587,9 @@ export default function UnityDreamPortal() {
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [transactions, setTransactions] = useState<ERPTransaction[]>(INITIAL_TRANSACTIONS);
   const [receivables, setReceivables] = useState<CustomerReceivable[]>(INITIAL_RECEIVABLES);
+  const [leads, setLeads] = useState<LeadItem[]>(INITIAL_LEADS);
+  const [visits, setVisits] = useState<SiteVisitMeeting[]>(INITIAL_VISITS);
+  const [requisitions, setRequisitions] = useState<MaterialRequisition[]>(INITIAL_REQUISITIONS);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   // Responsive & Modal States
@@ -615,11 +598,41 @@ export default function UnityDreamPortal() {
   const [authModal, setAuthModal] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [showERP, setShowERP] = useState(false);
   
-  // ট্যাব নেভিগেশন (১ম ট্যাব: ⭐ পার্টনার লিস্ট)
-  const [activeTab, setActiveTab] = useState<'partner_list' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'>('partner_list');
+  // ট্যাব নেভিগেশন (CRM ও অপারেশন সহ পূর্ণাঙ্গ মেনু)
+  const [activeTab, setActiveTab] = useState<
+    'partner_list' | 'crm_leads' | 'visits_scheduling' | 'materials_req' | 'journal_ledger' | 'project_costing' | 'ar_installments' | 'tax_vat' | 'balance_sheet' | 'admin_users'
+  >('partner_list');
+
   const [selectedProjectForTerms, setSelectedProjectForTerms] = useState<typeof projectsData[0] | null>(null);
   const [viewDetailsUser, setViewDetailsUser] = useState<UserProfile | null>(null);
   const [editUserModal, setEditUserModal] = useState<UserProfile | null>(null);
+
+  // CRM নতুন লিড ইনপুট
+  const [showAddLeadModal, setShowAddLeadModal] = useState(false);
+  const [leadName, setLeadName] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadSource, setLeadSource] = useState<LeadItem['source']>('Facebook Ad');
+  const [leadProject, setLeadProject] = useState('Dhaka Western Valley');
+  const [leadScore, setLeadScore] = useState<LeadItem['score']>('Hot');
+  const [leadNotes, setLeadNotes] = useState('');
+
+  // শিডিউল নতুন ভিজিট ইনপুট
+  const [showAddVisitModal, setShowAddVisitModal] = useState(false);
+  const [visitClient, setVisitClient] = useState('');
+  const [visitPhone, setVisitPhone] = useState('');
+  const [visitType, setVisitType] = useState<SiteVisitMeeting['type']>('Site Visit');
+  const [visitProject, setVisitProject] = useState('Dhaka Western Valley');
+  const [visitDateTime, setVisitDateTime] = useState('');
+  const [visitFeedback, setVisitFeedback] = useState('');
+
+  // মেটেরিয়াল নতুন রিকুইজিশন ইনপুট
+  const [showAddReqModal, setShowAddReqModal] = useState(false);
+  const [reqProject, setReqProject] = useState('Dhaka Western Valley');
+  const [reqItem, setReqItem] = useState<MaterialRequisition['itemType']>('রড (Rod 72G)');
+  const [reqQty, setReqQty] = useState<number>(1);
+  const [reqUnit, setReqUnit] = useState<MaterialRequisition['unit']>('Ton');
+  const [reqCost, setReqCost] = useState<number>(0);
 
   // Auth Inputs
   const [loginEmail, setLoginEmail] = useState('');
@@ -652,27 +665,33 @@ export default function UnityDreamPortal() {
   const [newUserAccountsAccess, setNewUserAccountsAccess] = useState(false);
 
   useEffect(() => {
-    const savedUsers = localStorage.getItem('udp_erp_users_v2');
+    const savedUsers = localStorage.getItem('udp_erp_users_v3');
     if (savedUsers) {
-      try { 
-        setUsersList(JSON.parse(savedUsers)); 
-      } catch (e) { 
-        console.error(e); 
-      }
+      try { setUsersList(JSON.parse(savedUsers)); } catch (e) { console.error(e); }
     } else {
       const initial = generateInitialUsers();
       setUsersList(initial);
-      localStorage.setItem('udp_erp_users_v2', JSON.stringify(initial));
+      localStorage.setItem('udp_erp_users_v3', JSON.stringify(initial));
+    }
+
+    const savedLeads = localStorage.getItem('udp_crm_leads');
+    if (savedLeads) {
+      try { setLeads(JSON.parse(savedLeads)); } catch (e) { console.error(e); }
+    }
+
+    const savedVisits = localStorage.getItem('udp_crm_visits');
+    if (savedVisits) {
+      try { setVisits(JSON.parse(savedVisits)); } catch (e) { console.error(e); }
+    }
+
+    const savedReqs = localStorage.getItem('udp_materials_req');
+    if (savedReqs) {
+      try { setRequisitions(JSON.parse(savedReqs)); } catch (e) { console.error(e); }
     }
 
     const savedTxns = localStorage.getItem('udp_erp_txns');
     if (savedTxns) {
       try { setTransactions(JSON.parse(savedTxns)); } catch (e) { console.error(e); }
-    }
-
-    const savedAr = localStorage.getItem('udp_erp_ar');
-    if (savedAr) {
-      try { setReceivables(JSON.parse(savedAr)); } catch (e) { console.error(e); }
     }
 
     const activeSession = localStorage.getItem('udp_active_session');
@@ -683,12 +702,22 @@ export default function UnityDreamPortal() {
 
   const saveUsers = (list: UserProfile[]) => {
     setUsersList(list);
-    localStorage.setItem('udp_erp_users_v2', JSON.stringify(list));
+    localStorage.setItem('udp_erp_users_v3', JSON.stringify(list));
   };
 
-  const saveTxns = (list: ERPTransaction[]) => {
-    setTransactions(list);
-    localStorage.setItem('udp_erp_txns', JSON.stringify(list));
+  const saveLeads = (list: LeadItem[]) => {
+    setLeads(list);
+    localStorage.setItem('udp_crm_leads', JSON.stringify(list));
+  };
+
+  const saveVisits = (list: SiteVisitMeeting[]) => {
+    setVisits(list);
+    localStorage.setItem('udp_crm_visits', JSON.stringify(list));
+  };
+
+  const saveRequisitions = (list: MaterialRequisition[]) => {
+    setRequisitions(list);
+    localStorage.setItem('udp_materials_req', JSON.stringify(list));
   };
 
   const triggerWhatsApp = (phone: string, text: string) => {
@@ -696,166 +725,114 @@ export default function UnityDreamPortal() {
     window.open(`https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const totalCreditRevenue = useMemo(() => {
-    return transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.grossAmount, 0);
-  }, [transactions]);
-
-  const totalDebitExpense = useMemo(() => {
-    return transactions.filter(t => t.type === 'Debit').reduce((acc, t) => acc + t.grossAmount, 0);
-  }, [transactions]);
-
-  const totalTDSCollected = useMemo(() => {
-    return transactions.reduce((acc, t) => acc + t.tdsAmount, 0);
-  }, [transactions]);
-
-  const totalVDSCollected = useMemo(() => {
-    return transactions.reduce((acc, t) => acc + t.vdsAmount, 0);
-  }, [transactions]);
-
-  const totalRetentionPayable = useMemo(() => {
-    return transactions.reduce((acc, t) => acc + t.retentionAmount, 0);
-  }, [transactions]);
-
-  const netCashInHand = useMemo(() => {
-    const cashIn = transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.netAmount, 0);
-    const cashOut = transactions.filter(t => t.type === 'Debit').reduce((acc, t) => acc + t.netAmount, 0);
-    return cashIn - cashOut;
-  }, [transactions]);
-
-  const projectCostMatrix: ProjectCostReport[] = useMemo(() => {
-    return projectsData.map(proj => {
-      const projTxns = transactions.filter(t => t.projectId === proj.id);
-      const rev = projTxns.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.grossAmount, 0);
-      const mat = projTxns.filter(t => t.category === 'Material Construction').reduce((acc, t) => acc + t.grossAmount, 0);
-      const cont = projTxns.filter(t => t.category === 'Contractor RA Bill').reduce((acc, t) => acc + t.grossAmount, 0);
-      const land = projTxns.filter(t => t.category === 'Land Cost').reduce((acc, t) => acc + t.grossAmount, 0);
-      const ovh = projTxns.filter(t => t.category === 'Office Overhead' || t.category === 'Commission Payout' || t.category === 'Staff Salary').reduce((acc, t) => acc + t.grossAmount, 0);
-      
-      const wip = mat + cont + land;
-      const net = rev - (mat + cont + land + ovh);
-      return {
-        id: proj.id,
-        name: proj.name,
-        totalRevenue: rev,
-        landAndDirectCost: land,
-        materialCost: mat,
-        contractorCost: cont,
-        overheadCost: ovh,
-        wipValue: wip,
-        netProfitLoss: net
-      };
-    });
-  }, [transactions]);
-
   const visiblePartners = useMemo(() => {
     if (!currentUser) return [];
-
     const userWeight = ROLE_HIERARCHY[currentUser.role] || 0;
-
-    if (['Super Admin', 'Chairman', 'Managing Director'].includes(currentUser.role)) {
-      return usersList;
-    }
-
+    if (['Super Admin', 'Chairman', 'Managing Director'].includes(currentUser.role)) return usersList;
     if (currentUser.role === 'General Manager') {
       return usersList.filter(u => !['Super Admin', 'Chairman', 'Managing Director'].includes(u.role));
     }
-
     if (['DGM', 'AGM', 'Team Leader', 'Business Partner'].includes(currentUser.role)) {
       return usersList.filter(u => ROLE_HIERARCHY[u.role] < userWeight || u.id === currentUser.id);
     }
-
-    if (currentUser.role === 'Agent') {
-      return usersList.filter(u => u.role === 'Agent' || u.id === currentUser.id);
-    }
-
-    if (currentUser.role === 'Customer') {
-      return usersList.filter(u => u.id === currentUser.id);
-    }
-
+    if (currentUser.role === 'Agent') return usersList.filter(u => u.role === 'Agent' || u.id === currentUser.id);
+    if (currentUser.role === 'Customer') return usersList.filter(u => u.id === currentUser.id);
     return usersList.filter(u => u.id === currentUser.id);
   }, [currentUser, usersList]);
+
+  // নতুন লিড যোগ করা
+  const handleAddLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newL: LeadItem = {
+      id: `LD-${Math.floor(100 + Math.random() * 900)}`,
+      name: leadName.trim(),
+      phone: leadPhone.trim(),
+      email: leadEmail.trim(),
+      source: leadSource,
+      interestedProject: leadProject,
+      score: leadScore,
+      stage: 'New Lead',
+      assignedTo: currentUser?.name || 'MOHAMMAD ATIQUL ISLAM',
+      notes: leadNotes.trim(),
+      createdDate: new Date().toISOString().split('T')[0]
+    };
+    const updated = [newL, ...leads];
+    saveLeads(updated);
+    triggerWhatsApp(
+      MASTER_PHONE,
+      `*New CRM Lead Added*\nName: ${newL.name}\nPhone: ${newL.phone}\nProject: ${newL.interestedProject}\nScore: ${newL.score}\nAssigned: ${newL.assignedTo}`
+    );
+    setLeadName(''); setLeadPhone(''); setLeadEmail(''); setLeadNotes('');
+    setShowAddLeadModal(false);
+    alert('নতুন লিড সফলভাবে ডাটাবেজে যুক্ত হয়েছে!');
+  };
+
+  // নতুন সাইট ভিজিট শিডিউল
+  const handleAddVisit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newV: SiteVisitMeeting = {
+      id: `SVM-${Math.floor(100 + Math.random() * 900)}`,
+      clientName: visitClient.trim(),
+      clientPhone: visitPhone.trim(),
+      type: visitType,
+      projectName: visitProject,
+      dateTime: visitDateTime,
+      coordinator: currentUser?.name || 'MOHAMMAD ATIQUL ISLAM',
+      status: 'Scheduled',
+      feedback: visitFeedback.trim()
+    };
+    const updated = [newV, ...visits];
+    saveVisits(updated);
+    triggerWhatsApp(
+      newV.clientPhone,
+      `*UNITY DREAM PROPERTIES LTD. Invitation*\nসম্মানিত ${newV.clientName},\nআপনার ${newV.type} নির্ধারিত হয়েছে:\nপ্রকল্প: ${newV.projectName}\nতারিখ ও সময়: ${newV.dateTime}\nসমন্বয়কারী: ${newV.coordinator}\nহেল্পলাইন: ${MASTER_PHONE}`
+    );
+    setVisitClient(''); setVisitPhone(''); setVisitDateTime(''); setVisitFeedback('');
+    setShowAddVisitModal(false);
+    alert('ভিজিট / মিটিং শিডিউল সফলভাবে সম্পন্ন হয়েছে!');
+  };
+
+  // নতুন মেটেরিয়াল রিকুইজিশন
+  const handleAddRequisition = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newR: MaterialRequisition = {
+      id: `REQ-${Math.floor(100 + Math.random() * 900)}`,
+      projectName: reqProject,
+      itemType: reqItem,
+      requestedQty: reqQty,
+      unit: reqUnit,
+      estimatedCost: reqCost,
+      status: 'Pending',
+      requestedBy: currentUser?.name || 'Site Engineer',
+      requestDate: new Date().toISOString().split('T')[0]
+    };
+    const updated = [newR, ...requisitions];
+    saveRequisitions(updated);
+    triggerWhatsApp(
+      MASTER_PHONE,
+      `*Site Material Requisition Alert*\nProject: ${newR.projectName}\nItem: ${newR.itemType} (${newR.requestedQty} ${newR.unit})\nEst. Cost: ${newR.estimatedCost.toLocaleString('bn-BD')} BDT\nBy: ${newR.requestedBy}`
+    );
+    setReqQty(1); setReqCost(0);
+    setShowAddReqModal(false);
+    alert('মেটেরিয়াল রিকুইজিশন সাবমিট করা হয়েছে এবং অ্যাডমিনকে অ্যালার্ট পাঠানো হয়েছে!');
+  };
+
+  // লিড স্টেজ আপডেট
+  const updateLeadStage = (id: string, stage: LeadItem['stage']) => {
+    const updated = leads.map(l => l.id === id ? { ...l, stage } : l);
+    saveLeads(updated);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const user = usersList.find(u => u.email.trim().toLowerCase() === loginEmail.trim().toLowerCase());
-    if (!user) {
-      alert('ইমেইলটি সঠিক নয় অথবা অ্যাকাউন্ট পাওয়া যায়নি!');
-      return;
-    }
-    if (user.password && user.password !== loginPassword) {
-      alert('পাসওয়ার্ড ভুল হয়েছে!');
-      return;
-    }
-    if (user.status === 'Blocked') {
-      alert('আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত (Blocked) করা হয়েছে! অ্যাডমিনের সাথে যোগাযোগ করুন।');
-      return;
-    }
+    if (!user) { alert('ইমেইলটি সঠিক নয় অথবা অ্যাকাউন্ট পাওয়া যায়নি!'); return; }
+    if (user.password && user.password !== loginPassword) { alert('পাসওয়ার্ড ভুল হয়েছে!'); return; }
+    if (user.status === 'Blocked') { alert('আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত করা হয়েছে!'); return; }
     setCurrentUser(user);
     localStorage.setItem('udp_active_session', JSON.stringify(user));
-    setAuthModal(null);
-    setLoginEmail('');
-    setLoginPassword('');
-    alert(`স্বাগতম ${user.name}! পদবী: ${user.role}। সফলভাবে লগইন হয়েছে।`);
-  };
-
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = regEmail.trim().toLowerCase();
-    if (usersList.some(u => u.email.trim().toLowerCase() === cleanEmail)) {
-      alert('এই ইমেইলে ইতোমধ্যে অ্যাকাউন্ট রয়েছে!');
-      setAuthModal('login');
-      return;
-    }
-    if (regPassword !== regConfirmPassword) {
-      alert('পাসওয়ার্ড মেলেনি!');
-      return;
-    }
-
-    const newId = `UDP-BP-${Math.floor(100 + Math.random() * 900)}`;
-    const newUser: UserProfile = {
-      id: newId,
-      name: regName.trim(),
-      email: cleanEmail,
-      phone: regPhone.trim(),
-      password: regPassword,
-      role: 'Business Partner',
-      salesKatha: 0,
-      totalEarnings: 0,
-      heldEarnings: 0,
-      teamSalesKatha: 0,
-      teamEarnings: 0,
-      isSuperAdmin: false,
-      hasAccountsAccess: false,
-      status: 'Active'
-    };
-
-    const updated = [...usersList, newUser];
-    saveUsers(updated);
-    setCurrentUser(newUser);
-    localStorage.setItem('udp_active_session', JSON.stringify(newUser));
-    setAuthModal(null);
-
-    const msg = `*UNITY DREAM PROPERTIES LTD. Registration Confirmed*\nName: ${newUser.name}\nUser ID: ${newUser.id}\nRole: Business Partner\nHelpline: ${MASTER_PHONE}`;
-    triggerWhatsApp(newUser.phone, msg);
-    triggerWhatsApp(MASTER_PHONE, `*New User Joined UDP*\nID: ${newUser.id}\nName: ${newUser.name}\nPhone: ${newUser.phone}`);
-
-    setRegName(''); setRegEmail(''); setRegPhone(''); setRegPassword(''); setRegConfirmPassword('');
-    alert(`অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! ইউজার আইডি: ${newId}`);
-  };
-
-  const handleForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    const user = usersList.find(u => u.email.trim().toLowerCase() === forgotEmail.trim().toLowerCase());
-    if (!user) {
-      alert('ইমেইলটি ডাটাবেজে পাওয়া যায়নি!');
-      return;
-    }
-    if (user.password) {
-      triggerWhatsApp(user.phone, `*UNITY DREAM PROPERTIES LTD. Credentials*\nUser ID: ${user.id}\nPassword: ${user.password}\nHelpline: ${MASTER_PHONE}`);
-      alert(`ইউজার আইডি (${user.id}) ও পাসওয়ার্ড আপনার হোয়াটসঅ্যাপে পাঠানো হয়েছে!`);
-    }
-    setForgotEmail('');
-    setAuthModal('login');
+    setAuthModal(null); setLoginEmail(''); setLoginPassword('');
+    alert(`স্বাগতম ${user.name}!`);
   };
 
   const handleLogout = () => {
@@ -866,139 +843,10 @@ export default function UnityDreamPortal() {
     alert('লগআউট সম্পন্ন হয়েছে।');
   };
 
-  const handleAddVoucher = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser?.hasAccountsAccess && !currentUser?.isSuperAdmin) {
-      alert('আপনার অ্যাকাউন্টস লেনদেন যুক্ত করার অনুমতি নেই!');
-      return;
-    }
-    if (voucherGross <= 0) {
-      alert('ভাউচারের টাকার পরিমাণ ০ এর বেশি হতে হবে!');
-      return;
-    }
-
-    const matchedProject = projectsData.find(p => p.id === voucherProjectId);
-    const matchedAccount = INITIAL_COA.find(c => c.code === voucherAccountCode);
-
-    const tds = (voucherGross * voucherTdsRate) / 100;
-    const vds = (voucherGross * voucherVdsRate) / 100;
-    const retention = (voucherGross * voucherRetentionRate) / 100;
-    const net = voucherType === 'Debit' ? voucherGross - (tds + vds + retention) : voucherGross;
-
-    const newTxn: ERPTransaction = {
-      id: `TXN-${Date.now().toString().slice(-4)}`,
-      voucherNo: `VR-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
-      date: new Date().toISOString().split('T')[0],
-      projectId: voucherProjectId,
-      projectName: matchedProject?.name || 'General Project',
-      accountCode: voucherAccountCode,
-      accountName: matchedAccount?.name || 'General Expense',
-      type: voucherType,
-      category: voucherCategory,
-      description: voucherDesc.trim() || `${voucherCategory} Transaction`,
-      grossAmount: voucherGross,
-      tdsAmount: tds,
-      vdsAmount: vds,
-      retentionAmount: retention,
-      netAmount: net,
-      recordedBy: currentUser.name
-    };
-
-    const updated = [newTxn, ...transactions];
-    saveTxns(updated);
-
-    triggerWhatsApp(
-      MASTER_PHONE,
-      `*UDP Financial Transaction Alert*\nVoucher: ${newTxn.voucherNo}\nType: ${newTxn.type}\nGross: ${newTxn.grossAmount.toLocaleString('bn-BD')} BDT\nNet: ${newTxn.netAmount.toLocaleString('bn-BD')} BDT\nProject: ${newTxn.projectName}\nRecorded By: ${newTxn.recordedBy}`
-    );
-
-    setVoucherDesc('');
-    setVoucherGross(0);
-    setVoucherTdsRate(0);
-    setVoucherVdsRate(0);
-    setVoucherRetentionRate(0);
-    alert(`ভাউচার (${newTxn.voucherNo}) সফলভাবে যুক্ত হয়েছে এবং মাস্টার নম্বরে নোটিফিকেশন পাঠানো হয়েছে!`);
-  };
-
-  const handleDeleteUser = (email: string) => {
-    if (!currentUser?.isSuperAdmin) return;
-    if (email === MASTER_SUPER_ADMIN.email) {
-      alert('সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!');
-      return;
-    }
-    if (confirm('আপনি কি এই ইউজারটি স্থায়ীভাবে ডাটাবেজ থেকে মুছে ফেলতে চান?')) {
-      const updated = usersList.filter(u => u.email !== email);
-      saveUsers(updated);
-      alert('ইউজার সফলভাবে মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAdminCreateUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser?.isSuperAdmin) return;
-
-    const cleanEmail = newUserEmail.trim().toLowerCase();
-    if (usersList.some(u => u.email.trim().toLowerCase() === cleanEmail)) {
-      alert('এই ইমেইলে ইতোমধ্যে অ্যাকাউন্ট রয়েছে!');
-      return;
-    }
-
-    const createdId = `UDP-${newUserRole.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
-    const createdUser: UserProfile = {
-      id: createdId,
-      name: newUserName.trim(),
-      email: cleanEmail,
-      phone: newUserPhone.trim(),
-      password: newUserPassword,
-      role: newUserRole,
-      salesKatha: 0,
-      totalEarnings: 0,
-      heldEarnings: 0,
-      teamSalesKatha: 0,
-      teamEarnings: 0,
-      isSuperAdmin: ['Super Admin', 'Chairman', 'Managing Director'].includes(newUserRole),
-      hasAccountsAccess: newUserAccountsAccess || ['Super Admin', 'Accounts Head'].includes(newUserRole),
-      status: 'Active'
-    };
-
-    const updated = [...usersList, createdUser];
-    saveUsers(updated);
-
-    triggerWhatsApp(
-      createdUser.phone,
-      `*UNITY DREAM PROPERTIES LTD. Official Account Created*\nName: ${createdUser.name}\nUser ID: ${createdUser.id}\nRole: ${createdUser.role}\nPassword: ${createdUser.password}\nPortal: https://hp-seven-weld.vercel.app/unitydreamproperties\nHelpline: ${MASTER_PHONE}`
-    );
-
-    setNewUserName('');
-    setNewUserEmail('');
-    setNewUserPhone('');
-    setShowAddUserModal(false);
-    alert(`নতুন ইউজার (${createdId}) ক্লাউড ডাটাবেজে যুক্ত হয়েছে!`);
-  };
-
-  const handleSaveEditUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editUserModal || !currentUser?.isSuperAdmin) return;
-
-    const updated = usersList.map(u => {
-      if (u.id === editUserModal.id) {
-        return {
-          ...editUserModal,
-          isSuperAdmin: ['Super Admin', 'Chairman', 'Managing Director'].includes(editUserModal.role)
-        };
-      }
-      return u;
-    });
-
-    saveUsers(updated);
-    setEditUserModal(null);
-    alert('ইউজারের তথ্য ও স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!');
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       
-      {/* ===================== ১. হেডার ও মেনুবার ===================== */}
+      {/* ১. হেডার ও মেনুবার */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
@@ -1051,14 +899,12 @@ export default function UnityDreamPortal() {
                           <p className="text-[10px] text-gray-500 font-mono mt-0.5">{currentUser.email}</p>
                           <p className="text-[10px] text-gray-500 font-mono">{currentUser.phone}</p>
                         </div>
-
                         <button 
                           onClick={() => { setShowERP(true); setAccountMenuOpen(false); }}
                           className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 font-bold flex items-center gap-2"
                         >
                           <span>📊</span> রিয়েল এস্টেট ERP ড্যাশবোর্ড
                         </button>
-
                         <button 
                           onClick={handleLogout}
                           className="w-full text-left px-4 py-2.5 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100 flex items-center gap-2"
@@ -1089,32 +935,16 @@ export default function UnityDreamPortal() {
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
-                aria-label="Toggle navigation menu"
               >
-                {mobileMenuOpen ? (
-                  <span className="text-xl font-bold leading-none">✕</span>
-                ) : (
-                  <span className="text-xl font-bold leading-none">☰</span>
-                )}
+                {mobileMenuOpen ? '✕' : '☰'}
               </button>
             </div>
 
           </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 pb-5 shadow-lg space-y-3 text-sm font-semibold text-slate-700">
-            <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Home</a>
-            <a href="#management" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Management</a>
-            <a href="#for-sale" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">For Sale</a>
-            <a href="#roommates" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Roommates</a>
-            <a href="#jobs" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Jobs</a>
-            <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block py-2 px-3 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Contact</a>
-          </div>
-        )}
       </header>
 
-      {/* ===================== ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার ===================== */}
+      {/* ২. কেন্দ্রীয় ক্লাউড ERP ব্যানার */}
       <section id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1124,7 +954,7 @@ export default function UnityDreamPortal() {
                 সেন্ট্রাল ক্লাউড ডাটাবেজ সংযুক্ত (অনলাইন সিংকিং সক্রিয়)
               </div>
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-                Unity Dream Properties — সেন্ট্রাল একাউন্টিং, প্রজেক্ট কস্টিং ও রিয়েল এস্টেট ERP
+                Unity Dream Properties — সেন্ট্রাল একাউন্টিং, CRM, প্রজেক্ট ও রিয়েল এস্টেট ERP
               </h2>
             </div>
             
@@ -1145,6 +975,7 @@ export default function UnityDreamPortal() {
             </div>
           </div>
 
+          {/* ২.১ কোর একাউন্টস ও CRM ইআরপি */}
           {showERP && currentUser && (
             <div className="mt-6 pt-6 border-t border-slate-700/80 bg-slate-950/95 p-5 rounded-xl">
               
@@ -1155,7 +986,34 @@ export default function UnityDreamPortal() {
                     activeTab === 'partner_list' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
                   }`}
                 >
-                  ⭐ পার্টনার লিস্ট (সেলস, কমিশন ও ডিটেইলস)
+                  ⭐ পার্টনার লিস্ট
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('crm_leads')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'crm_leads' ? 'bg-sky-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🎯 CRM ও লিড পাইপলাইন
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('visits_scheduling')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'visits_scheduling' ? 'bg-purple-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🗓️ সাইট ভিজিট ও মিটিং শিডিউলার
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('materials_req')}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'materials_req' ? 'bg-amber-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📦 র মেটেরিয়ালস ও সাইট রিকুইজিশন
                 </button>
 
                 {(currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
@@ -1166,7 +1024,7 @@ export default function UnityDreamPortal() {
                         activeTab === 'journal_ledger' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      📒 জেনারেল জার্নাল ও ভাউচার (GL/Debit-Credit)
+                      📒 জেনারেল জার্নাল (GL)
                     </button>
 
                     <button 
@@ -1175,34 +1033,25 @@ export default function UnityDreamPortal() {
                         activeTab === 'project_costing' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      🏗️ প্রজেক্ট কস্টিং, মেটেরিয়াল ও WIP
+                      🏗️ প্রজেক্ট কস্টিং ও WIP
                     </button>
 
                     <button 
                       onClick={() => setActiveTab('ar_installments')}
                       className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'ar_installments' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                        activeTab === 'ar_installments' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      👥 কাস্টমার কিস্তি ও এজিং (AR)
-                    </button>
-
-                    <button 
-                      onClick={() => setActiveTab('tax_vat')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'tax_vat' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      ⚖️ বিডি ট্যাক্স ও ভ্যাট (TDS/VDS Mushak)
+                      👥 কাস্টমার কিস্তি (AR)
                     </button>
 
                     <button 
                       onClick={() => setActiveTab('balance_sheet')}
                       className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        activeTab === 'balance_sheet' ? 'bg-teal-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                        activeTab === 'balance_sheet' ? 'bg-emerald-700 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                       }`}
                     >
-                      📈 ব্যালেন্স শীট ও ট্রেজারি
+                      📈 ব্যালেন্স শীট ও ক্যাশফ্লো
                     </button>
                   </>
                 )}
@@ -1214,26 +1063,18 @@ export default function UnityDreamPortal() {
                       activeTab === 'admin_users' ? 'bg-red-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
                     }`}
                   >
-                    👑 ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল
+                    👑 ইউজার ডাটাবেজ ও পারমিশন
                   </button>
                 )}
               </div>
 
-              {/* TAB 1: ⭐ পার্টনার লিস্ট */}
+              {/* TAB 1: পার্টনার লিস্ট */}
               {activeTab === 'partner_list' && (
                 <div className="text-xs">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
                     <div>
-                      <h4 className="text-sm font-bold text-emerald-400">
-                        ⭐ পার্টনার ও টিম পারফরম্যান্স নেটওয়ার্ক
-                      </h4>
-                      <p className="text-slate-400 text-[11px] mt-0.5">
-                        আপনার পদবী: <strong className="text-white">{currentUser.role}</strong> ({currentUser.name}) | 
-                        অধীনস্থ দৃশ্যমান মেম্বার: <strong className="text-amber-400">{visiblePartners.length} জন</strong>
-                      </p>
-                    </div>
-                    <div className="text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1.5 rounded-lg">
-                      🔒 আপনার রোল অনুসারে অনুমোদিত ডেটা প্রদর্শিত হচ্ছে
+                      <h4 className="text-sm font-bold text-emerald-400">⭐ পার্টনার ও টিম পারফরম্যান্স নেটওয়ার্ক</h4>
+                      <p className="text-slate-400 text-[11px] mt-0.5">আপনার পদবী: <strong className="text-white">{currentUser.role}</strong></p>
                     </div>
                   </div>
 
@@ -1245,38 +1086,22 @@ export default function UnityDreamPortal() {
                           <th className="py-2.5 px-3">পদবী (Role)</th>
                           <th className="py-2.5 px-3">মোবাইল</th>
                           <th className="py-2.5 px-3 text-right">ব্যক্তিগত সেলস</th>
-                          <th className="py-2.5 px-3 text-right">অর্জিত কমিশন</th>
-                          <th className="py-2.5 px-3 text-right">টিম সেলস</th>
-                          <th className="py-2.5 px-3 text-right">টিম ওভাররাইড</th>
+                          <th className="py-2.5 px-3 text-right">কমিশন</th>
                           <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
                           <th className="py-2.5 px-3 text-center">ডিটেইলস</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 text-slate-300">
                         {visiblePartners.map((user) => (
-                          <tr key={user.id} className="hover:bg-slate-900/60 transition-colors">
+                          <tr key={user.id} className="hover:bg-slate-900/60">
                             <td className="py-3 px-3">
                               <span className="font-bold text-white block">{user.name}</span>
                               <span className="font-mono text-emerald-400 text-[10px]">{user.id}</span>
                             </td>
-                            <td className="py-3 px-3 font-semibold text-slate-200">
-                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 font-mono text-[11px]">{user.phone}</td>
-                            <td className="py-3 px-3 text-right font-bold text-emerald-400">
-                              {user.salesKatha} কাঠা
-                            </td>
-                            <td className="py-3 px-3 text-right font-bold text-amber-400">
-                              {user.totalEarnings.toLocaleString('bn-BD')} ৳
-                            </td>
-                            <td className="py-3 px-3 text-right text-slate-400">
-                              {user.teamSalesKatha} কাঠা
-                            </td>
-                            <td className="py-3 px-3 text-right text-purple-400">
-                              {user.teamEarnings.toLocaleString('bn-BD')} ৳
-                            </td>
+                            <td className="py-3 px-3 font-semibold text-slate-200">{user.role}</td>
+                            <td className="py-3 px-3 font-mono">{user.phone}</td>
+                            <td className="py-3 px-3 text-right font-bold text-emerald-400">{user.salesKatha} কাঠা</td>
+                            <td className="py-3 px-3 text-right font-bold text-amber-400">{user.totalEarnings.toLocaleString('bn-BD')} ৳</td>
                             <td className="py-3 px-3 text-center">
                               <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                                 user.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'
@@ -1289,7 +1114,7 @@ export default function UnityDreamPortal() {
                                 onClick={() => setViewDetailsUser(user)}
                                 className="bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold px-2.5 py-1 rounded border border-slate-700 text-[11px]"
                               >
-                                বিস্তারিত দেখুন
+                                বিস্তারিত
                               </button>
                             </td>
                           </tr>
@@ -1300,182 +1125,75 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 2: জেনারেল জার্নাল ও ভাউচার */}
-              {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
-                <div>
-                  <form onSubmit={handleAddVoucher} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
-                    <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
-                      <span>✍️</span> রিয়েল এস্টেট ভাউচার এন্ট্রি (জার্নাল, TDS, VDS ও অটো এসএমএস অ্যালার্ট)
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      <div>
-                        <label className="text-slate-400 block mb-1">প্রকল্প (Project)</label>
-                        <select 
-                          value={voucherProjectId} 
-                          onChange={(e) => setVoucherProjectId(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        >
-                          {projectsData.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-slate-400 block mb-1">চার্ট অব অ্যাকাউন্টস (COA)</label>
-                        <select 
-                          value={voucherAccountCode} 
-                          onChange={(e) => setVoucherAccountCode(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono"
-                        >
-                          {INITIAL_COA.map(c => (
-                            <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-slate-400 block mb-1">লেনদেনের ধরন (Type)</label>
-                        <select 
-                          value={voucherType} 
-                          onChange={(e) => setVoucherType(e.target.value as 'Debit' | 'Credit')}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold"
-                        >
-                          <option value="Credit">Credit (আয় / বুকিং / রিসিট)</option>
-                          <option value="Debit">Debit (ব্যয় / মেটেরিয়াল / পেমেন্ট)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-slate-400 block mb-1">ক্যাটাগরি</label>
-                        <select 
-                          value={voucherCategory} 
-                          onChange={(e) => setVoucherCategory(e.target.value as ERPTransaction['category'])}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        >
-                          <option value="Plot Sales Revenue">Plot Sales Revenue (প্লট/ফ্ল্যাট বিক্রি)</option>
-                          <option value="Customer Installment">Customer Installment (কিস্তি আদায়)</option>
-                          <option value="Material Construction">Material Construction (রড, সিমেন্ট, বালু)</option>
-                          <option value="Contractor RA Bill">Contractor RA Bill (ঠিকাদার রানিং বিল)</option>
-                          <option value="Land Cost">Land Cost (জমি অধিগ্রহণ ও সাইন-অন)</option>
-                          <option value="Office Overhead">Office Overhead (অফিস খরচ)</option>
-                          <option value="Staff Salary">Staff Salary (স্টাফ স্যালারি)</option>
-                          <option value="Commission Payout">Commission Payout (কমিশন প্রদান)</option>
-                        </select>
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="text-slate-400 block mb-1">বিবরণ (Narration)</label>
-                        <input 
-                          type="text" 
-                          required 
-                          placeholder="ভাউচারের সুনির্দিষ্ট বিবরণ দিন..."
-                          value={voucherDesc}
-                          onChange={(e) => setVoucherDesc(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-slate-400 block mb-1">মোট বিল (Gross ৳)</label>
-                        <input 
-                          type="number" 
-                          required 
-                          min="1"
-                          placeholder="পরিমাণ"
-                          value={voucherGross || ''}
-                          onChange={(e) => setVoucherGross(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold text-amber-400"
-                        />
-                      </div>
-
-                      {voucherType === 'Debit' ? (
-                        <div className="grid grid-cols-3 gap-1">
-                          <div>
-                            <label className="text-[10px] text-slate-400 block">TDS %</label>
-                            <input 
-                              type="number" 
-                              placeholder="%"
-                              value={voucherTdsRate || ''}
-                              onChange={(e) => setVoucherTdsRate(Number(e.target.value))}
-                              className="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white text-center"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-slate-400 block">VDS %</label>
-                            <input 
-                              type="number" 
-                              placeholder="%"
-                              value={voucherVdsRate || ''}
-                              onChange={(e) => setVoucherVdsRate(Number(e.target.value))}
-                              className="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white text-center"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-slate-400 block">Ret %</label>
-                            <input 
-                              type="number" 
-                              placeholder="%"
-                              value={voucherRetentionRate || ''}
-                              onChange={(e) => setVoucherRetentionRate(Number(e.target.value))}
-                              className="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white text-center"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-emerald-400 font-semibold text-[11px] pt-4">
-                          ✓ কোম্পানির মূল একাউন্টসে ক্রেডিট হবে ও মাস্টার অ্যালার্ট যাবে
-                        </div>
-                      )}
+              {/* TAB 2: CRM ও লিড পাইপলাইন */}
+              {activeTab === 'crm_leads' && (
+                <div className="text-xs">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <div>
+                      <h4 className="text-sm font-bold text-sky-400">🎯 লিড ম্যানেজমেন্ট, স্কোরিং ও সেলস পাইপলাইন</h4>
+                      <p className="text-slate-400 text-[11px]">সম্ভাব্য ক্রেতাদের ফলোআপ, লিড স্কোরিং (Hot/Warm/Cold) এবং স্টেজ ট্র্যাকিং।</p>
                     </div>
+                    <button 
+                      onClick={() => setShowAddLeadModal(true)}
+                      className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs flex items-center gap-1.5"
+                    >
+                      <span>➕</span> নতুন লিড যুক্ত করুন
+                    </button>
+                  </div>
 
-                    <div className="mt-4 flex justify-between items-center pt-2 border-t border-slate-800">
-                      <span className="text-slate-400 text-[11px]">
-                        নিট সমন্বয়: <strong className="text-white">
-                          {voucherType === 'Debit' 
-                            ? (voucherGross - ((voucherGross * voucherTdsRate)/100 + (voucherGross * voucherVdsRate)/100 + (voucherGross * voucherRetentionRate)/100)).toLocaleString('bn-BD')
-                            : voucherGross.toLocaleString('bn-BD')} ৳
-                        </strong>
-                      </span>
-                      <button 
-                        type="submit" 
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded shadow text-xs"
-                      >
-                        ভাউচার সেভ করুন
-                      </button>
-                    </div>
-                  </form>
-
-                  <div className="overflow-x-auto text-xs">
+                  <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
-                          <th className="py-2.5 px-3">ভাউচার নং</th>
-                          <th className="py-2.5 px-3">তারিখ</th>
-                          <th className="py-2.5 px-3">প্রকল্প</th>
-                          <th className="py-2.5 px-3">COA ও খাত</th>
-                          <th className="py-2.5 px-3">বিবরণ</th>
-                          <th className="py-2.5 px-3 text-right">গ্রস পরিমাণ</th>
-                          <th className="py-2.5 px-3 text-right">নিট লেনদেন</th>
-                          <th className="py-2.5 px-3 text-center">রেকর্ডকারী</th>
+                          <th className="py-2.5 px-3">নাম ও ফোন</th>
+                          <th className="py-2.5 px-3">উৎস</th>
+                          <th className="py-2.5 px-3">আগ্রহের প্রকল্প</th>
+                          <th className="py-2.5 px-3 text-center">লিড স্কোর</th>
+                          <th className="py-2.5 px-3">বর্তমান পর্যায় (Stage)</th>
+                          <th className="py-2.5 px-3">দায়িত্বপ্রাপ্ত</th>
+                          <th className="py-2.5 px-3 text-center">অ্যাকশন</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 text-slate-300">
-                        {transactions.map((t) => (
-                          <tr key={t.id} className="hover:bg-slate-900/50">
-                            <td className="py-2.5 px-3 font-mono text-emerald-400 font-bold">{t.voucherNo}</td>
-                            <td className="py-2.5 px-3 font-mono">{t.date}</td>
-                            <td className="py-2.5 px-3">{t.projectName}</td>
-                            <td className="py-2.5 px-3 font-mono text-[11px]">{t.accountCode} - {t.category}</td>
-                            <td className="py-2.5 px-3">{t.description}</td>
-                            <td className={`py-2.5 px-3 text-right font-bold ${t.type === 'Credit' ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {t.grossAmount.toLocaleString('bn-BD')} ৳
+                        {leads.map((ld) => (
+                          <tr key={ld.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3">
+                              <span className="font-bold text-white block">{ld.name}</span>
+                              <span className="font-mono text-slate-400 text-[10px]">{ld.phone}</span>
                             </td>
-                            <td className="py-2.5 px-3 text-right font-bold text-white">
-                              {t.netAmount.toLocaleString('bn-BD')} ৳
+                            <td className="py-3 px-3">{ld.source}</td>
+                            <td className="py-3 px-3 text-emerald-400 font-semibold">{ld.interestedProject}</td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                                ld.score === 'Hot' ? 'bg-rose-950 text-rose-400 border border-rose-800' :
+                                ld.score === 'Warm' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-slate-800 text-slate-300'
+                              }`}>
+                                {ld.score}
+                              </span>
                             </td>
-                            <td className="py-2.5 px-3 text-center text-slate-400 text-[11px]">{t.recordedBy}</td>
+                            <td className="py-3 px-3">
+                              <select 
+                                value={ld.stage}
+                                onChange={(e) => updateLeadStage(ld.id, e.target.value as LeadItem['stage'])}
+                                className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs"
+                              >
+                                <option value="New Lead">New Lead</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Site Visit Planned">Site Visit Planned</option>
+                                <option value="Negotiation">Negotiation</option>
+                                <option value="Booked">Booked (বিক্রয় নিশ্চিত)</option>
+                                <option value="Lost">Lost</option>
+                              </select>
+                            </td>
+                            <td className="py-3 px-3 text-slate-400">{ld.assignedTo}</td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => triggerWhatsApp(ld.phone, `আসসালামু আলাইকুম ${ld.name}! ইউনিটি ড্রিম প্রপার্টিজ থেকে যোগাযোগ করা হচ্ছে।`)}
+                                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white px-2 py-1 rounded text-[11px] font-bold"
+                              >
+                                WhatsApp
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -1484,13 +1202,81 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 3: প্রজেক্ট কস্টিং ও লাভ ক্ষতি */}
-              {activeTab === 'project_costing' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+              {/* TAB 3: সাইট ভিজিট ও মিটিং শিডিউলার */}
+              {activeTab === 'visits_scheduling' && (
                 <div className="text-xs">
-                  <div className="mb-4">
-                    <h4 className="text-sm font-bold text-indigo-400">
-                      🏗️ প্রকল্পভিত্তিক লাভ-ক্ষতি (Project P&L) ও Work-in-Progress (WIP) বিশ্লেষণ
-                    </h4>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <div>
+                      <h4 className="text-sm font-bold text-purple-400">🗓️ প্রজেক্ট সাইট ভিজিট ও অফিস মিটিং শিডিউলার</h4>
+                      <p className="text-slate-400 text-[11px]">ক্লায়েন্টদের সাথে সাইট পরিদর্শন এবং আলোচনা সেশনের ক্যালেন্ডার লগ।</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowAddVisitModal(true)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs flex items-center gap-1.5"
+                    >
+                      <span>➕</span> নতুন শিডিউল যোগ করুন
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
+                          <th className="py-2.5 px-3">ক্লায়েন্টের নাম ও মোবাইল</th>
+                          <th className="py-2.5 px-3">ধরন</th>
+                          <th className="py-2.5 px-3">প্রকল্প</th>
+                          <th className="py-2.5 px-3">তারিখ ও সময়</th>
+                          <th className="py-2.5 px-3">সমন্বয়কারী</th>
+                          <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3 text-center">রিমাইন্ডার</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {visits.map((v) => (
+                          <tr key={v.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3">
+                              <span className="font-bold text-white block">{v.clientName}</span>
+                              <span className="font-mono text-slate-400 text-[10px]">{v.clientPhone}</span>
+                            </td>
+                            <td className="py-3 px-3 font-semibold text-purple-400">{v.type}</td>
+                            <td className="py-3 px-3">{v.projectName}</td>
+                            <td className="py-3 px-3 font-mono text-amber-400">{v.dateTime}</td>
+                            <td className="py-3 px-3 text-slate-400">{v.coordinator}</td>
+                            <td className="py-3 px-3 text-center">
+                              <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold text-[10px]">
+                                {v.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <button 
+                                onClick={() => triggerWhatsApp(v.clientPhone, `*UNITY DREAM PROPERTIES Reminder*\nসম্মানিত ${v.clientName}, আপনার ${v.type} সিডিউল: ${v.dateTime} (${v.projectName})।`)}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-[11px] font-bold"
+                              >
+                                রিমাইন্ডার পাঠান
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: র মেটেরিয়ালস ও সাইট রিকুইজিশন */}
+              {activeTab === 'materials_req' && (
+                <div className="text-xs">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <div>
+                      <h4 className="text-sm font-bold text-amber-400">📦 র মেটেরিয়ালস স্টক ও কনস্ট্রাকশন সাইট রিকুইজিশন</h4>
+                      <p className="text-slate-400 text-[11px]">সাইট ইঞ্জিনিয়ারদের মালামালের চাহিদা অনুমোদন ও স্টক ট্র্যাকিং।</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowAddReqModal(true)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs flex items-center gap-1.5"
+                    >
+                      <span>➕</span> নতুন রিকুইজিশন পাঠান
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -1498,25 +1284,27 @@ export default function UnityDreamPortal() {
                       <thead>
                         <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
                           <th className="py-2.5 px-3">প্রকল্পের নাম</th>
-                          <th className="py-2.5 px-3 text-right">মোট সেলস রেভিনিউ</th>
-                          <th className="py-2.5 px-3 text-right">মেটেরিয়াল খরচ</th>
-                          <th className="py-2.5 px-3 text-right">ঠিকাদার বিল</th>
-                          <th className="py-2.5 px-3 text-right">ভূমি ও ডাইরেক্ট খরচ</th>
-                          <th className="py-2.5 px-3 text-right">চলতি WIP মূল্য</th>
-                          <th className="py-2.5 px-3 text-right">নিট লাভ/ক্ষতি (P&L)</th>
+                          <th className="py-2.5 px-3">মালামালের আইটেম</th>
+                          <th className="py-2.5 px-3 text-right">পরিমাণ</th>
+                          <th className="py-2.5 px-3 text-right">আনুমানিক খরচ</th>
+                          <th className="py-2.5 px-3">রিকুইজিশনকারী</th>
+                          <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 text-slate-300">
-                        {projectCostMatrix.map((p) => (
-                          <tr key={p.id} className="hover:bg-slate-900/50">
-                            <td className="py-3 px-3 font-bold text-white">{p.name}</td>
-                            <td className="py-3 px-3 text-right font-bold text-emerald-400">{p.totalRevenue.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right">{p.materialCost.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right">{p.contractorCost.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right">{p.landAndDirectCost.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right font-bold text-amber-400">{p.wipValue.toLocaleString('bn-BD')} ৳</td>
-                            <td className={`py-3 px-3 text-right font-extrabold ${p.netProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                              {p.netProfitLoss.toLocaleString('bn-BD')} ৳
+                        {requisitions.map((r) => (
+                          <tr key={r.id} className="hover:bg-slate-900/50">
+                            <td className="py-3 px-3 font-bold text-white">{r.projectName}</td>
+                            <td className="py-3 px-3 text-amber-300 font-semibold">{r.itemType}</td>
+                            <td className="py-3 px-3 text-right font-bold text-white">{r.requestedQty} {r.unit}</td>
+                            <td className="py-3 px-3 text-right font-bold text-emerald-400">{r.estimatedCost.toLocaleString('bn-BD')} ৳</td>
+                            <td className="py-3 px-3 text-slate-400">{r.requestedBy} ({r.requestDate})</td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                                r.status === 'Approved' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
+                              }`}>
+                                {r.status}
+                              </span>
                             </td>
                           </tr>
                         ))}
@@ -1526,107 +1314,69 @@ export default function UnityDreamPortal() {
                 </div>
               )}
 
-              {/* TAB 4: কাস্টমার কিস্তি ও এজিং */}
-              {activeTab === 'ar_installments' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
-                <div className="text-xs">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-sm font-bold text-sky-400">
-                      👥 কাস্টমার ইনস্টলমেন্ট ট্র্যাকিং ও রিসিভেবল এজিং (Receivable Aging)
-                    </h4>
-                  </div>
+              {/* TAB 5: জেনারেল জার্নাল */}
+              {activeTab === 'journal_ledger' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
+                <div>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (voucherGross <= 0) return;
+                    const matchedProject = projectsData.find(p => p.id === voucherProjectId);
+                    const matchedAccount = INITIAL_COA.find(c => c.code === voucherAccountCode);
+                    const tds = (voucherGross * voucherTdsRate) / 100;
+                    const vds = (voucherGross * voucherVdsRate) / 100;
+                    const retention = (voucherGross * voucherRetentionRate) / 100;
+                    const net = voucherType === 'Debit' ? voucherGross - (tds + vds + retention) : voucherGross;
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/80">
-                          <th className="py-2.5 px-3">গ্রাহকের নাম ও ফোন</th>
-                          <th className="py-2.5 px-3">প্রকল্প ও ইউনিট</th>
-                          <th className="py-2.5 px-3 text-right">মোট চুক্তি মূল্য</th>
-                          <th className="py-2.5 px-3 text-right">আদায়কৃত টাকা</th>
-                          <th className="py-2.5 px-3 text-right">বর্তমান বকেয়া</th>
-                          <th className="py-2.5 px-3">পরবর্তী কিস্তির তারিখ</th>
-                          <th className="py-2.5 px-3 text-center">এজিং স্ট্যাটাস</th>
-                          <th className="py-2.5 px-3 text-center">অ্যাকশন</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
-                        {receivables.map((ar) => (
-                          <tr key={ar.id} className="hover:bg-slate-900/50">
-                            <td className="py-3 px-3">
-                              <span className="font-bold text-white block">{ar.customerName}</span>
-                              <span className="font-mono text-slate-400 text-[10px]">{ar.phone}</span>
-                            </td>
-                            <td className="py-3 px-3">
-                              <span className="text-slate-200 block">{ar.projectName}</span>
-                              <span className="text-slate-400 text-[10px]">{ar.unitOrPlot}</span>
-                            </td>
-                            <td className="py-3 px-3 text-right">{ar.totalPrice.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right font-bold text-emerald-400">{ar.paidAmount.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 text-right font-bold text-rose-400">{ar.dueAmount.toLocaleString('bn-BD')} ৳</td>
-                            <td className="py-3 px-3 font-mono">{ar.nextInstallmentDate}</td>
-                            <td className="py-3 px-3 text-center">
-                              {ar.daysOverdue > 0 ? (
-                                <span className="bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded font-bold">
-                                  {ar.daysOverdue} দিন বাকি
-                                </span>
-                              ) : (
-                                <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold">
-                                  রেগুলার
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <button 
-                                onClick={() => {
-                                  triggerWhatsApp(
-                                    ar.phone,
-                                    `*UNITY DREAM PROPERTIES LTD. কিস্তি রিমাইন্ডার*\nগ্রাহক: ${ar.customerName}\nপ্রকল্প: ${ar.projectName}\nবকেয়া: ${ar.dueAmount.toLocaleString('bn-BD')} ৳\nতারিখ: ${ar.nextInstallmentDate}\nহেল্পলাইন: ${MASTER_PHONE}`
-                                  );
-                                }}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[11px] font-bold"
-                              >
-                                রিমাইন্ডার
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+                    const newTxn: ERPTransaction = {
+                      id: `TXN-${Date.now().toString().slice(-4)}`,
+                      voucherNo: `VR-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+                      date: new Date().toISOString().split('T')[0],
+                      projectId: voucherProjectId,
+                      projectName: matchedProject?.name || 'General Project',
+                      accountCode: voucherAccountCode,
+                      accountName: matchedAccount?.name || 'General Expense',
+                      type: voucherType,
+                      category: voucherCategory,
+                      description: voucherDesc.trim() || `${voucherCategory} Transaction`,
+                      grossAmount: voucherGross,
+                      tdsAmount: tds,
+                      vdsAmount: vds,
+                      retentionAmount: retention,
+                      netAmount: net,
+                      recordedBy: currentUser.name
+                    };
 
-              {/* TAB 5: বিডি ট্যাক্স ও ভ্যাট */}
-              {activeTab === 'tax_vat' && (currentUser.hasAccountsAccess || currentUser.isSuperAdmin) && (
-                <div className="text-xs">
-                  <div className="mb-4">
-                    <h4 className="text-sm font-bold text-rose-400">
-                      ⚖️ বাংলাদেশী ট্যাক্স, ভ্যাট (NBR Mushak 6.3) ও উৎসে কর কর্তন রেজিস্টার
-                    </h4>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">মোট উৎসে কর (TDS / AIT)</span>
-                      <span className="text-2xl font-black text-rose-400 mt-1 block">
-                        {totalTDSCollected.toLocaleString('bn-BD')} ৳
-                      </span>
+                    const updated = [newTxn, ...transactions];
+                    setTransactions(updated);
+                    localStorage.setItem('udp_erp_txns', JSON.stringify(updated));
+                    triggerWhatsApp(MASTER_PHONE, `*New Voucher Alert*\nNo: ${newTxn.voucherNo}\nNet: ${newTxn.netAmount} BDT`);
+                    setVoucherDesc(''); setVoucherGross(0);
+                    alert('ভাউচার সফলভাবে যুক্ত হয়েছে!');
+                  }} className="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-6 text-xs">
+                    <h4 className="text-sm font-bold text-amber-400 mb-3">✍️ ভাউচার এন্ট্রি (জার্নাল ও লেজার)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">প্রকল্প</label>
+                        <select value={voucherProjectId} onChange={(e) => setVoucherProjectId(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                          {projectsData.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">ধরন</label>
+                        <select value={voucherType} onChange={(e) => setVoucherType(e.target.value as 'Debit' | 'Credit')} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold">
+                          <option value="Credit">Credit (আয়)</option>
+                          <option value="Debit">Debit (ব্যয়)</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-slate-400 block mb-1">মোট বিল (Gross ৳)</label>
+                        <input type="number" required min="1" value={voucherGross || ''} onChange={(e) => setVoucherGross(Number(e.target.value))} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-bold text-amber-400" />
+                      </div>
                     </div>
-
-                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">মোট উৎসে ভ্যাট (VDS / NBR 6.3)</span>
-                      <span className="text-2xl font-black text-amber-400 mt-1 block">
-                        {totalVDSCollected.toLocaleString('bn-BD')} ৳
-                      </span>
+                    <div className="mt-3 text-right">
+                      <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded text-xs shadow">ভাউচার সেভ করুন</button>
                     </div>
-
-                    <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">ঠিকাদার রিটেনশন মানি</span>
-                      <span className="text-2xl font-black text-indigo-400 mt-1 block">
-                        {totalRetentionPayable.toLocaleString('bn-BD')} ৳
-                      </span>
-                    </div>
-                  </div>
+                  </form>
                 </div>
               )}
 
@@ -1635,102 +1385,54 @@ export default function UnityDreamPortal() {
                 <div className="text-xs">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">মোট ক্যাশ ব্যালেন্স (Assets)</span>
+                      <span className="text-slate-400 block font-semibold">ক্যাশ ব্যালেন্স ও লিকুইড এসেট</span>
                       <span className="text-2xl font-black text-teal-400 mt-1 block">
-                        {netCashInHand.toLocaleString('bn-BD')} ৳
+                        {(transactions.filter(t => t.type === 'Credit').reduce((a, b) => a + b.netAmount, 0) - transactions.filter(t => t.type === 'Debit').reduce((a, b) => a + b.netAmount, 0)).toLocaleString('bn-BD')} ৳
                       </span>
                     </div>
-
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                       <span className="text-slate-400 block font-semibold">গ্রাহকদের মোট কিস্তি বকেয়া</span>
                       <span className="text-2xl font-black text-sky-400 mt-1 block">
                         {receivables.reduce((acc, r) => acc + r.dueAmount, 0).toLocaleString('bn-BD')} ৳
                       </span>
                     </div>
-
                     <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">চলতি নেট প্রফিট (YTD Net Profit)</span>
+                      <span className="text-slate-400 block font-semibold">মোট বিক্রয় রেভিনিউ</span>
                       <span className="text-2xl font-black text-amber-400 mt-1 block">
-                        {(totalCreditRevenue - totalDebitExpense).toLocaleString('bn-BD')} ৳
+                        {transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.grossAmount, 0).toLocaleString('bn-BD')} ৳
                       </span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 7: 👑 ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল */}
+              {/* TAB 7: সুপার এডমিন ইউজার ডাটাবেজ কন্ট্রোল */}
               {activeTab === 'admin_users' && currentUser.isSuperAdmin && (
                 <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 text-xs">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <div>
-                      <h4 className="text-sm font-bold text-red-400">
-                        👑 সেন্ট্রাল ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল (Super Admin Control)
-                      </h4>
-                      <p className="text-slate-400 text-[11px] mt-0.5">
-                        সুপার অ্যাডমিন হিসেবে যেকোনো ইউজারের পদবী, এক্সেস, কমিশন ও স্ট্যাটাস সম্পূর্ণ নিয়ন্ত্রণ করুন।
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => setShowAddUserModal(true)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs flex items-center gap-1.5"
-                    >
-                      <span>➕</span> নতুন ইউজার যুক্ত করুন
-                    </button>
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-bold text-red-400">👑 ইউজার ডাটাবেজ ও পারমিশন কন্ট্রোল</h4>
+                    <button onClick={() => setShowAddUserModal(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs">➕ নতুন ইউজার</button>
                   </div>
-
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-slate-800 text-slate-400">
-                          <th className="py-2.5 px-3">ইউজার আইডি</th>
                           <th className="py-2.5 px-3">নাম</th>
-                          <th className="py-2.5 px-3">ইমেইল</th>
+                          <th className="py-2.5 px-3">পদবী</th>
                           <th className="py-2.5 px-3">মোবাইল</th>
-                          <th className="py-2.5 px-3">পদবী (Role)</th>
-                          <th className="py-2.5 px-3">পাসওয়ার্ড</th>
-                          <th className="py-2.5 px-3">স্ট্যাটাস</th>
+                          <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
                           <th className="py-2.5 px-3 text-center">অ্যাকশন</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 text-slate-300">
                         {usersList.map((user) => (
-                          <tr key={user.id} className="hover:bg-slate-800/40">
-                            <td className="py-3 px-3 font-mono text-emerald-400 font-bold">{user.id}</td>
-                            <td className="py-3 px-3 font-bold text-white">{user.name}</td>
-                            <td className="py-3 px-3 font-mono">{user.email}</td>
-                            <td className="py-3 px-3 font-mono">{user.phone}</td>
-                            <td className="py-3 px-3">
-                              <span className="bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 font-mono text-amber-300">{user.password || 'N/A'}</td>
-                            <td className="py-3 px-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                user.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'
-                              }`}>
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              {user.id === 'UDP-SA-001' ? (
-                                <span className="text-slate-500 font-mono text-[10px]">Master Admin</span>
-                              ) : (
-                                <div className="flex items-center justify-center gap-1.5">
-                                  <button 
-                                    onClick={() => setEditUserModal(user)}
-                                    className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-0.5 rounded text-[10px]"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDeleteUser(user.email)}
-                                    className="bg-rose-950 text-rose-300 border border-rose-800 px-2 py-0.5 rounded text-[10px] font-bold hover:bg-rose-900"
-                                  >
-                                    ডিলিট
-                                  </button>
-                                </div>
-                              )}
+                          <tr key={user.id}>
+                            <td className="py-2.5 px-3 font-bold text-white">{user.name}</td>
+                            <td className="py-2.5 px-3">{user.role}</td>
+                            <td className="py-2.5 px-3 font-mono">{user.phone}</td>
+                            <td className="py-2.5 px-3 text-center">{user.status}</td>
+                            <td className="py-2.5 px-3 text-center">
+                              <button onClick={() => setEditUserModal(user)} className="bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded text-[10px] mr-1">Edit</button>
                             </td>
                           </tr>
                         ))}
@@ -1745,644 +1447,147 @@ export default function UnityDreamPortal() {
         </div>
       </section>
 
-      {/* ===================== ৩. প্রজেক্টস শোকেস ===================== */}
+      {/* ৩. প্রজেক্টস শোকেস */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-2">
             <span className="h-5 w-1.5 bg-emerald-600 rounded"></span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-              আমাদের অনুমোদিত ও পার্টনার প্রজেক্টসমূহ
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">আমাদের অনুমোদিত ও পার্টনার প্রজেক্টসমূহ</h2>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projectsData.map((project) => (
-            <div 
-              key={project.id} 
-              className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-            >
+            <div key={project.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
               <div>
-                <div className="relative h-52 w-full overflow-hidden bg-slate-100">
-                  <img 
-                    src={project.image} 
-                    alt={project.name} 
-                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-                  />
-                  <span className="absolute top-3 left-3 bg-emerald-800/90 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-md shadow">
-                    {project.tag}
-                  </span>
-                  <span className="absolute top-3 right-3 bg-amber-400 text-slate-950 text-[11px] font-bold px-2 py-0.5 rounded-md shadow">
-                    {project.badge}
-                  </span>
-                </div>
-
+                <img src={project.image} alt={project.name} className="h-52 w-full object-cover" />
                 <div className="p-5">
                   <p className="text-xs text-slate-500 font-semibold">{project.developer}</p>
-                  <h3 className="text-lg font-bold text-slate-900 mt-1 leading-snug">
-                    {project.name}
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-2 flex items-center gap-1">
-                    📍 {project.location}
-                  </p>
-
-                  <div className="mt-5 pt-3 border-t border-gray-100 flex justify-between items-end">
-                    <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">সাইজ</span>
-                      <span className="font-bold text-xs text-slate-800">{project.size}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                        {project.statusBadge}
-                      </span>
-                      <span className="font-extrabold text-sm text-emerald-700">{project.price}</span>
-                    </div>
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">{project.name}</h3>
+                  <p className="text-xs text-slate-600 mt-1">📍 {project.location}</p>
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-end">
+                    <span className="font-bold text-xs text-slate-800">{project.size}</span>
+                    <span className="font-extrabold text-sm text-emerald-700">{project.price}</span>
                   </div>
                 </div>
               </div>
-
               <div className="p-5 pt-0">
-                <button 
-                  onClick={() => setSelectedProjectForTerms(project)}
-                  className="w-full text-center py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors"
-                >
+                <button onClick={() => setSelectedProjectForTerms(project)} className="w-full text-center py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 rounded-xl border border-emerald-200">
                   বিস্তারিত ও বুকিং শর্তাবলী
                 </button>
               </div>
-
             </div>
           ))}
         </div>
       </main>
 
-      {/* ===================== ৪. প্রজেক্ট শর্তাবলী ও হোয়াটসঅ্যাপ বুকিং মোডাল ===================== */}
-      {selectedProjectForTerms && (
+      {/* ৪. CRM লিড তৈরি মোডাল */}
+      {showAddLeadModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200">
-            <div className="bg-emerald-700 text-white px-6 py-4 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-base">{selectedProjectForTerms.name}</h3>
-                <p className="text-xs text-emerald-200 mt-0.5">{selectedProjectForTerms.location}</p>
-              </div>
-              <button 
-                onClick={() => setSelectedProjectForTerms(null)}
-                className="text-white hover:text-gray-200 text-2xl font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-6">
-              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
-                📋 বুকিং নিয়মাবলী ও আইনি শর্তসমূহ:
-              </h4>
-              <ul className="space-y-2.5 text-xs text-slate-700 leading-relaxed">
-                {selectedProjectForTerms.terms.map((term, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-emerald-600 font-bold">✔</span>
-                    <span>{term}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <span className="text-[10px] text-gray-500 block">অফিসিয়াল বুকিং ও হেল্পলাইন</span>
-                  <a href={`tel:${MASTER_PHONE}`} className="text-xs font-bold text-emerald-800 hover:underline">
-                    {MASTER_PHONE}
-                  </a>
-                </div>
-                
-                <button 
-                  onClick={() => {
-                    triggerWhatsApp(
-                      MASTER_PHONE,
-                      `*UNITY DREAM PROPERTIES LTD. - বুকিং অনুসন্ধান*\nপ্রকল্পের নাম: ${selectedProjectForTerms.name}\nলোকেশন: ${selectedProjectForTerms.location}\nমূল্য/সাইজ: ${selectedProjectForTerms.price} (${selectedProjectForTerms.size})\n\nআমি এই প্রকল্পটির বুকিং ও বিস্তারিত শর্তাবলী সম্পর্কে আলোচনা করতে আগ্রহী।`
-                    );
-                    setSelectedProjectForTerms(null);
-                  }}
-                  className="w-full sm:w-auto bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow flex items-center justify-center gap-2"
-                >
-                  <span>💬</span> হোয়াটসঅ্যাপে বুকিং ও তথ্য পাঠান
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===================== ৫. ইউজার ডিটেইলস ইনফো মোডাল ===================== */}
-      {viewDetailsUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 text-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-700">
-            <div className="bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-slate-700">
-              <div>
-                <h3 className="font-bold text-base text-emerald-400">{viewDetailsUser.name}</h3>
-                <p className="text-xs text-slate-400">আইডি: {viewDetailsUser.id} | পদবী: {viewDetailsUser.role}</p>
-              </div>
-              <button onClick={() => setViewDetailsUser(null)} className="text-white hover:text-gray-300 text-xl font-bold">
-                ✕
-              </button>
-            </div>
-
-            <div className="p-6 text-xs space-y-4">
-              <div className="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
-                <div>মোবাইল: <strong className="text-white">{viewDetailsUser.phone}</strong></div>
-                <div>ইমেইল: <strong className="text-white">{viewDetailsUser.email}</strong></div>
-                <div>স্ট্যাটাস: <strong className="text-emerald-400">{viewDetailsUser.status}</strong></div>
-                <div>কমিশন স্থিতি: <strong className="text-amber-400">{viewDetailsUser.heldEarnings > 0 ? 'কমিশন হোল্ড রয়েছে' : 'নরমাল'}</strong></div>
-              </div>
-
-              {viewDetailsUser.customerPurchase && (
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <h5 className="font-bold text-amber-400 mb-2">🏡 ক্রয়কৃত ফ্ল্যাট / প্লটের বিবরণ</h5>
-                  <div className="space-y-1.5 text-slate-300">
-                    <div>প্রকল্প: <strong className="text-white">{viewDetailsUser.customerPurchase.projectName}</strong></div>
-                    <div>ইউনিট / প্লট: <strong className="text-white">{viewDetailsUser.customerPurchase.unitOrPlot}</strong> ({viewDetailsUser.customerPurchase.area})</div>
-                    <div>মোট মূল্য: <strong className="text-white">{viewDetailsUser.customerPurchase.totalPrice.toLocaleString('bn-BD')} ৳</strong></div>
-                    <div>পরিশোধিত: <strong className="text-emerald-400">{viewDetailsUser.customerPurchase.paidAmount.toLocaleString('bn-BD')} ৳</strong></div>
-                    <div>বকেয়া: <strong className="text-rose-400">{viewDetailsUser.customerPurchase.dueAmount.toLocaleString('bn-BD')} ৳</strong></div>
-                  </div>
-                </div>
-              )}
-
-              {viewDetailsUser.salesHistory && viewDetailsUser.salesHistory.length > 0 && (
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <h5 className="font-bold text-emerald-400 mb-2">📋 পার্টনার বিক্রয় ও কমিশন রেকর্ড</h5>
-                  {viewDetailsUser.salesHistory.map((s) => (
-                    <div key={s.id} className="border-t border-slate-800 pt-2 mt-2 space-y-1 text-slate-300">
-                      <div>প্রকল্প: <strong>{s.projectName}</strong> ({s.unitOrPlot})</div>
-                      <div>ক্রেতার নাম: <strong>{s.customerName}</strong> ({s.customerPhone})</div>
-                      <div>বিক্রয় মূল্য: <strong>{s.salePrice.toLocaleString('bn-BD')} ৳</strong></div>
-                      <div>অর্জিত কমিশন: <strong className="text-amber-400">{s.commissionEarned.toLocaleString('bn-BD')} ৳</strong></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-slate-800 px-6 py-3 text-right">
-              <button 
-                onClick={() => setViewDetailsUser(null)} 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded text-xs"
-              >
-                বন্ধ করুন
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===================== ৬. সুপার এডমিন ইউজার এডিট মোডাল ===================== */}
-      {editUserModal && currentUser?.isSuperAdmin && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-              <h3 className="font-bold text-sm">👑 ইউজার এডিট ও অ্যাকশন কন্ট্রোল ({editUserModal.id})</h3>
-              <button onClick={() => setEditUserModal(null)} className="text-white hover:text-gray-300 font-bold text-lg">✕</button>
-            </div>
-
-            <form onSubmit={handleSaveEditUser} className="p-6 text-xs space-y-3">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">পূর্ণ নাম</label>
-                <input 
-                  type="text" 
-                  value={editUserModal.name}
-                  onChange={(e) => setEditUserModal({ ...editUserModal, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded p-2"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">মোবাইল</label>
-                <input 
-                  type="tel" 
-                  value={editUserModal.phone}
-                  onChange={(e) => setEditUserModal({ ...editUserModal, phone: e.target.value })}
-                  className="w-full border border-gray-300 rounded p-2 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">পদবী (Role)</label>
-                <select 
-                  value={editUserModal.role}
-                  onChange={(e) => setEditUserModal({ ...editUserModal, role: e.target.value as UserRole })}
-                  className="w-full border border-gray-300 rounded p-2 font-bold"
-                >
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Chairman">Chairman</option>
-                  <option value="Managing Director">Managing Director</option>
-                  <option value="General Manager">General Manager</option>
-                  <option value="DGM">DGM</option>
-                  <option value="AGM">AGM</option>
-                  <option value="Team Leader">Team Leader</option>
-                  <option value="Business Partner">Business Partner</option>
-                  <option value="Agent">Agent</option>
-                  <option value="Customer">Customer</option>
-                  <option value="Accounts Head">Accounts Head</option>
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-xs">
+            <h3 className="font-bold text-sm text-slate-900 mb-3">🎯 নতুন লিড যুক্ত করুন (CRM)</h3>
+            <form onSubmit={handleAddLead} className="space-y-3">
+              <input type="text" required placeholder="কাস্টমারের পূর্ণ নাম *" value={leadName} onChange={(e) => setLeadName(e.target.value)} className="w-full border rounded p-2" />
+              <input type="tel" required placeholder="মোবাইল নম্বর *" value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} className="w-full border rounded p-2" />
+              <input type="email" placeholder="ইমেইল (ঐচ্ছিক)" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} className="w-full border rounded p-2" />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadItem['source'])} className="border rounded p-2">
+                  <option value="Facebook Ad">Facebook Ad</option>
+                  <option value="Reference">Reference</option>
+                  <option value="Walk-in">Walk-in</option>
+                  <option value="Website">Website</option>
+                </select>
+                <select value={leadScore} onChange={(e) => setLeadScore(e.target.value as LeadItem['score'])} className="border rounded p-2 font-bold text-rose-600">
+                  <option value="Hot">Hot (জরুরী/ক্রয়প্রত্যাশী)</option>
+                  <option value="Warm">Warm (আগ্রহী)</option>
+                  <option value="Cold">Cold (তথ্য অনুসন্ধান)</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">পাসওয়ার্ড</label>
-                <input 
-                  type="text" 
-                  value={editUserModal.password || ''}
-                  onChange={(e) => setEditUserModal({ ...editUserModal, password: e.target.value })}
-                  className="w-full border border-gray-300 rounded p-2 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">অ্যাকাউন্ট স্ট্যাটাস</label>
-                <select 
-                  value={editUserModal.status}
-                  onChange={(e) => setEditUserModal({ ...editUserModal, status: e.target.value as 'Active' | 'Blocked' })}
-                  className="w-full border border-gray-300 rounded p-2 font-bold"
-                >
-                  <option value="Active">Active (সক্রিয়)</option>
-                  <option value="Blocked">Blocked (ব্যান / স্থগিত)</option>
-                </select>
-              </div>
-
-              <div className="pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
-                  <input 
-                    type="checkbox" 
-                    checked={editUserModal.hasAccountsAccess}
-                    onChange={(e) => setEditUserModal({ ...editUserModal, hasAccountsAccess: e.target.checked })}
-                  />
-                  সেন্ট্রাল অ্যাকাউন্টস ও জেনারেল লেজার এক্সেস দিন
-                </label>
-              </div>
-
-              <div className="pt-3 flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setEditUserModal(null)} 
-                  className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-100"
-                >
-                  বাতিল
-                </button>
-                <button 
-                  type="submit" 
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded shadow"
-                >
-                  আপডেট সেভ করুন
-                </button>
+              <textarea placeholder="কাস্টমারের চাহিদা ও নোট..." value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} className="w-full border rounded p-2"></textarea>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowAddLeadModal(false)} className="px-3 py-1.5 border rounded">বাতিল</button>
+                <button type="submit" className="bg-sky-600 text-white font-bold px-4 py-1.5 rounded">লিড সেভ করুন</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ===================== ৭. ফুটার সেকশন ===================== */}
-      <footer id="contact" className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800 text-sm">
-            <div>
-              <h4 className="text-white font-bold text-base tracking-wide mb-2">UNITY DREAM PROPERTIES</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:। সেন্ট্রাল ক্লাউড ডাটাবেজ সমন্বিত রিয়েল এস্টেট ইআরপি সিস্টেম।
-              </p>
-              <p className="text-xs text-amber-400 mt-2 font-mono">
-                Helpline: {MASTER_PHONE}
-              </p>
-            </div>
-
-            <div>
-              <h5 className="text-white font-semibold text-sm mb-2 flex items-center gap-1.5">
-                <span>📍</span> কর্পোরেট হেড অফিস
-              </h5>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                ৫/৬ আউটার সার্কুলার রোড, হোসাফ টাওয়ার (৪র্থ তলা),<br />
-                মালিবাগ মোড়, মালিবাগ, ঢাকা-১২১৭, বাংলাদেশ।
-              </p>
-            </div>
-
-            <div>
-              <h5 className="text-white font-semibold text-sm mb-2">অনুমোদিত প্রকল্পসমূহ</h5>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                ঢাকা ওয়েস্টার্ন ভ্যালি • দ্য বে আইকন • পদ্মা ইকো সিটি • পুষ্পধারা স্যাটেলাইট সিটি • নারায়ণগঞ্জ ভূঁইগড় • রামপুরা
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-            <p className="text-slate-400">
-              © 2026 Unity Dream Properties | BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি:
-            </p>
-            <p className="text-slate-500">
-              Hosaf Tower, Malibag, Dhaka | Helpline: {MASTER_PHONE}
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      {/* ===================== ৮. লগইন, রেজিস্টার ও পাসওয়ার্ড রিকভারি মোডাল ===================== */}
-      {authModal && (
+      {/* ৫. সাইট ভিজিট শিডিউল মোডাল */}
+      {showAddVisitModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
-            <div className="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
-              <h3 className="font-bold text-base flex items-center gap-2">
-                <span>👤</span> 
-                {authModal === 'login' && 'LOGIN TO ERP'}
-                {authModal === 'register' && 'CREATE NEW ACCOUNT'}
-                {authModal === 'forgot' && 'PASSWORD RECOVERY'}
-              </h3>
-              <button onClick={() => setAuthModal(null)} className="text-white hover:text-gray-200 text-xl font-bold">✕</button>
-            </div>
-
-            <div className="p-6">
-              {authModal === 'login' && (
-                <form onSubmit={handleLogin}>
-                  <div className="mb-4">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Enter registered email" 
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-xs font-semibold text-gray-700">Password</label>
-                      <button 
-                        type="button"
-                        onClick={() => setAuthModal('forgot')}
-                        className="text-[11px] text-red-600 hover:underline font-bold"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-                    <input 
-                      type="password" 
-                      required 
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Enter password" 
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
-                    />
-                  </div>
-                  <button 
-                    type="submit"
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm mt-2"
-                  >
-                    Login
-                  </button>
-
-                  <div className="mt-4 text-center text-xs text-gray-600">
-                    Don't have an account yet?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setAuthModal('register')}
-                      className="text-emerald-600 font-bold hover:underline"
-                    >
-                      Create New Account
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {authModal === 'forgot' && (
-                <form onSubmit={handleForgotPassword}>
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                      নিবন্ধিত ইমেইল লিখুন। আপনার পাসওয়ার্ড WhatsApp-এ পাঠানো হবে।
-                    </p>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Registered Email Address *</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="Enter registered email" 
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
-                  >
-                    Send Recovery on WhatsApp
-                  </button>
-
-                  <div className="mt-4 text-center text-xs text-gray-600 flex justify-between items-center pt-3 border-t border-gray-100">
-                    <button 
-                      type="button"
-                      onClick={() => setAuthModal('login')}
-                      className="text-emerald-600 font-bold hover:underline"
-                    >
-                      ← Back to Login
-                    </button>
-                    <a 
-                      href={`https://api.whatsapp.com/send?phone=8801689333000&text=পাসওয়ার্ড%20রিকভারি%20সহায়তা%20প্রয়োজন`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-600 font-bold hover:underline"
-                    >
-                      Helpline: {MASTER_PHONE}
-                    </a>
-                  </div>
-                </form>
-              )}
-
-              {authModal === 'register' && (
-                <form onSubmit={handleRegister}>
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">Full Name *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={regName}
-                        onChange={(e) => setRegName(e.target.value)}
-                        placeholder="Enter full name" 
-                        className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">E-mail *</label>
-                      <input 
-                        type="email" 
-                        required 
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        placeholder="Enter valid e-mail" 
-                        className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">Mobile (WhatsApp Number) *</label>
-                      <input 
-                        type="tel" 
-                        required 
-                        value={regPhone}
-                        onChange={(e) => setRegPhone(e.target.value)}
-                        placeholder="e.g. +8801700000000" 
-                        className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600 font-mono" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">Password *</label>
-                      <input 
-                        type="password" 
-                        required 
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="Password" 
-                        className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-0.5">Confirm Password *</label>
-                      <input 
-                        type="password" 
-                        required 
-                        value={regConfirmPassword}
-                        onChange={(e) => setRegConfirmPassword(e.target.value)}
-                        placeholder="Retype password" 
-                        className="w-full border border-gray-300 rounded px-2.5 py-1.5 focus:border-emerald-600" 
-                      />
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit"
-                    className="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded shadow transition-colors text-sm"
-                  >
-                    Register & Send WhatsApp ID
-                  </button>
-
-                  <div className="mt-3 text-center text-xs text-gray-600">
-                    <button 
-                      type="button"
-                      onClick={() => setAuthModal('login')}
-                      className="text-emerald-600 font-bold hover:underline"
-                    >
-                      Already have an account? Click for login
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-xs">
+            <h3 className="font-bold text-sm text-slate-900 mb-3">🗓️ সাইট ভিজিট / মিটিং শিডিউলার</h3>
+            <form onSubmit={handleAddVisit} className="space-y-3">
+              <input type="text" required placeholder="ক্লায়েন্টের নাম *" value={visitClient} onChange={(e) => setVisitClient(e.target.value)} className="w-full border rounded p-2" />
+              <input type="tel" required placeholder="মোবাইল নম্বর *" value={visitPhone} onChange={(e) => setVisitPhone(e.target.value)} className="w-full border rounded p-2" />
+              <select value={visitType} onChange={(e) => setVisitType(e.target.value as SiteVisitMeeting['type'])} className="w-full border rounded p-2 font-bold">
+                <option value="Site Visit">Site Visit (প্রকল্প এলাকা পরিদর্শন)</option>
+                <option value="Office Meeting">Office Meeting (কর্পোরেট অফিসে মিটিং)</option>
+                <option value="Online Call">Online Call</option>
+              </select>
+              <input type="text" required placeholder="তারিখ ও সময় (যেমন: 15 Oct 11:00 AM) *" value={visitDateTime} onChange={(e) => setVisitDateTime(e.target.value)} className="w-full border rounded p-2" />
+              <input type="text" placeholder="বিশেষ নোট (গাড়ির ব্যবস্থা, পিকআপ ইত্যাদি)" value={visitFeedback} onChange={(e) => setVisitFeedback(e.target.value)} className="w-full border rounded p-2" />
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowAddVisitModal(false)} className="px-3 py-1.5 border rounded">বাতিল</button>
+                <button type="submit" className="bg-purple-600 text-white font-bold px-4 py-1.5 rounded">শিডিউল কনফার্ম</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* ===================== ৯. সুপার এডমিন নতুন ইউজার অ্যাড মোডাল ===================== */}
-      {showAddUserModal && currentUser?.isSuperAdmin && (
+      {/* ৬. র মেটেরিয়াল রিকুইজিশন মোডাল */}
+      {showAddReqModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-              <h3 className="font-bold text-sm">👑 নতুন ইউজার যোগ করুন (Super Admin Panel)</h3>
-              <button onClick={() => setShowAddUserModal(false)} className="text-white hover:text-gray-300 font-bold text-lg">✕</button>
-            </div>
-
-            <form onSubmit={handleAdminCreateUser} className="p-6 text-xs space-y-3">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">পূর্ণ নাম *</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="e.g. Md. Hasan Ali" 
-                  className="w-full border border-gray-300 rounded p-2 focus:border-emerald-600"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">ইমেইল *</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="e.g. hasan@unitydream.com" 
-                  className="w-full border border-gray-300 rounded p-2 focus:border-emerald-600"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">মোবাইল (WhatsApp) *</label>
-                <input 
-                  type="tel" 
-                  required 
-                  value={newUserPhone}
-                  onChange={(e) => setNewUserPhone(e.target.value)}
-                  placeholder="+8801700000000" 
-                  className="w-full border border-gray-300 rounded p-2 focus:border-emerald-600 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">কোম্পানি পদবী (Role) *</label>
-                <select 
-                  value={newUserRole}
-                  onChange={(e) => setNewUserRole(e.target.value as UserRole)}
-                  className="w-full border border-gray-300 rounded p-2 font-bold"
-                >
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Chairman">Chairman</option>
-                  <option value="Managing Director">Managing Director</option>
-                  <option value="General Manager">General Manager</option>
-                  <option value="DGM">DGM</option>
-                  <option value="AGM">AGM</option>
-                  <option value="Team Leader">Team Leader</option>
-                  <option value="Business Partner">Business Partner</option>
-                  <option value="Agent">Agent</option>
-                  <option value="Customer">Customer</option>
-                  <option value="Accounts Head">Accounts Head</option>
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-xs">
+            <h3 className="font-bold text-sm text-slate-900 mb-3">📦 কনস্ট্রাকশন মেটেরিয়াল রিকুইজিশন</h3>
+            <form onSubmit={handleAddRequisition} className="space-y-3">
+              <select value={reqProject} onChange={(e) => setReqProject(e.target.value)} className="w-full border rounded p-2">
+                {projectsData.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+              <select value={reqItem} onChange={(e) => setReqItem(e.target.value as MaterialRequisition['itemType'])} className="w-full border rounded p-2 font-bold">
+                <option value="রড (Rod 72G)">রড (Rod 72G)</option>
+                <option value="সিমেন্ট (Cement)">সিমেন্ট (Cement)</option>
+                <option value="সিলেট বালু (Sand)">সিলেট বালু (Sand)</option>
+                <option value="ইট (Bricks)">ইট (Bricks)</option>
+                <option value="পাথর (Stone Chips)">পাথর (Stone Chips)</option>
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" min="1" required placeholder="পরিমাণ" value={reqQty} onChange={(e) => setReqQty(Number(e.target.value))} className="border rounded p-2" />
+                <select value={reqUnit} onChange={(e) => setReqUnit(e.target.value as MaterialRequisition['unit'])} className="border rounded p-2">
+                  <option value="Ton">Ton</option>
+                  <option value="Bags">Bags</option>
+                  <option value="CFT">CFT</option>
+                  <option value="Pcs">Pcs</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">পাসওয়ার্ড *</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={newUserPassword}
-                  onChange={(e) => setNewUserPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded p-2 font-mono"
-                />
+              <input type="number" required placeholder="আনুমানিক বাজেট/খরচ (৳)" value={reqCost || ''} onChange={(e) => setReqCost(Number(e.target.value))} className="w-full border rounded p-2 font-bold text-emerald-700" />
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowAddReqModal(false)} className="px-3 py-1.5 border rounded">বাতিল</button>
+                <button type="submit" className="bg-amber-600 text-white font-bold px-4 py-1.5 rounded">রিকুইজিশন পাঠান</button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-              <div className="pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
-                  <input 
-                    type="checkbox" 
-                    checked={newUserAccountsAccess}
-                    onChange={(e) => setNewUserAccountsAccess(e.target.checked)}
-                  />
-                  সেন্ট্রাল অ্যাকাউন্টস ও জেনারেল লেজার এক্সেস দিন
-                </label>
-              </div>
+      {/* ৭. ফুটার */}
+      <footer id="contact" className="w-full bg-slate-900 border-t border-slate-800 py-10 text-slate-400 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-center">
+          <p>© 2026 Unity Dream Properties | BTM পার্টনার অফ পুষ্পধারা প্রপার্টিজ লি: | হেল্পলাইন: {MASTER_PHONE}</p>
+        </div>
+      </footer>
 
-              <div className="pt-3 flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddUserModal(false)} 
-                  className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-100"
-                >
-                  বাতিল
-                </button>
-                <button 
-                  type="submit" 
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded shadow"
-                >
-                  ইউজার সেভ করুন
-                </button>
-              </div>
+      {/* ৮. লগইন মোডাল */}
+      {authModal === 'login' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-xs">
+            <h3 className="font-bold text-base text-slate-900 mb-4">LOGIN TO PORTAL</h3>
+            <form onSubmit={handleLogin} className="space-y-3">
+              <input type="email" required placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full border rounded p-2" />
+              <input type="password" required placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full border rounded p-2" />
+              <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2 rounded">Login</button>
             </form>
           </div>
         </div>
