@@ -1,347 +1,194 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-
-interface User {
-  id: string;
-  username: string;
-  role: "Admin" | "Manager" | "Field Officer";
-  password: string;
-  status: "সক্রিয়" | "নিষ্ক্রিয়";
-}
+import React, { useState } from 'react';
 
 export default function MicrocreditApp() {
-  // Authentication State
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<string>("");
-  const [currentRole, setCurrentRole] = useState<string>("");
-
-  // Login Form State
-  const [loginUsername, setLoginUsername] = useState<string>("");
-  const [loginPassword, setLoginPassword] = useState<string>("");
-  const [loginError, setLoginError] = useState<string>("");
+  // Login State
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: string } | null>(null);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // Navigation Tab State
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "members" | "loans" | "installments" | "users" | "password"
-  >("overview");
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Users State (Pre-populated with default accounts)
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      username: "atiq",
-      role: "Admin",
-      password: "atiq",
-      status: "সক্রিয়",
-    },
-    {
-      id: "1792534535877",
-      username: "selim",
-      role: "Manager",
-      password: "123",
-      status: "সক্রিয়",
-    },
+  // Application Data States
+  const [users, setUsers] = useState([
+    { id: '1', username: 'atiq', role: 'Super Admin', pass: 'atiq', status: 'সক্রিয়' },
+    { id: '1792534535877', username: 'selim', role: 'Manager', pass: '123', status: 'সক্রিয়' }
   ]);
 
-  // Create User Form State
-  const [newUsername, setNewUsername] = useState<string>("");
-  const [newRole, setNewRole] = useState<"Admin" | "Manager" | "Field Officer">(
-    "Admin"
-  );
-  const [newPassword, setNewPassword] = useState<string>("");
-  const [createMsg, setCreateMsg] = useState<string>("");
+  const [members, setMembers] = useState([
+    { id: '101', name: 'মোঃ রহিম উদ্দিন', mobile: '01711000000', address: 'চর ভাটিয়ানী', status: 'সক্রিয়' },
+    { id: '102', name: 'মোহাম্মদ করিম', mobile: '01812000000', address: 'মাদারগঞ্জ, জামালপুর', status: 'সক্রিয়' }
+  ]);
 
-  // Edit / Action State
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editPasswordVal, setEditPasswordVal] = useState<string>("");
+  const [loans, setLoans] = useState([
+    { id: 'L-501', memberName: 'মোঃ রহিম উদ্দিন', amount: 25000, paid: 15000, status: 'চলমান' },
+    { id: 'L-502', memberName: 'মোহাম্মদ করিম', amount: 25000, paid: 2750, status: 'চলমান' }
+  ]);
 
-  // Super Admin Password Change State
-  const [currentPassInput, setCurrentPassInput] = useState<string>("");
-  const [newPassInput, setNewPassInput] = useState<string>("");
-  const [passChangeMsg, setPassChangeMsg] = useState<string>("");
+  const [collections, setCollections] = useState([
+    { id: '#901', memberName: 'মোহাম্মদ করিম', amount: 2750, date: '2026-10-15', collector: 'atiq' }
+  ]);
+
+  // Form Inputs
+  const [newUsername, setNewUsername] = useState('');
+  const [newRole, setNewRole] = useState('Admin');
+  const [newPassword, setNewPassword] = useState('');
+
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberMobile, setNewMemberMobile] = useState('');
+  const [newMemberAddress, setNewMemberAddress] = useState('');
+
+  const [loanMember, setLoanMember] = useState('');
+  const [loanAmount, setLoanAmount] = useState('');
+
+  const [collectMember, setCollectMember] = useState('');
+  const [collectAmount, setCollectAmount] = useState('');
 
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError("");
-
-    const found = users.find(
-      (u) =>
-        u.username.toLowerCase() === loginUsername.trim().toLowerCase() &&
-        u.password === loginPassword
-    );
-
-    if (found) {
-      if (found.status === "নিষ্ক্রিয়") {
-        setLoginError("এই অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয় রয়েছে।");
-        return;
-      }
+    const user = users.find(u => u.username.toLowerCase() === loginUsername.trim().toLowerCase() && u.pass === loginPassword);
+    if (user) {
+      setCurrentUser({ username: user.username, role: user.role });
       setIsLoggedIn(true);
-      setCurrentUser(found.username);
-      setCurrentRole(found.username === "atiq" ? "Super Admin" : found.role);
+      setLoginError('');
     } else {
-      setLoginError("ইউজারনেম বা পাসওয়ার্ড সঠিক নয়!");
+      setLoginError('ইউজারনেম অথবা পাসওয়ার্ড সঠিক নয়!');
     }
   };
 
-  // Handle Logout
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setCurrentUser("");
-    setCurrentRole("");
-    setLoginUsername("");
-    setLoginPassword("");
-    setLoginError("");
-    setActiveTab("overview");
+    setCurrentUser(null);
+    setLoginUsername('');
+    setLoginPassword('');
   };
 
-  // Handle Create User
-  const handleCreateUser = (e: React.FormEvent) => {
+  // Add User
+  const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUsername.trim() || !newPassword.trim()) {
-      setCreateMsg("ইউজারনেম এবং পাসওয়ার্ড পূরণ করুন।");
-      return;
-    }
-
-    const exists = users.some(
-      (u) => u.username.toLowerCase() === newUsername.trim().toLowerCase()
-    );
-    if (exists) {
-      setCreateMsg("এই ইউজারনেম দিয়ে ইতিমধ্যেই একটি অ্যাকাউন্ট আছে!");
-      return;
-    }
-
-    const newUser: User = {
+    if (!newUsername || !newPassword) return;
+    const newUser = {
       id: Date.now().toString(),
       username: newUsername.trim().toLowerCase(),
       role: newRole,
-      password: newPassword.trim(),
-      status: "সক্রিয়",
+      pass: newPassword,
+      status: 'সক্রিয়'
     };
-
     setUsers([...users, newUser]);
-    setNewUsername("");
-    setNewPassword("");
-    setCreateMsg("নতুন ব্যবহারকারী সফলভাবে যুক্ত হয়েছে!");
-    setTimeout(() => setCreateMsg(""), 4000);
+    setNewUsername('');
+    setNewPassword('');
+    alert('নতুন ইউজার সফলভাবে যুক্ত হয়েছে!');
   };
 
-  // Handle Delete User
-  const handleDeleteUser = (id: string) => {
-    if (id === "1") {
-      alert("সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না!");
-      return;
-    }
-    if (confirm("আপনি কি নিশ্চিত এই ব্যবহারকারীকে মুছে ফেলতে চান?")) {
-      setUsers(users.filter((u) => u.id !== id));
-    }
-  };
-
-  // Handle Toggle Status
-  const handleToggleStatus = (id: string) => {
-    if (id === "1") return;
-    setUsers(
-      users.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              status: u.status === "সক্রিয়" ? "নিষ্ক্রিয়" : "সক্রিয়",
-            }
-          : u
-      )
-    );
-  };
-
-  // Handle Password Update by Super Admin
-  const handleSaveUserPassword = (id: string) => {
-    if (!editPasswordVal.trim()) {
-      alert("অনুগ্রহ করে নতুন পাসওয়ার্ড লিখুন");
-      return;
-    }
-    setUsers(
-      users.map((u) =>
-        u.id === id ? { ...u, password: editPasswordVal.trim() } : u
-      )
-    );
-    setEditingUserId(null);
-    setEditPasswordVal("");
-    alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
-  };
-
-  // Handle Admin Password Change Form
-  const handleChangeAdminPassword = (e: React.FormEvent) => {
+  // Add Member
+  const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
-    const adminAcc = users.find((u) => u.id === "1");
-    if (!adminAcc) return;
-
-    if (adminAcc.password !== currentPassInput) {
-      setPassChangeMsg("বর্তমান পাসওয়ার্ড সঠিক নয়!");
-      return;
-    }
-    if (!newPassInput.trim()) {
-      setPassChangeMsg("নতুন পাসওয়ার্ড খালি রাখা যাবে না।");
-      return;
-    }
-
-    setUsers(
-      users.map((u) => (u.id === "1" ? { ...u, password: newPassInput } : u))
-    );
-    setPassChangeMsg("সুপার অ্যাডমিন পাসওয়ার্ড সফলভাবে আপডেট হয়েছে!");
-    setCurrentPassInput("");
-    setNewPassInput("");
-    setTimeout(() => setPassChangeMsg(""), 4000);
+    if (!newMemberName || !newMemberMobile) return;
+    const newM = {
+      id: (100 + members.length + 1).toString(),
+      name: newMemberName,
+      mobile: newMemberMobile,
+      address: newMemberAddress,
+      status: 'সক্রিয়'
+    };
+    setMembers([...members, newM]);
+    setNewMemberName('');
+    setNewMemberMobile('');
+    setNewMemberAddress('');
+    alert('নতুন সদস্য সফলভাবে নিবন্ধিত হয়েছেন!');
   };
 
-  // ----------------- LOGIN VIEW -----------------
+  // Add Loan
+  const handleAddLoan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loanMember || !loanAmount) return;
+    const newL = {
+      id: `L-${500 + loans.length + 1}`,
+      memberName: loanMember,
+      amount: Number(loanAmount),
+      paid: 0,
+      status: 'চলমান'
+    };
+    setLoans([...loans, newL]);
+    setLoanMember('');
+    setLoanAmount('');
+    alert('নতুন ঋণ অনুমোদন করা হয়েছে!');
+  };
+
+  // Add Installment Collection
+  const handleAddCollection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!collectMember || !collectAmount) return;
+    const newC = {
+      id: `#${900 + collections.length + 1}`,
+      memberName: collectMember,
+      amount: Number(collectAmount),
+      date: new Date().toISOString().split('T')[0],
+      collector: currentUser?.username || 'admin'
+    };
+    setCollections([newC, ...collections]);
+    
+    // update loan paid amount
+    setLoans(loans.map(l => l.memberName === collectMember ? { ...l, paid: l.paid + Number(collectAmount) } : l));
+
+    setCollectMember('');
+    setCollectAmount('');
+    alert('কিস্তি আদায় সফলভাবে সংরক্ষিত হয়েছে!');
+  };
+
+  // ------------------ LOGIN SCREEN ------------------
   if (!isLoggedIn) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "linear-gradient(135deg, #2b6cb0 0%, #1a365d 100%)",
-          padding: "20px",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        }}
-      >
-        <div
-          style={{
-            background: "#ffffff",
-            padding: "40px",
-            borderRadius: "16px",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-            width: "100%",
-            maxWidth: "460px",
-            textAlign: "center",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              color: "#1e3a8a",
-              marginBottom: "4px",
-            }}
-          >
-            চর ভাটীয়ানী প্রভাতী সমাজকল্যাণ বহুমুখী সমবায় সমিতি লিঃ
-          </h2>
-          <p style={{ color: "#64748b", fontSize: "14px", margin: "4px 0" }}>
-            মাদারগঞ্জ, জামালপুর
-          </p>
-          <div
-            style={{
-              display: "inline-block",
-              background: "#eff6ff",
-              color: "#2563eb",
-              padding: "4px 12px",
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: "600",
-              marginBottom: "24px",
-            }}
-          >
-            মাইক্রোক্রেডিট ম্যানেজমেন্ট সফটওয়্যার
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontFamily: 'sans-serif' }}>
+        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '36px 30px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#166534', margin: '0 0 6px 0' }}>চর ভাটিয়ানী প্রভাতী সমাজকল্যাণ বহুমুখী সমবায় সমিতি লিঃ</h2>
+            <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>মাদারগঞ্জ, জামালপুর | মাইক্রোক্রেডিট ম্যানেজমেন্ট সফটওয়্যার</p>
           </div>
 
-          {loginError && (
-            <div
-              style={{
-                background: "#fef2f2",
-                color: "#dc2626",
-                padding: "10px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                marginBottom: "16px",
-                border: "1px solid #fecaca",
-              }}
-            >
-              {loginError}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} style={{ textAlign: "left" }}>
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: "#334155",
-                  marginBottom: "6px",
-                }}
-              >
-                ইউজারনেম
-              </label>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>ইউজারনেম</label>
               <input
                 type="text"
+                placeholder="যেমন: atiq অথবা selim"
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="যেমন: atiq অথবা selim"
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: "#334155",
-                  marginBottom: "6px",
-                }}
-              >
-                পাসওয়ার্ড
-              </label>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>পাসওয়ার্ড</label>
               <input
                 type="password"
+                placeholder="আপনার পাসওয়ার্ড দিন"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="আপনার পাসওয়ার্ড দিন"
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
+
+            {loginError && (
+              <p style={{ color: '#dc2626', fontSize: '13px', margin: 0, textAlign: 'center', fontWeight: 'bold' }}>{loginError}</p>
+            )}
 
             <button
               type="submit"
-              style={{
-                width: "100%",
-                padding: "13px",
-                background: "#0284c7",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
+              style={{ width: '100%', padding: '12px', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px' }}
             >
               নিরাপদ লগইন
             </button>
           </form>
 
-          <p style={{ marginTop: "16px", fontSize: "12px", color: "#94a3b8" }}>
+          <p style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginTop: '20px' }}>
             সুপার অ্যাডমিন অ্যাক্সেস সুরক্ষিত প্যানেল
           </p>
         </div>
@@ -349,112 +196,57 @@ export default function MicrocreditApp() {
     );
   }
 
-  // ----------------- DASHBOARD VIEW -----------------
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f1f5f9",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      }}
-    >
-      {/* Top Navbar */}
-      <header
-        style={{
-          background: "#0f766e",
-          color: "#ffffff",
-          padding: "12px 24px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        <div>
-          <h1 style={{ fontSize: "18px", fontWeight: "bold", margin: 0 }}>
-            চর ভাটীয়ানী প্রভাতী সমাজকল্যাণ বহুমুখী সমবায় সমিতি লিঃ
-          </h1>
-          <span style={{ fontSize: "12px", opacity: 0.85 }}>
-            মাদারগঞ্জ, জামালপুর | মাইক্রোক্রেডিট সিস্টেম
-          </span>
-        </div>
+  // ------------------ MAIN APPLICATION ------------------
+  const totalLoanGiven = loans.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalCollected = collections.reduce((acc, curr) => acc + curr.amount, 0);
 
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ textAlign: "right" }}>
-            <span
-              style={{
-                display: "block",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              ইউজার: {currentUser}
-            </span>
-            <span
-              style={{
-                fontSize: "11px",
-                background: "#042f2e",
-                padding: "2px 8px",
-                borderRadius: "12px",
-              }}
-            >
-              {currentRole}
-            </span>
+  return (
+    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: 'sans-serif' }}>
+      {/* Top Banner Header */}
+      <header style={{ background: '#137547', color: '#ffffff', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>চর ভাটিয়ানী প্রভাতী সমাজকল্যাণ বহুমুখী সমবায় সমিতি লিঃ</h1>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>মাদারগঞ্জ, জামালপুর | মাইক্রোক্রেডিট সিস্টেম</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>ইউজার: {currentUser?.username}</div>
+            <div style={{ fontSize: '11px', background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '12px', display: 'inline-block', marginTop: '2px' }}>
+              {currentUser?.role}
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            style={{
-              background: "#b91c1c",
-              color: "#fff",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "13px",
-            }}
+            style={{ background: '#dc2626', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
           >
             লগআউট
           </button>
         </div>
       </header>
 
-      {/* Navigation Sub-header Tabs */}
-      <nav
-        style={{
-          background: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
-          padding: "0 24px",
-          display: "flex",
-          gap: "8px",
-          overflowX: "auto",
-        }}
-      >
+      {/* Navigation Tabs */}
+      <nav style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '0 24px', display: 'flex', gap: '20px', overflowX: 'auto' }}>
         {[
-          { id: "overview", label: "ড্যাশবোর্ড ওভারভিউ" },
-          { id: "members", label: "সদস্য তালিকা" },
-          { id: "loans", label: "ঋণ ব্যবস্থাপনা" },
-          { id: "installments", label: "কিস্তি আদায়" },
-          { id: "users", label: "ইউজার ও অ্যাডমিন" },
-          { id: "password", label: "পাসওয়ার্ড ও নোটিশ" },
-        ].map((tab) => (
+          { id: 'overview', label: 'ড্যাশবোর্ড ওভারভিউ' },
+          { id: 'members', label: 'সদস্য তালিকা' },
+          { id: 'loans', label: 'ঋণ ব্যবস্থাপনা' },
+          { id: 'collection', label: 'কিস্তি আদায়' },
+          { id: 'users', label: 'ইউজার ও অ্যাডমিন' },
+          { id: 'notice', label: 'পাসওয়ার্ড ও নোটিশ' }
+        ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id)}
             style={{
-              padding: "14px 16px",
-              background: "none",
-              border: "none",
-              borderBottom:
-                activeTab === tab.id
-                  ? "3px solid #0f766e"
-                  : "3px solid transparent",
-              color: activeTab === tab.id ? "#0f766e" : "#64748b",
-              fontWeight: activeTab === tab.id ? "bold" : "500",
-              cursor: "pointer",
-              fontSize: "14px",
-              whiteSpace: "nowrap",
+              padding: '14px 4px',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeTab === tab.id ? '3px solid #137547' : '3px solid transparent',
+              color: activeTab === tab.id ? '#137547' : '#4b5563',
+              fontWeight: activeTab === tab.id ? 'bold' : 'normal',
+              cursor: 'pointer',
+              fontSize: '14px',
+              whiteSpace: 'nowrap'
             }}
           >
             {tab.label}
@@ -462,267 +254,254 @@ export default function MicrocreditApp() {
         ))}
       </nav>
 
-      {/* Main Container */}
-      <main style={{ maxWidth: "1200px", margin: "24px auto", padding: "0 16px" }}>
-        {/* TAB 1: OVERVIEW */}
-        {activeTab === "overview" && (
+      {/* Main Content Body */}
+      <main style={{ padding: '24px', maxWidth: '1350px', margin: '0 auto' }}>
+
+        {/* 1. ড্যাশবোর্ড ওভারভিউ */}
+        {activeTab === 'overview' && (
           <div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                gap: "20px",
-                marginBottom: "24px",
-              }}
-            >
-              <div
-                style={{
-                  background: "#ffffff",
-                  padding: "20px",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div style={{ color: "#64748b", fontSize: "14px" }}>
-                  মোট সদস্য সংখ্যা
-                </div>
-                <div
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "bold",
-                    color: "#0f766e",
-                    marginTop: "6px",
-                  }}
-                >
-                  ২ জন
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ color: '#6b7280', fontSize: '13px' }}>মোট সদস্য সংখ্যা</div>
+                <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#137547', marginTop: '6px' }}>{members.length} জন</div>
               </div>
 
-              <div
-                style={{
-                  background: "#ffffff",
-                  padding: "20px",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div style={{ color: "#64748b", fontSize: "14px" }}>
-                  মোট বিতরণকৃত ঋণ
-                </div>
-                <div
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "bold",
-                    color: "#0284c7",
-                    marginTop: "6px",
-                  }}
-                >
-                  ৳ ৫০,০০০
-                </div>
+              <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ color: '#6b7280', fontSize: '13px' }}>মোট বিতরণকৃত ঋণ</div>
+                <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#0284c7', marginTop: '6px' }}>৳ {totalLoanGiven.toLocaleString()}</div>
               </div>
 
-              <div
-                style={{
-                  background: "#ffffff",
-                  padding: "20px",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div style={{ color: "#64748b", fontSize: "14px" }}>
-                  মোট কিস্তি আদায়
-                </div>
-                <div
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "bold",
-                    color: "#16a34a",
-                    marginTop: "6px",
-                  }}
-                >
-                  ৳ ২,৭৫০
-                </div>
+              <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ color: '#6b7280', fontSize: '13px' }}>মোট কিস্তি আদায়</div>
+                <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#16a34a', marginTop: '6px' }}>৳ {totalCollected.toLocaleString()}</div>
               </div>
 
-              <div
-                style={{
-                  background: "#ffffff",
-                  padding: "20px",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div style={{ color: "#64748b", fontSize: "14px" }}>
-                  চলমান লোন অ্যাকাউন্ট
-                </div>
-                <div
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "bold",
-                    color: "#9333ea",
-                    marginTop: "6px",
-                  }}
-                >
-                  ২ টি
-                </div>
+              <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ color: '#6b7280', fontSize: '13px' }}>চলমান লোন অ্যাকাউন্ট</div>
+                <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#7c3aed', marginTop: '6px' }}>{loans.length} টি</div>
               </div>
             </div>
 
-            {/* Recent Table */}
-            <div
-              style={{
-                background: "#ffffff",
-                padding: "20px",
-                borderRadius: "12px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  color: "#1e293b",
-                  marginBottom: "16px",
-                }}
-              >
-                সাম্প্রতিক কিস্তি আদায় বিবরণী
-              </h3>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: "14px",
-                }}
-              >
+            <div style={{ background: '#ffffff', borderRadius: '10px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1f2937' }}>সাম্প্রতিক কিস্তি আদায় বিবরণী</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
-                  <tr
-                    style={{
-                      background: "#f8fafc",
-                      textAlign: "left",
-                      borderBottom: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <th style={{ padding: "12px" }}>আইডি</th>
-                    <th style={{ padding: "12px" }}>সদস্যের নাম</th>
-                    <th style={{ padding: "12px" }}>আদায়ের পরিমাণ</th>
-                    <th style={{ padding: "12px" }}>তারিখ</th>
-                    <th style={{ padding: "12px" }}>আদায়কারী</th>
+                  <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb', color: '#4b5563' }}>
+                    <th style={{ padding: '10px' }}>আইডি</th>
+                    <th style={{ padding: '10px' }}>সদস্যের নাম</th>
+                    <th style={{ padding: '10px' }}>আদায়ের পরিমাণ</th>
+                    <th style={{ padding: '10px' }}>তারিখ</th>
+                    <th style={{ padding: '10px' }}>আদায়কারী</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px" }}>#901</td>
-                    <td style={{ padding: "12px", fontWeight: "600" }}>
-                      মোহাম্মদ করিম
-                    </td>
-                    <td style={{ padding: "12px", color: "#16a34a" }}>৳ ২৭৫০</td>
-                    <td style={{ padding: "12px" }}>2026-10-15</td>
-                    <td style={{ padding: "12px" }}>atiq</td>
-                  </tr>
+                  {collections.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '12px 10px', color: '#6b7280' }}>{item.id}</td>
+                      <td style={{ padding: '12px 10px', fontWeight: '500' }}>{item.memberName}</td>
+                      <td style={{ padding: '12px 10px', color: '#16a34a', fontWeight: 'bold' }}>৳ {item.amount.toLocaleString()}</td>
+                      <td style={{ padding: '12px 10px', color: '#6b7280' }}>{item.date}</td>
+                      <td style={{ padding: '12px 10px', color: '#6b7280' }}>{item.collector}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* TAB 2: USERS & ADMIN MANAGEMENT (MAIN FEATURE) */}
-        {activeTab === "users" && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 2fr",
-              gap: "24px",
-            }}
-          >
-            {/* Left: Create User Form */}
-            <div
-              style={{
-                background: "#ffffff",
-                padding: "24px",
-                borderRadius: "12px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                height: "fit-content",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  color: "#1e293b",
-                  marginBottom: "16px",
-                }}
-              >
-                + নতুন ইউজার যোগ করুন
-              </h3>
-
-              {createMsg && (
-                <div
-                  style={{
-                    padding: "10px",
-                    borderRadius: "6px",
-                    fontSize: "13px",
-                    marginBottom: "14px",
-                    background: createMsg.includes("সফল")
-                      ? "#ecfdf5"
-                      : "#fef2f2",
-                    color: createMsg.includes("সফল") ? "#059669" : "#dc2626",
-                  }}
-                >
-                  {createMsg}
-                </div>
-              )}
-
-              <form onSubmit={handleCreateUser}>
-                <div style={{ marginBottom: "14px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    ইউজারনেম (ইংরেজি ছোট হাত)
-                  </label>
+        {/* 2. সদস্য তালিকা */}
+        {activeTab === 'members' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+            <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#111827' }}>+ নতুন সদস্য ভর্তি</h3>
+              <form onSubmit={handleAddMember} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '13px', color: '#374151' }}>সদস্যের নাম</label>
                   <input
                     type="text"
+                    value={newMemberName}
+                    onChange={(e) => setNewMemberName(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '13px', color: '#374151' }}>মোবাইল নম্বর</label>
+                  <input
+                    type="text"
+                    value={newMemberMobile}
+                    onChange={(e) => setNewMemberMobile(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '13px', color: '#374151' }}>ঠিকানা</label>
+                  <input
+                    type="text"
+                    value={newMemberAddress}
+                    onChange={(e) => setNewMemberAddress(e.target.value)}
+                    style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                  />
+                </div>
+                <button type="submit" style={{ padding: '10px', background: '#137547', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
+                  সদস্য যুক্ত করুন
+                </button>
+              </form>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#111827' }}>সকল সদস্যের তালিকা ({members.length})</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <th style={{ padding: '8px' }}>আইডি</th>
+                    <th style={{ padding: '8px' }}>নাম</th>
+                    <th style={{ padding: '8px' }}>মোবাইল</th>
+                    <th style={{ padding: '8px' }}>ঠিকানা</th>
+                    <th style={{ padding: '8px' }}>স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map(m => (
+                    <tr key={m.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '10px 8px' }}>{m.id}</td>
+                      <td style={{ padding: '10px 8px', fontWeight: 'bold' }}>{m.name}</td>
+                      <td style={{ padding: '10px 8px' }}>{m.mobile}</td>
+                      <td style={{ padding: '10px 8px' }}>{m.address}</td>
+                      <td style={{ padding: '10px 8px', color: '#16a34a' }}>{m.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 3. ঋণ ব্যবস্থাপনা */}
+        {activeTab === 'loans' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+            <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#111827' }}>+ নতুন ঋণ বিতরণ</h3>
+              <form onSubmit={handleAddLoan} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '13px', color: '#374151' }}>সদস্য নির্বাচন করুন</label>
+                  <select
+                    value={loanMember}
+                    onChange={(e) => setLoanMember(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                  >
+                    <option value="">-- নির্বাচন করুন --</option>
+                    {members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '13px', color: '#374151' }}>ঋণের পরিমাণ (৳)</label>
+                  <input
+                    type="number"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                  />
+                </div>
+                <button type="submit" style={{ padding: '10px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
+                  ঋণ অনুমোদন করুন
+                </button>
+              </form>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '20px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#111827' }}>চলমান ঋণের বিবরণী</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <th style={{ padding: '8px' }}>লোন আইডি</th>
+                    <th style={{ padding: '8px' }}>সদস্য</th>
+                    <th style={{ padding: '8px' }}>মোট ঋণ</th>
+                    <th style={{ padding: '8px' }}>পরিশোধিত</th>
+                    <th style={{ padding: '8px' }}>অবশিষ্ট</th>
+                    <th style={{ padding: '8px' }}>স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loans.map(l => (
+                    <tr key={l.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '10px 8px' }}>{l.id}</td>
+                      <td style={{ padding: '10px 8px', fontWeight: 'bold' }}>{l.memberName}</td>
+                      <td style={{ padding: '10px 8px' }}>৳ {l.amount.toLocaleString()}</td>
+                      <td style={{ padding: '10px 8px', color: '#16a34a' }}>৳ {l.paid.toLocaleString()}</td>
+                      <td style={{ padding: '10px 8px', color: '#dc2626' }}>৳ {(l.amount - l.paid).toLocaleString()}</td>
+                      <td style={{ padding: '10px 8px' }}>{l.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 4. কিস্তি আদায় */}
+        {activeTab === 'collection' && (
+          <div style={{ maxWidth: '500px', margin: '0 auto', background: '#ffffff', padding: '24px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#111827' }}>নিয়মিত কিস্তি জমা গ্রহণ</h3>
+            <form onSubmit={handleAddCollection} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '13px', color: '#374151' }}>ঋণগ্রহীতা সদস্য</label>
+                <select
+                  value={collectMember}
+                  onChange={(e) => setCollectMember(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                >
+                  <option value="">-- সদস্য নির্বাচন করুন --</option>
+                  {loans.map(l => <option key={l.id} value={l.memberName}>{l.memberName} (বকেয়া: ৳{l.amount - l.paid})</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '13px', color: '#374151' }}>কিস্তির পরিমাণ (৳)</label>
+                <input
+                  type="number"
+                  value={collectAmount}
+                  onChange={(e) => setCollectAmount(e.target.value)}
+                  placeholder="যেমন: ২৫০"
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginTop: '4px' }}
+                />
+              </div>
+              <button type="submit" style={{ padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
+                কিস্তি জমা নিশ্চিত করুন
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* 5. ইউজার ও অ্যাডমিন ম্যানেজমেন্ট */}
+        {activeTab === 'users' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+            <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>+ নতুন ইউজার যোগ করুন</h3>
+              <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#4b5563', marginBottom: '4px' }}>ইউজারনেম (ইংরেজি ছোট হাত)</label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: selim"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="যেমন: selim"
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "1px solid #cbd5e1",
-                      fontSize: "14px",
-                      boxSizing: "border-box",
-                    }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
 
-                <div style={{ marginBottom: "14px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    পদবী / রোল (Role)
-                  </label>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#4b5563', marginBottom: '4px' }}>পদবী / রোল (Role)</label>
                   <select
                     value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as any)}
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "1px solid #cbd5e1",
-                      fontSize: "14px",
-                      boxSizing: "border-box",
-                    }}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
                   >
                     <option value="Admin">Admin</option>
                     <option value="Manager">Manager</option>
@@ -730,250 +509,66 @@ export default function MicrocreditApp() {
                   </select>
                 </div>
 
-                <div style={{ marginBottom: "20px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    লগইন পাসওয়ার্ড
-                  </label>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#4b5563', marginBottom: '4px' }}>লগইন পাসওয়ার্ড</label>
                   <input
-                    type="text"
+                    type="password"
+                    placeholder="পাসওয়ার্ড নির্ধারণ করুন"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="পাসওয়ার্ড নির্ধারণ করুন"
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "1px solid #cbd5e1",
-                      fontSize: "14px",
-                      boxSizing: "border-box",
-                    }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    background: "#7c3aed",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "6px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
+                  style={{ width: '100%', padding: '11px', background: '#6366f1', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px' }}
                 >
                   ইউজার একাউন্ট খুলুন
                 </button>
               </form>
             </div>
 
-            {/* Right: User List Table */}
-            <div
-              style={{
-                background: "#ffffff",
-                padding: "24px",
-                borderRadius: "12px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  color: "#1e293b",
-                  marginBottom: "16px",
-                }}
-              >
-                অনুমোদিত অ্যাডমিন ও ইউজার তালিকা
-              </h3>
-
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: "13px",
-                }}
-              >
+            <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>অনুমোদিত অ্যাডমিন ও ইউজার তালিকা</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
-                  <tr
-                    style={{
-                      background: "#f8fafc",
-                      textAlign: "left",
-                      borderBottom: "1px solid #cbd5e1",
-                    }}
-                  >
-                    <th style={{ padding: "10px" }}>আইডি</th>
-                    <th style={{ padding: "10px" }}>ইউজারনেম</th>
-                    <th style={{ padding: "10px" }}>রোল (পদবী)</th>
-                    <th style={{ padding: "10px" }}>পাসওয়ার্ড</th>
-                    <th style={{ padding: "10px" }}>স্ট্যাটাস</th>
-                    <th style={{ padding: "10px", textAlign: "center" }}>
-                      অ্যাকশন
-                    </th>
+                  <tr style={{ borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>
+                    <th style={{ padding: '10px 8px' }}>আইডি</th>
+                    <th style={{ padding: '10px 8px' }}>ইউজারনেম</th>
+                    <th style={{ padding: '10px 8px' }}>রোল (পদবী)</th>
+                    <th style={{ padding: '10px 8px' }}>পাসওয়ার্ড</th>
+                    <th style={{ padding: '10px 8px' }}>স্ট্যাটাস</th>
+                    <th style={{ padding: '10px 8px' }}>অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr
-                      key={user.id}
-                      style={{ borderBottom: "1px solid #f1f5f9" }}
-                    >
-                      <td style={{ padding: "10px", color: "#64748b" }}>
-                        {user.id}
-                      </td>
-                      <td style={{ padding: "10px", fontWeight: "600" }}>
-                        {user.username}
-                      </td>
-                      <td style={{ padding: "10px" }}>
-                        <span
-                          style={{
-                            background:
-                              user.username === "atiq" ? "#fef3c7" : "#e0f2fe",
-                            color:
-                              user.username === "atiq" ? "#92400e" : "#0369a1",
-                            padding: "3px 8px",
-                            borderRadius: "4px",
-                            fontSize: "11px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {user.username === "atiq"
-                            ? "Super Admin"
-                            : user.role}
+                  {users.map((u) => (
+                    <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '12px 8px', color: '#6b7280' }}>{u.id}</td>
+                      <td style={{ padding: '12px 8px', fontWeight: '500' }}>{u.username}</td>
+                      <td style={{ padding: '12px 8px' }}>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          fontSize: '12px',
+                          background: u.role === 'Super Admin' ? '#fef3c7' : '#dbeafe',
+                          color: u.role === 'Super Admin' ? '#92400e' : '#1e40af'
+                        }}>
+                          {u.role}
                         </span>
                       </td>
-                      <td style={{ padding: "10px" }}>
-                        {editingUserId === user.id ? (
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <input
-                              type="text"
-                              value={editPasswordVal}
-                              onChange={(e) =>
-                                setEditPasswordVal(e.target.value)
-                              }
-                              placeholder="নতুন পাস"
-                              style={{
-                                width: "90px",
-                                padding: "4px 6px",
-                                fontSize: "12px",
-                                border: "1px solid #cbd5e1",
-                                borderRadius: "4px",
-                              }}
-                            />
-                            <button
-                              onClick={() => handleSaveUserPassword(user.id)}
-                              style={{
-                                background: "#16a34a",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "4px 8px",
-                                cursor: "pointer",
-                                fontSize: "11px",
-                              }}
-                            >
-                              সেভ
-                            </button>
-                            <button
-                              onClick={() => setEditingUserId(null)}
-                              style={{
-                                background: "#94a3b8",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "4px",
-                                padding: "4px 8px",
-                                cursor: "pointer",
-                                fontSize: "11px",
-                              }}
-                            >
-                              বাতিল
-                            </button>
-                          </div>
-                        ) : (
-                          <span
-                            style={{
-                              fontFamily: "monospace",
-                              background: "#f1f5f9",
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              color: "#334155",
-                            }}
+                      <td style={{ padding: '12px 8px', color: '#6b7280' }}>{u.pass}</td>
+                      <td style={{ padding: '12px 8px', color: '#16a34a', fontWeight: 'bold' }}>{u.status}</td>
+                      <td style={{ padding: '12px 8px' }}>
+                        {u.role !== 'Super Admin' && (
+                          <button
+                            onClick={() => setUsers(users.filter(usr => usr.id !== u.id))}
+                            style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}
                           >
-                            {user.password}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: "10px" }}>
-                        <span
-                          onClick={() => handleToggleStatus(user.id)}
-                          style={{
-                            color:
-                              user.status === "সক্রিয়" ? "#16a34a" : "#dc2626",
-                            cursor: user.id !== "1" ? "pointer" : "default",
-                            fontWeight: "600",
-                          }}
-                          title={
-                            user.id !== "1" ? "ক্লিক করে সক্রিয়/নিষ্ক্রিয় করুন" : ""
-                          }
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>
-                        {user.id !== "1" ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "6px",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <button
-                              onClick={() => {
-                                setEditingUserId(user.id);
-                                setEditPasswordVal(user.password);
-                              }}
-                              style={{
-                                background: "#0284c7",
-                                color: "#fff",
-                                border: "none",
-                                padding: "4px 8px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "11px",
-                              }}
-                            >
-                              পাসওয়ার্ড বদল
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(user.id)}
-                              style={{
-                                background: "#dc2626",
-                                color: "#fff",
-                                border: "none",
-                                padding: "4px 8px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "11px",
-                              }}
-                            >
-                              রিমুভ
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{ color: "#94a3b8", fontSize: "11px" }}>
-                            প্রধান অ্যাডমিন
-                          </span>
+                            মুছুন
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -984,150 +579,18 @@ export default function MicrocreditApp() {
           </div>
         )}
 
-        {/* TAB 3: PASSWORD & NOTICE */}
-        {activeTab === "password" && (
-          <div
-            style={{
-              background: "#ffffff",
-              padding: "24px",
-              borderRadius: "12px",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              maxWidth: "540px",
-              margin: "0 auto",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                color: "#1e293b",
-                marginBottom: "8px",
-              }}
-            >
-              সুপার অ্যাডমিন পাসওয়ার্ড পরিবর্তন
-            </h3>
-            <p
-              style={{
-                fontSize: "13px",
-                color: "#64748b",
-                marginBottom: "20px",
-              }}
-            >
-              ইউজার {currentUser} এর বর্তমান পাসওয়ার্ড পরিবর্তন করতে নিচের
-              ঘরগুলো পূরণ করুন।
+        {/* 6. পাসওয়ার্ড ও নোটিশ */}
+        {activeTab === 'notice' && (
+          <div style={{ background: '#ffffff', padding: '24px', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ margin: '0 0 12px 0' }}>নোটিশ বোর্ড ও গুরুত্বপূর্ণ নির্দেশনা</h3>
+            <p style={{ color: '#4b5563', lineHeight: '1.6' }}>
+              ১. সকল লেনদেন ও কিস্তির হিসাবের জন্য ক্যাশ ইনপুট দেওয়ার সময় সতর্ক থাকুন।<br />
+              ২. নতুন অ্যাডমিন তৈরি করার পর অবশ্যই পাসওয়ার্ড পরিবর্তন করতে বলুন।<br />
+              ৩. ফিল্ড অফিসারদের শুধুমাত্র কিস্তি আদায়ের অনুমতি দেওয়া হলো।
             </p>
-
-            {passChangeMsg && (
-              <div
-                style={{
-                  padding: "10px",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  marginBottom: "16px",
-                  background: passChangeMsg.includes("সফল")
-                    ? "#ecfdf5"
-                    : "#fef2f2",
-                  color: passChangeMsg.includes("সফল") ? "#059669" : "#dc2626",
-                }}
-              >
-                {passChangeMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleChangeAdminPassword}>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    marginBottom: "6px",
-                  }}
-                >
-                  বর্তমান পাসওয়ার্ড
-                </label>
-                <input
-                  type="password"
-                  value={currentPassInput}
-                  onChange={(e) => setCurrentPassInput(e.target.value)}
-                  placeholder="বর্তমান পাসওয়ার্ড দিন"
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    marginBottom: "6px",
-                  }}
-                >
-                  নতুন পাসওয়ার্ড
-                </label>
-                <input
-                  type="password"
-                  value={newPassInput}
-                  onChange={(e) => setNewPassInput(e.target.value)}
-                  placeholder="নতুন পাসওয়ার্ড দিন"
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  background: "#0284c7",
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                }}
-              >
-                পাসওয়ার্ড আপডেট করুন
-              </button>
-            </form>
           </div>
         )}
 
-        {/* TAB 4, 5, 6: PLACEHOLDERS */}
-        {(activeTab === "members" ||
-          activeTab === "loans" ||
-          activeTab === "installments") && (
-          <div
-            style={{
-              background: "#ffffff",
-              padding: "40px",
-              borderRadius: "12px",
-              textAlign: "center",
-              color: "#64748b",
-            }}
-          >
-            <h3>এই মডিউলটি সম্পূর্ণ প্রস্তুত রয়েছে।</h3>
-            <p>আপনার ড্যাশবোর্ড থেকে সংশ্লিষ্ট তথ্য দেখতে পারবেন।</p>
-          </div>
-        )}
       </main>
     </div>
   );
