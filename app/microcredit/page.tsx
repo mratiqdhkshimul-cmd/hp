@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/app/supabaseClient"; // নিশ্চিত করুন supabaseClient এর পাথ সঠিক আছে
+import { supabase } from "../schooldatabase/supabase"; // নিশ্চিত করুন supabaseClient এর পাথ সঠিক আছে
 
 interface LoanRecord {
   id?: number | string;
