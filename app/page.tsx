@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 
-interface User {
+interface UserMember {
   id: string;
   username: string;
   password?: string;
+  phone?: string;
   role: 'Super Admin' | 'Admin' | 'Manager' | 'Field Officer' | 'General';
   status: 'সক্রিয়' | 'নিষ্ক্রিয়';
+  savingsBalance: number;
+  loanBalance: number;
 }
 
 interface Transaction {
@@ -22,53 +25,31 @@ interface Transaction {
   recordedBy: string;
 }
 
-interface Member {
-  id: string;
-  name: string;
-  phone: string;
-  savingsBalance: number;
-  loanBalance: number;
-}
-
 export default function MicrocreditApp() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserMember | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const [activeTab, setActiveTab] = useState<'banking' | 'accounts' | 'users' | 'notices'>('banking');
 
-  // ইউজার ডাটাবেস
-  const [users, setUsers] = useState<User[]>([
-    { id: '1', username: 'atiq', password: '123', role: 'Super Admin', status: 'সক্রিয়' },
-    { id: '1792534535877', username: 'selim', password: '123', role: 'Manager', status: 'সক্রিয়' }
+  // সকল সদস্য ও ইউজারের কেন্দ্রীয় তালিকা
+  const [members, setMembers] = useState<UserMember[]>([
+    { id: '1', username: 'atiq', password: '123', phone: '01689333000', role: 'Super Admin', status: 'সক্রিয়', savingsBalance: 0, loanBalance: 0 },
+    { id: '2', username: 'selim', password: '123', phone: '01711000000', role: 'Manager', status: 'সক্রিয়', savingsBalance: 5000, loanBalance: 0 },
+    { id: '3', username: 'sakib', password: '123', phone: '01811000000', role: 'General', status: 'সক্রিয়', savingsBalance: 1200, loanBalance: 15000 },
+    { id: '4', username: 'abdul_karim', password: '123', phone: '01911000000', role: 'General', status: 'সক্রিয়', savingsBalance: 15000, loanBalance: 40000 },
+    { id: '5', username: 'rohima_begum', password: '123', phone: '01511000000', role: 'General', status: 'সক্রিয়', savingsBalance: 8500, loanBalance: 12000 }
   ]);
 
-  // নতুন ইউজার ফর্ম
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'Admin' | 'Manager' | 'Field Officer' | 'General'>('General');
-
-  // সুপার অ্যাডমিন এডিট স্টেট
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editUsername, setEditUsername] = useState('');
-  const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<'Super Admin' | 'Admin' | 'Manager' | 'Field Officer' | 'General'>('General');
-
-  // ব্যাংকিং গ্রাহক খাতা (সঞ্চয় ও ঋণ ব্যালেন্স)
-  const [members, setMembers] = useState<Member[]>([
-    { id: '1', name: 'atiq', phone: '01689333000', savingsBalance: 0, loanBalance: 0 },
-    { id: '1792534535877', name: 'selim', phone: '01700000000', savingsBalance: 5000, loanBalance: 0 }
-  ]);
-
-  // ট্রানজেকশন তালিকা
+  // লেনদেন রেজিস্টার
   const [transactions, setTransactions] = useState<Transaction[]>([
     {
       id: 'TRX-1001',
       date: '2026-10-21',
       time: '09:30 AM',
-      memberId: '1792534535877',
-      memberName: 'selim',
+      memberId: '4',
+      memberName: 'abdul_karim',
       type: 'credit',
       category: 'কিস্তি আদায়',
       amount: 2500,
@@ -76,35 +57,29 @@ export default function MicrocreditApp() {
     }
   ]);
 
+  // লেনদেন ফর্ম স্টেট
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [txnCategory, setTxnCategory] = useState<'কিস্তি আদায়' | 'সঞ্চয় জমা' | 'ঋণ বিতরণ' | 'সঞ্চয় উত্তোলন' | 'অফিস খরচ'>('কিস্তি আদায়');
   const [txnAmount, setTxnAmount] = useState('');
 
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberPhone, setNewMemberPhone] = useState('');
+  // নতুন ইউজার/সদস্য ফর্ম স্টেট
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newRole, setNewRole] = useState<'Admin' | 'Manager' | 'Field Officer' | 'General'>('General');
   const [initialSavings, setInitialSavings] = useState('');
+  const [initialLoan, setInitialLoan] = useState('');
 
-  // লোকাল স্টোরেজ সিঙ্ক্রোনাইজেশন
+  // সুপার অ্যাডমিন এডিট স্টেট
+  const [editingMember, setEditingMember] = useState<UserMember | null>(null);
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editRole, setEditRole] = useState<'Super Admin' | 'Admin' | 'Manager' | 'Field Officer' | 'General'>('General');
+
+  // স্টোরেজ লোড
   useEffect(() => {
-    const savedUsers = localStorage.getItem('mc_app_users');
-    if (savedUsers) {
-      try {
-        setUsers(JSON.parse(savedUsers));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const savedTxns = localStorage.getItem('mc_app_transactions');
-    if (savedTxns) {
-      try {
-        setTransactions(JSON.parse(savedTxns));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const savedMembers = localStorage.getItem('mc_app_members');
+    const savedMembers = localStorage.getItem('mc_app_central_members_v2');
     if (savedMembers) {
       try {
         setMembers(JSON.parse(savedMembers));
@@ -113,7 +88,16 @@ export default function MicrocreditApp() {
       }
     }
 
-    const session = localStorage.getItem('mc_app_session');
+    const savedTxns = localStorage.getItem('mc_app_central_txns_v2');
+    if (savedTxns) {
+      try {
+        setTransactions(JSON.parse(savedTxns));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const session = localStorage.getItem('mc_app_session_v2');
     if (session) {
       try {
         setCurrentUser(JSON.parse(session));
@@ -123,22 +107,17 @@ export default function MicrocreditApp() {
     }
   }, []);
 
-  const saveUsersToStorage = (updated: User[]) => {
-    setUsers(updated);
-    localStorage.setItem('mc_app_users', JSON.stringify(updated));
+  const saveMembersToStorage = (updated: UserMember[]) => {
+    setMembers(updated);
+    localStorage.setItem('mc_app_central_members_v2', JSON.stringify(updated));
   };
 
   const saveTxnsToStorage = (updated: Transaction[]) => {
     setTransactions(updated);
-    localStorage.setItem('mc_app_transactions', JSON.stringify(updated));
+    localStorage.setItem('mc_app_central_txns_v2', JSON.stringify(updated));
   };
 
-  const saveMembersToStorage = (updated: Member[]) => {
-    setMembers(updated);
-    localStorage.setItem('mc_app_members', JSON.stringify(updated));
-  };
-
-  // হোয়াটসঅ্যাপ নোটিফিকেশন পাঠানোর ফাংশন (+8801689333000)
+  // হোয়াটসঅ্যাপ নোটিফিকেশন (+8801689333000)
   const sendWhatsAppNotification = (txn: Transaction) => {
     const targetPhone = '8801689333000';
     const message = `*🔔 নতুন আর্থিক লেনদেন নোটিশ*\n` +
@@ -146,7 +125,7 @@ export default function MicrocreditApp() {
       `🏢 *প্রতিষ্ঠান:* চরভাটিয়ানী প্রতিভা সমাজ কল্যাণ বহুমুখী সমবায় সমিতি লিমিটেড\n` +
       `📅 *তারিখ ও সময়:* ${txn.date} | ${txn.time}\n` +
       `📝 *খাত:* ${txn.category} (${txn.type === 'credit' ? 'জমা / Credit' : 'খরচ / Debit'})\n` +
-      `👤 *সদস্য/গ্রাহক:* ${txn.memberName} (ID: ${txn.memberId})\n` +
+      `👤 *গ্রাহক/সদস্য:* ${txn.memberName} (ID: ${txn.memberId})\n` +
       `💰 *পরিমাণ:* ৳ ${txn.amount.toLocaleString('en-IN')}\n` +
       `👨‍💼 *অপারেটর:* ${txn.recordedBy}\n` +
       `--------------------------------\n` +
@@ -155,21 +134,27 @@ export default function MicrocreditApp() {
     window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  // লেনদেন যুক্ত করার হ্যান্ডলার
+  // নতুন লেনদেন এন্ট্রি ও ব্যালেন্স ক্যালকুলেশন
   const handleAddTransaction = (e: React.FormEvent) => {
     e.preventDefault();
     if (!txnAmount || Number(txnAmount) <= 0) return;
 
     const amount = Number(txnAmount);
     const member = members.find((m) => m.id === selectedMemberId);
-    const memberName = member ? member.name : (txnCategory === 'অফিস খরচ' ? 'অফিস সাধারণ ব্যয়' : 'সাধারণ সদস্য');
+
+    if (txnCategory !== 'অফিস খরচ' && !member) {
+      alert('দয়া করে একজন সদস্য নির্বাচন করুন');
+      return;
+    }
+
+    const memberName = member ? member.username : 'অফিস সাধারণ ব্যয়';
     const isCredit = txnCategory === 'কিস্তি আদায়' || txnCategory === 'সঞ্চয় জমা';
 
     const newTxn: Transaction = {
       id: `TRX-${Date.now().toString().slice(-6)}`,
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' }),
-      memberId: selectedMemberId || 'N/A',
+      memberId: member ? member.id : 'OFFICE',
       memberName,
       type: isCredit ? 'credit' : 'debit',
       category: txnCategory,
@@ -177,14 +162,19 @@ export default function MicrocreditApp() {
       recordedBy: currentUser?.username || 'admin'
     };
 
-    // সদস্যের সঞ্চয় ও ঋণ ব্যালেন্স ক্যালকুলেশন
+    // সদস্যের সঞ্চয় ও ঋণ ব্যালেন্স সমন্বয়
     if (member) {
       const updatedMembers = members.map((m) => {
         if (m.id === member.id) {
-          if (txnCategory === 'সঞ্চয় জমা') return { ...m, savingsBalance: m.savingsBalance + amount };
-          if (txnCategory === 'সঞ্চয় উত্তোলন') return { ...m, savingsBalance: Math.max(0, m.savingsBalance - amount) };
-          if (txnCategory === 'কিস্তি আদায়') return { ...m, loanBalance: Math.max(0, m.loanBalance - amount) };
-          if (txnCategory === 'ঋণ বিতরণ') return { ...m, loanBalance: m.loanBalance + amount };
+          let updatedSavings = m.savingsBalance;
+          let updatedLoan = m.loanBalance;
+
+          if (txnCategory === 'সঞ্চয় জমা') updatedSavings += amount;
+          if (txnCategory === 'সঞ্চয় উত্তোলন') updatedSavings = Math.max(0, updatedSavings - amount);
+          if (txnCategory === 'ঋণ বিতরণ') updatedLoan += amount;
+          if (txnCategory === 'কিস্তি আদায়') updatedLoan = Math.max(0, updatedLoan - amount);
+
+          return { ...m, savingsBalance: updatedSavings, loanBalance: updatedLoan };
         }
         return m;
       });
@@ -198,29 +188,43 @@ export default function MicrocreditApp() {
 
     setTxnAmount('');
     setSelectedMemberId('');
+    alert(`লেনদেন সফলভাবে সম্পন্ন হয়েছে ও হিসাব আপডেট করা হয়েছে!`);
   };
 
-  // ব্যাংকিং সদস্য তৈরি
-  const handleAddMember = (e: React.FormEvent) => {
+  // নতুন সদস্য/ইউজার নিবন্ধন
+  const handleAddUserMember = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemberName.trim()) return;
+    if (!newUsername.trim() || !newPassword.trim()) return;
 
-    const newId = `M-${Math.floor(100 + Math.random() * 900)}`;
-    const newMem: Member = {
+    const uname = newUsername.trim().toLowerCase();
+    if (members.some((m) => m.username.toLowerCase() === uname)) {
+      alert('এই ইউজারনেম দিয়ে ইতোমধ্যে সদস্য বিদ্যমান আছে। ভিন্ন নাম দিন।');
+      return;
+    }
+
+    const newId = Date.now().toString();
+    const newRecord: UserMember = {
       id: newId,
-      name: newMemberName.trim(),
-      phone: newMemberPhone.trim() || 'N/A',
+      username: uname,
+      password: newPassword.trim(),
+      phone: newPhone.trim() || 'N/A',
+      role: newRole,
+      status: 'সক্রিয়',
       savingsBalance: Number(initialSavings) || 0,
-      loanBalance: 0
+      loanBalance: Number(initialLoan) || 0
     };
 
-    saveMembersToStorage([...members, newMem]);
-    setNewMemberName('');
-    setNewMemberPhone('');
+    saveMembersToStorage([...members, newRecord]);
+
+    setNewUsername('');
+    setNewPassword('');
+    setNewPhone('');
     setInitialSavings('');
+    setInitialLoan('');
+    alert(`সদস্য "${uname}" সফলভাবে তৈরি হয়েছে এবং ব্যাংকিং ড্রপডাউনে অন্তর্ভুক্ত করা হয়েছে!`);
   };
 
-  // আর্থিক ক্যালকুলেশন
+  // আর্থিক হিসেব বিবরণী
   const totalCredit = transactions
     .filter((t) => t.type === 'credit')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -233,19 +237,19 @@ export default function MicrocreditApp() {
   const totalMemberSavings = members.reduce((acc, curr) => acc + curr.savingsBalance, 0);
   const totalOutstandingLoan = members.reduce((acc, curr) => acc + curr.loanBalance, 0);
 
-  // লগইন প্রসেসিং
+  // লগইন হ্যান্ডলার
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
     const trimmedUser = loginUsername.trim().toLowerCase();
-    const found = users.find(
+    const found = members.find(
       (u) => u.username.toLowerCase() === trimmedUser && u.password === loginPassword
     );
 
     if (found) {
       setCurrentUser(found);
-      localStorage.setItem('mc_app_session', JSON.stringify(found));
+      localStorage.setItem('mc_app_session_v2', JSON.stringify(found));
       setLoginUsername('');
       setLoginPassword('');
     } else {
@@ -253,324 +257,112 @@ export default function MicrocreditApp() {
     }
   };
 
-  // লগআউট প্রসেসিং
+  // লগআউট
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('mc_app_session');
+    localStorage.removeItem('mc_app_session_v2');
   };
 
-  // রিকোয়ারমেন্ট ২: নতুন ইউজার যোগ হলে সাথে সাথে তা ব্যাংকিং মেম্বার হিসেবেও নিবন্ধিত হবে
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUsername.trim() || !newPassword.trim()) return;
-
-    const newId = Date.now().toString();
-    const uName = newUsername.trim();
-
-    const newUser: User = {
-      id: newId,
-      username: uName,
-      password: newPassword.trim(),
-      role: newRole,
-      status: 'সক্রিয়'
-    };
-
-    // ইউজার লিস্টে সেভ
-    saveUsersToStorage([...users, newUser]);
-
-    // অটো সিঙ্ক: ব্যাংকিং ড্রপডাউনেও সদস্য হিসেবে যুক্ত করা হলো
-    const newMemberRecord: Member = {
-      id: newId,
-      name: uName,
-      phone: 'N/A',
-      savingsBalance: 0,
-      loanBalance: 0
-    };
-
-    if (!members.some((m) => m.name.toLowerCase() === uName.toLowerCase())) {
-      saveMembersToStorage([...members, newMemberRecord]);
-    }
-
-    setNewUsername('');
-    setNewPassword('');
-    alert(`ইউজার "${uName}" সফলভাবে তৈরি হয়েছে এবং ব্যাংকিং গ্রাহক তালিকায় অন্তর্ভুক্ত করা হয়েছে!`);
-  };
-
-  const handleStartEdit = (user: User) => {
-    setEditingUser(user);
-    setEditUsername(user.username);
-    setEditPassword(user.password || '');
-    setEditRole(user.role);
+  // সুপার অ্যাডমিন এডিট
+  const handleStartEdit = (member: UserMember) => {
+    setEditingMember(member);
+    setEditUsername(member.username);
+    setEditPassword(member.password || '');
+    setEditPhone(member.phone || '');
+    setEditRole(member.role);
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingUser) return;
+    if (!editingMember) return;
 
-    const updated = users.map((u) => {
-      if (u.id === editingUser.id) {
+    const updated = members.map((m) => {
+      if (m.id === editingMember.id) {
         return {
-          ...u,
-          username: editUsername.trim(),
+          ...m,
+          username: editUsername.trim().toLowerCase(),
           password: editPassword.trim(),
+          phone: editPhone.trim(),
           role: editRole
         };
       }
-      return u;
+      return m;
     });
 
-    saveUsersToStorage(updated);
-    setEditingUser(null);
+    saveMembersToStorage(updated);
+    setEditingMember(null);
   };
 
-  const handleDeleteUser = (id: string) => {
-    if (confirm('আপনি কি এই ইউজারটি নিশ্চিতভাবে ডিলিট করতে চান?')) {
-      saveUsersToStorage(users.filter((u) => u.id !== id));
+  // সদস্য মুছা
+  const handleDeleteMember = (id: string) => {
+    if (confirm('আপনি কি এই সদস্য/ইউজার অ্যাকাউন্টটি নিশ্চিতভাবে ডিলিট করতে চান?')) {
       saveMembersToStorage(members.filter((m) => m.id !== id));
     }
   };
 
-  // রোল এক্সেস চেকিং
   const isSuperAdmin = currentUser?.role === 'Super Admin';
-  const isManagerOrSuperAdmin = currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager';
+  const isManagerOrAdmin = currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager' || currentUser?.role === 'Admin';
+  const canViewReports = currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager';
 
   return (
     <>
       <style>{`
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-          margin: 0;
-          padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-          background-color: #f1f5f9;
-          color: #1e293b;
+          margin: 0; padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+          background-color: #f1f5f9; color: #1e293b;
         }
-
         .login-wrapper {
-          min-height: 100vh;
-          width: 100vw;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
-          padding: 20px;
+          min-height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%); padding: 20px;
         }
-
         .login-card {
-          width: 100%;
-          max-width: 480px;
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 40px 32px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-          text-align: center;
+          width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px;
+          padding: 40px 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); text-align: center;
         }
-
-        .company-title {
-          font-size: 22px;
-          font-weight: 800;
-          color: #165b33;
-          line-height: 1.4;
-          margin-bottom: 8px;
-        }
-
-        .company-sub {
-          font-size: 13px;
-          color: #64748b;
-          margin-bottom: 24px;
-        }
-
-        .form-group {
-          text-align: left;
-          margin-bottom: 16px;
-        }
-
-        .form-label {
-          display: block;
-          font-size: 13px;
-          font-weight: 600;
-          color: #334155;
-          margin-bottom: 6px;
-        }
-
+        .company-title { font-size: 22px; font-weight: 800; color: #165b33; line-height: 1.4; margin-bottom: 8px; }
+        .company-sub { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+        .form-group { text-align: left; margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
         .form-input {
-          width: 100%;
-          padding: 12px 16px;
-          border-radius: 10px;
-          border: 1px solid #cbd5e1;
-          font-size: 14px;
-          outline: none;
-          background: #f8fafc;
-          transition: border-color 0.2s, box-shadow 0.2s;
+          width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #cbd5e1;
+          font-size: 14px; outline: none; background: #f8fafc;
         }
-
-        .form-input:focus {
-          border-color: #2563eb;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-          background: #ffffff;
-        }
-
+        .form-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
         .btn-primary {
-          width: 100%;
-          padding: 13px;
-          background-color: #0284c7;
-          color: #ffffff;
-          border: none;
-          border-radius: 10px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: background 0.2s;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-          margin-top: 6px;
+          width: 100%; padding: 13px; background-color: #0284c7; color: #ffffff; border: none;
+          border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
         }
-
-        .btn-primary:hover {
-          background-color: #0369a1;
-        }
-
         .dash-header {
-          background: #165b33;
-          color: #ffffff;
-          padding: 14px 24px;
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+          background: #165b33; color: #ffffff; padding: 14px 24px; display: flex;
+          flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
         }
-
         .dash-nav {
-          background: #ffffff;
-          border-bottom: 1px solid #e2e8f0;
-          padding: 0 24px;
-          display: flex;
-          gap: 20px;
-          overflow-x: auto;
-          white-space: nowrap;
+          background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 24px;
+          display: flex; gap: 20px; overflow-x: auto; white-space: nowrap;
         }
-
         .nav-btn {
-          padding: 14px 4px;
-          border: none;
-          background: transparent;
-          font-size: 14px;
-          font-weight: 600;
-          color: #64748b;
-          border-bottom: 3px solid transparent;
-          cursor: pointer;
-          transition: all 0.2s;
+          padding: 14px 4px; border: none; background: transparent; font-size: 14px;
+          font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; cursor: pointer;
         }
-
-        .nav-btn.active {
-          color: #165b33;
-          border-bottom-color: #165b33;
-        }
-
-        .dash-container {
-          max-width: 1240px;
-          margin: 0 auto;
-          padding: 24px 16px;
-        }
-
-        .grid-layout {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-          gap: 24px;
-          align-items: start;
-        }
-
-        .card {
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-          border: 1px solid #e2e8f0;
-        }
-
-        .card-header {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 16px;
-          padding-bottom: 10px;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .table-responsive {
-          width: 100%;
-          overflow-x: auto;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
-
-        th {
-          background: #f8fafc;
-          color: #475569;
-          font-weight: 600;
-          padding: 12px 10px;
-          text-align: left;
-          border-bottom: 2px solid #e2e8f0;
-        }
-
-        td {
-          padding: 12px 10px;
-          border-bottom: 1px solid #f1f5f9;
-          vertical-align: middle;
-        }
-
-        .badge {
-          display: inline-block;
-          padding: 3px 8px;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-
+        .nav-btn.active { color: #165b33; border-bottom-color: #165b33; }
+        .dash-container { max-width: 1240px; margin: 0 auto; padding: 24px 16px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .card { background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; }
+        .card-header { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-red { background: #fee2e2; color: #991b1b; }
         .badge-blue { background: #e0e7ff; color: #3730a3; }
         .badge-amber { background: #fef3c7; color: #92400e; }
-
-        .kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .kpi-box {
-          background: #ffffff;
-          padding: 20px;
-          border-radius: 14px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-
-        .kpi-value {
-          font-size: 24px;
-          font-weight: 800;
-          margin-top: 8px;
-          font-family: monospace;
-        }
-
-        @media (max-width: 640px) {
-          .login-card {
-            padding: 30px 20px;
-          }
-          .company-title {
-            font-size: 18px;
-          }
-        }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-box { background: #ffffff; padding: 20px; border-radius: 14px; border: 1px solid #e2e8f0; }
+        .kpi-value { font-size: 24px; font-weight: 800; margin-top: 8px; font-family: monospace; }
       `}</style>
 
       {/* ================= ১. লগইন ইন্টারফেস ================= */}
@@ -585,14 +377,7 @@ export default function MicrocreditApp() {
             </p>
 
             {loginError && (
-              <div style={{
-                background: '#fee2e2',
-                color: '#b91c1c',
-                padding: '10px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                marginBottom: '16px'
-              }}>
+              <div style={{ background: '#fee2e2', color: '#b91c1c', padding: '10px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
                 {loginError}
               </div>
             )}
@@ -637,14 +422,13 @@ export default function MicrocreditApp() {
       ) : (
         /* ================= ২. ড্যাশবোর্ড ইন্টারফেস ================= */
         <div>
-          {/* টপ হেডার */}
           <header className="dash-header">
             <div>
               <h1 style={{ fontSize: '18px', fontWeight: 700 }}>
                 চরভাটিয়ানী প্রতিভা সমাজ কল্যাণ বহুমুখী সমবায় সমিতি লিমিটেড
               </h1>
               <p style={{ fontSize: '12px', color: '#a7f3d0', marginTop: '2px' }}>
-                মাদারগঞ্জ, জামালপুর | ব্যাংকিং ও ফিনান্সিয়াল সিস্টেম
+                মাদারগঞ্জ, জামালপুর | ক্ষুদ্র ঋণ ও সঞ্চয় ব্যাংকিং সিস্টেম
               </p>
             </div>
 
@@ -658,61 +442,38 @@ export default function MicrocreditApp() {
               </div>
               <button
                 onClick={handleLogout}
-                style={{
-                  background: '#dc2626',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
+                style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
               >
                 লগআউট
               </button>
             </div>
           </header>
 
-          {/* নেভিগেশন বার */}
           <nav className="dash-nav">
-            <button
-              onClick={() => setActiveTab('banking')}
-              className={`nav-btn ${activeTab === 'banking' ? 'active' : ''}`}
-            >
+            <button onClick={() => setActiveTab('banking')} className={`nav-btn ${activeTab === 'banking' ? 'active' : ''}`}>
               💳 ব্যাংকিং ও লেনদেন (Banking)
             </button>
 
-            {isManagerOrSuperAdmin && (
-              <button
-                onClick={() => setActiveTab('accounts')}
-                className={`nav-btn ${activeTab === 'accounts' ? 'active' : ''}`}
-              >
+            {canViewReports && (
+              <button onClick={() => setActiveTab('accounts')} className={`nav-btn ${activeTab === 'accounts' ? 'active' : ''}`}>
                 📊 অ্যাকাউন্টস ও ব্যালেন্স রিপোর্ট (Accounts)
               </button>
             )}
 
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`nav-btn ${activeTab === 'users' ? 'active' : ''}`}
-            >
-              👥 ইউজার ও অ্যাডমিন
+            <button onClick={() => setActiveTab('users')} className={`nav-btn ${activeTab === 'users' ? 'active' : ''}`}>
+              👥 সদস্য ও ইউজার প্যানেল
             </button>
 
-            <button
-              onClick={() => setActiveTab('notices')}
-              className={`nav-btn ${activeTab === 'notices' ? 'active' : ''}`}
-            >
+            <button onClick={() => setActiveTab('notices')} className={`nav-btn ${activeTab === 'notices' ? 'active' : ''}`}>
               🔔 নোটিশ বোর্ড
             </button>
           </nav>
 
-          {/* মেইন কন্টেন্ট */}
           <main className="dash-container">
             {/* ট্যাব ১: ব্যাংকিং ও লেনদেন */}
             {activeTab === 'banking' && (
               <div className="grid-layout">
-                {/* লেনদেন ফর্ম */}
+                {/* লেনদেন এন্ট্রি */}
                 <div className="card">
                   <div className="card-header" style={{ color: '#165b33' }}>
                     নতুন লেনদেন এন্ট্রি (Debit / Credit)
@@ -735,7 +496,7 @@ export default function MicrocreditApp() {
 
                     {txnCategory !== 'অফিস খরচ' && (
                       <div>
-                        <label className="form-label">গ্রাহক / সদস্য নির্বাচন করুন (সকল ইউজার সহ)</label>
+                        <label className="form-label">গ্রাহক / সদস্য নির্বাচন করুন (মোট সদস্য: {members.length} জন)</label>
                         <select
                           value={selectedMemberId}
                           onChange={(e) => setSelectedMemberId(e.target.value)}
@@ -745,7 +506,7 @@ export default function MicrocreditApp() {
                           <option value="">-- সদস্য নির্বাচন করুন --</option>
                           {members.map((m) => (
                             <option key={m.id} value={m.id}>
-                              {m.name} - সঞ্চয়: ৳{m.savingsBalance} | ঋণ: ৳{m.loanBalance}
+                              {m.username} ({m.role}) - সঞ্চয়: ৳{m.savingsBalance} | ঋণ: ৳{m.loanBalance}
                             </option>
                           ))}
                         </select>
@@ -769,58 +530,9 @@ export default function MicrocreditApp() {
                       লেনদেন সম্পন্ন করুন ও নোটিফিকেশন পাঠান
                     </button>
                     <p style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
-                      * স্বয়ংক্রিয়ভাবে +8801689333000 নম্বরে হোয়াটসঅ্যাপ নোটিফিকেশন প্রস্তুত হবে।
+                      * স্বয়ংক্রিয়ভাবে +8801689333000 নম্বরে হোয়াটসঅ্যাপ নোটিফিকেশন প্রস্তুত হবে।
                     </p>
                   </form>
-
-                  {/* নতুন ব্যাংকিং গ্রাহক নিবন্ধন বক্স */}
-                  <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px', color: '#334155' }}>
-                      + সরাসরি নতুন ব্যাংকিং সদস্য যোগ
-                    </h3>
-                    <form onSubmit={handleAddMember} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <input
-                        type="text"
-                        required
-                        placeholder="সদস্যের পুরো নাম"
-                        value={newMemberName}
-                        onChange={(e) => setNewMemberName(e.target.value)}
-                        className="form-input"
-                        style={{ padding: '8px 12px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="মোবাইল নম্বর"
-                        value={newMemberPhone}
-                        onChange={(e) => setNewMemberPhone(e.target.value)}
-                        className="form-input"
-                        style={{ padding: '8px 12px' }}
-                      />
-                      <input
-                        type="number"
-                        placeholder="প্রাথমিক সঞ্চয় জমা (ঐচ্ছিক)"
-                        value={initialSavings}
-                        onChange={(e) => setInitialSavings(e.target.value)}
-                        className="form-input"
-                        style={{ padding: '8px 12px' }}
-                      />
-                      <button
-                        type="submit"
-                        style={{
-                          padding: '9px',
-                          background: '#1e293b',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        গ্রাহক যোগ করুন
-                      </button>
-                    </form>
-                  </div>
                 </div>
 
                 {/* দৈনিক ক্যাশ বহি */}
@@ -831,7 +543,7 @@ export default function MicrocreditApp() {
                       <thead>
                         <tr>
                           <th>তারিখ ও সময়</th>
-                          <th>গ্রাহক</th>
+                          <th>গ্রাহক/সদস্য</th>
                           <th>খাত</th>
                           <th>টাইপ</th>
                           <th>পরিমাণ</th>
@@ -841,9 +553,7 @@ export default function MicrocreditApp() {
                       <tbody>
                         {transactions.map((t) => (
                           <tr key={t.id}>
-                            <td style={{ color: '#64748b', fontSize: '12px' }}>
-                              {t.date}<br />{t.time}
-                            </td>
+                            <td style={{ color: '#64748b', fontSize: '12px' }}>{t.date}<br />{t.time}</td>
                             <td>
                               <strong>{t.memberName}</strong>
                               <span style={{ display: 'block', fontSize: '11px', color: '#94a3b8' }}>ID: {t.memberId}</span>
@@ -860,16 +570,7 @@ export default function MicrocreditApp() {
                             <td>
                               <button
                                 onClick={() => sendWhatsAppNotification(t)}
-                                style={{
-                                  background: '#16a34a',
-                                  color: '#fff',
-                                  border: 'none',
-                                  padding: '5px 10px',
-                                  borderRadius: '6px',
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  cursor: 'pointer'
-                                }}
+                                style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                               >
                                 WhatsApp
                               </button>
@@ -884,7 +585,7 @@ export default function MicrocreditApp() {
             )}
 
             {/* ট্যাব ২: অ্যাকাউন্টস রিপোর্ট (ম্যানেজার ও সুপার অ্যাডমিন) */}
-            {activeTab === 'accounts' && isManagerOrSuperAdmin && (
+            {activeTab === 'accounts' && canViewReports && (
               <div>
                 <div className="kpi-grid">
                   <div className="kpi-box">
@@ -902,14 +603,14 @@ export default function MicrocreditApp() {
                   </div>
 
                   <div className="kpi-box">
-                    <span style={{ fontSize: '12px', color: '#64748b' }}>মাঠ পর্যায়ে মোট ঋণ পাওনা</span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>মাঠ পর্যায়ে ঋণ পাওনা</span>
                     <div className="kpi-value" style={{ color: '#d97706' }}>
                       ৳ {totalOutstandingLoan.toLocaleString('en-IN')}
                     </div>
                   </div>
 
                   <div className="kpi-box">
-                    <span style={{ fontSize: '12px', color: '#64748b' }}>মোট ব্যাংকিং সদস্য</span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>মোট নিবন্ধিত সদস্য</span>
                     <div className="kpi-value" style={{ color: '#7c3aed' }}>
                       {members.length} জন
                     </div>
@@ -917,23 +618,31 @@ export default function MicrocreditApp() {
                 </div>
 
                 <div className="card">
-                  <div className="card-header">গ্রাহক লেজার ও আর্থিক ব্যালেন্স বিবরণী</div>
+                  <div className="card-header">সদস্য লেজার ও ব্যালেন্স বিবরণী (সম্পূর্ণ প্রতিষ্ঠান)</div>
                   <div className="table-responsive">
                     <table>
                       <thead>
                         <tr>
                           <th>আইডি</th>
-                          <th>নাম</th>
-                          <th>মোট সঞ্চয় স্থিতি</th>
-                          <th>বর্তমান ঋণ স্থিতি</th>
-                          <th>অবস্থা</th>
+                          <th>সদস্যের নাম</th>
+                          <th>রোল</th>
+                          <th>মোবাইল</th>
+                          <th>মোট সঞ্চয়</th>
+                          <th>বর্তমান ঋণ</th>
+                          <th>আর্থিক অবস্থা</th>
                         </tr>
                       </thead>
                       <tbody>
                         {members.map((m) => (
                           <tr key={m.id}>
                             <td style={{ color: '#64748b' }}>{m.id}</td>
-                            <td><strong>{m.name}</strong></td>
+                            <td><strong>{m.username}</strong></td>
+                            <td>
+                              <span className={`badge ${m.role === 'Super Admin' ? 'badge-amber' : m.role === 'Manager' ? 'badge-blue' : 'badge-green'}`}>
+                                {m.role}
+                              </span>
+                            </td>
+                            <td>{m.phone}</td>
                             <td style={{ color: '#165b33', fontWeight: 700, fontFamily: 'monospace' }}>
                               ৳ {m.savingsBalance.toLocaleString('en-IN')}
                             </td>
@@ -954,16 +663,15 @@ export default function MicrocreditApp() {
               </div>
             )}
 
-            {/* ট্যাব ৩: ইউজার ও অ্যাডমিন প্যানেল */}
+            {/* ট্যাব ৩: সদস্য ও ইউজার প্যানেল */}
             {activeTab === 'users' && (
               <div className="grid-layout">
-                {/* শুধুমাত্র Super Admin এবং Manager নতুন ইউজার তৈরি করতে পারবে */}
-                {isManagerOrSuperAdmin ? (
+                {isManagerOrAdmin ? (
                   <div className="card">
-                    <div className="card-header">+ নতুন ইউজার / সদস্য যোগ করুন</div>
-                    <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div className="card-header">+ নতুন সদস্য / ইউজার যোগ করুন</div>
+                    <form onSubmit={handleAddUserMember} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div>
-                        <label className="form-label">ইউজারনেম (ইংরেজি ছোট হাত)</label>
+                        <label className="form-label">ইউজারনেম (সদস্যের নাম)</label>
                         <input
                           type="text"
                           required
@@ -975,7 +683,7 @@ export default function MicrocreditApp() {
                       </div>
 
                       <div>
-                        <label className="form-label">পদবী / রোল (Role)</label>
+                        <label className="form-label">পদবী / ক্যাটাগরি (Role)</label>
                         <select
                           value={newRole}
                           onChange={(e) => setNewRole(e.target.value as any)}
@@ -986,6 +694,17 @@ export default function MicrocreditApp() {
                           <option value="Manager">Manager</option>
                           <option value="Field Officer">Field Officer</option>
                         </select>
+                      </div>
+
+                      <div>
+                        <label className="form-label">মোবাইল নম্বর</label>
+                        <input
+                          type="text"
+                          value={newPhone}
+                          onChange={(e) => setNewPhone(e.target.value)}
+                          placeholder="মোবাইল নম্বর লিখুন"
+                          className="form-input"
+                        />
                       </div>
 
                       <div>
@@ -1000,38 +719,56 @@ export default function MicrocreditApp() {
                         />
                       </div>
 
-                      <button type="submit" className="btn-primary">
-                        ইউজার একাউন্ট তৈরি করুন
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label className="form-label">প্রাথমিক সঞ্চয় (৳)</label>
+                          <input
+                            type="number"
+                            value={initialSavings}
+                            onChange={(e) => setInitialSavings(e.target.value)}
+                            placeholder="0"
+                            className="form-input"
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label">প্রাথমিক ঋণ (৳)</label>
+                          <input
+                            type="number"
+                            value={initialLoan}
+                            onChange={(e) => setInitialLoan(e.target.value)}
+                            placeholder="0"
+                            className="form-input"
+                          />
+                        </div>
+                      </div>
+
+                      <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
+                        সদস্য যুক্ত করুন ও ব্যাংকিং এ সিঙ্ক করুন
                       </button>
-                      <p style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
-                        * ইউজার যুক্ত হওয়ার সাথে সাথে ব্যাংকিং সিস্টেমেও সদস্য হিসেবে যুক্ত হবে।
-                      </p>
                     </form>
                   </div>
                 ) : (
-                  <div className="card" style={{ background: '#f8fafc', textAlign: 'center', padding: '30px' }}>
-                    <p style={{ fontSize: '13px', color: '#64748b' }}>
-                      নতুন ইউজার যোগ করার পারমিশন শুধুমাত্র Super Admin ও Manager-এর রয়েছে।
-                    </p>
+                  <div className="card" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                    নতুন সদস্য যুক্ত করার পারমিশন শুধুমাত্র অ্যাডমিন ও ম্যানেজারের রয়েছে।
                   </div>
                 )}
 
-                {/* ইউজার তালিকা */}
+                {/* সদস্য ও ইউজার তালিকা */}
                 <div className="card">
-                  <div className="card-header">অনুমোদিত ইউজার তালিকা</div>
+                  <div className="card-header">অনুমোদিত সদস্য ও ইউজার তালিকা</div>
                   <div className="table-responsive">
                     <table>
                       <thead>
                         <tr>
                           <th>আইডি</th>
                           <th>ইউজারনেম</th>
-                          <th>রোল</th>
-                          <th>পাসওয়ার্ড</th>
+                          <th>পদবী</th>
+                          <th>পাসওয়ার্ড</th>
                           <th>অ্যাকশন</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {users.map((u) => (
+                        {members.map((u) => (
                           <tr key={u.id}>
                             <td style={{ color: '#64748b', fontSize: '11px' }}>{u.id}</td>
                             <td><strong>{u.username}</strong></td>
@@ -1048,40 +785,21 @@ export default function MicrocreditApp() {
                               {isSuperAdmin ? u.password : '••••••'}
                             </td>
                             <td>
-                              {/* রিকোয়ারমেন্ট ১: সাধারণ ইউজার কোনো অ্যাকশন বাটন দেখতে পারবে না */}
-                              {isManagerOrSuperAdmin ? (
+                              {/* সাধারণ সদস্যের কোনো অ্যাকশন বাটন থাকবে না */}
+                              {isManagerOrAdmin ? (
                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                  {/* শুধু সুপার অ্যাডমিন এডিট করতে পারবে */}
                                   {isSuperAdmin && (
                                     <button
                                       onClick={() => handleStartEdit(u)}
-                                      style={{
-                                        background: '#f59e0b',
-                                        color: '#fff',
-                                        border: 'none',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '11px',
-                                        cursor: 'pointer'
-                                      }}
+                                      style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
                                     >
                                       এডিট
                                     </button>
                                   )}
-
-                                  {/* সুপার অ্যাডমিন নিজে নিজেকে মুছতে পারবে না, অন্যরা মুছতে পারবে যদি পারমিশন থাকে */}
                                   {u.role !== 'Super Admin' && (
                                     <button
-                                      onClick={() => handleDeleteUser(u.id)}
-                                      style={{
-                                        background: '#ef4444',
-                                        color: '#fff',
-                                        border: 'none',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '11px',
-                                        cursor: 'pointer'
-                                      }}
+                                      onClick={() => handleDeleteMember(u.id)}
+                                      style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
                                     >
                                       মুছুন
                                     </button>
@@ -1113,31 +831,12 @@ export default function MicrocreditApp() {
             )}
           </main>
 
-          {/* সুপার অ্যাডমিন এডিট পপআপ মডাল */}
-          {editingUser && isSuperAdmin && (
-            <div style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px',
-              zIndex: 999
-            }}>
-              <div style={{
-                background: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px',
-                width: '100%',
-                maxWidth: '420px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
-              }}>
+          {/* সুপার অ্যাডমিন এডিট মডাল */}
+          {editingMember && isSuperAdmin && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 999 }}>
+              <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '14px', color: '#1e293b' }}>
-                  ইউজার তথ্য এডিট করুন ({editingUser.username})
+                  সদস্য তথ্য এডিট করুন ({editingMember.username})
                 </h3>
                 <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
@@ -1147,6 +846,16 @@ export default function MicrocreditApp() {
                       required
                       value={editUsername}
                       onChange={(e) => setEditUsername(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">মোবাইল</label>
+                    <input
+                      type="text"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
                       className="form-input"
                     />
                   </div>
@@ -1183,16 +892,8 @@ export default function MicrocreditApp() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingUser(null)}
-                      style={{
-                        padding: '10px 18px',
-                        background: '#f1f5f9',
-                        color: '#475569',
-                        border: 'none',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        fontWeight: 600
-                      }}
+                      onClick={() => setEditingMember(null)}
+                      style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}
                     >
                       বাতিল
                     </button>
